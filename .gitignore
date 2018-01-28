@@ -4,6 +4,8 @@
 /gradle.properties
 /local.properties
 
+.env
+
 .DS_Store
 
 /build

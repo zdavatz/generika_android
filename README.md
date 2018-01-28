@@ -44,6 +44,25 @@ https://wiki.gentoo.org/wiki/Android
 % make build
 ```
 
+### Run
+
+See targets `run` or `run-emulator`.
+
+```zsh
+# list your virtual devices
+% make run ARGS="-list-avds"
+./bin/emulator -list-avds
+Nexus_5X_API_25
+Nexus_5X_API_26
+Nexus_5_API_27
+Pixel_2_API_26
+Pixel_2_API_27
+...
+
+# run emulator
+% make run ARGS="-avd Nexus_5_API_27"
+```
+
 ### Test
 
 Run JUnit Tests.

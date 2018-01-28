@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+if [ -f ".env" ]; then
+  source .env
+fi
+
+EMULATOR=${EMULATOR_PATH:-emulator}
+EMULATOR_ARGS=${@:-""}
+
+if [ -z "${EMULATOR_ARGS}" ]; then
+  echo "Run with args like: ARGS=\"-list-avds\""
+else
+  ${EMULATOR} $@
+fi
