@@ -2,6 +2,6 @@
     <string name="app_name">Generika</string>
     <string name="action_settings">Settings</string>
     <string name="drawer_header_text">Generika</string>
-    <string name="nav_item_medications">Medikamente</string>
-    <string name="nav_item_prescriptions">Rezepte</string>
+    <string name="nav_item_medications">Medications</string>
+    <string name="nav_item_prescriptions">Prescriptions</string>
 </resources>
