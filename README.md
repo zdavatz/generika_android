@@ -57,6 +57,7 @@ Nexus_5X_API_26
 Nexus_5_API_27
 Pixel_2_API_26
 Pixel_2_API_27
+Pixel_2_XL_API_26
 ...
 
 # run emulator
