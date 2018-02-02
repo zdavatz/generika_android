@@ -5,9 +5,9 @@
         <item
             android:id="@+id/navigation_item_medications"
             android:checked="true"
-            android:title="@string/nav_item_medications" />
+            android:title="@string/medications" />
         <item
             android:id="@+id/navigation_item_prescriptions"
-            android:title="@string/nav_item_prescriptions" />
+            android:title="@string/prescriptions" />
     </group>
 </menu>

@@ -27,7 +27,7 @@
 
 				</android.support.design.widget.AppBarLayout>
 
-				<include layout="@layout/content_main" />
+				<include layout="@layout/activity_main_content" />
 
 				<android.support.design.widget.FloatingActionButton
 						android:id="@+id/fab"
@@ -46,4 +46,5 @@
         android:layout_gravity="start"
         app:headerLayout="@layout/drawer_header"
         app:menu="@menu/drawer"/>
+
 </android.support.v4.widget.DrawerLayout>
