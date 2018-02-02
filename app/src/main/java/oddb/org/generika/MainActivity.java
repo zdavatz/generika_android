@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements
 
     ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(true);
+    actionBar.setHomeButtonEnabled(true);
 
     mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
 
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements
       @Override
       public void onClick(View view) {
         Snackbar.make(
-          view, "Replace with your own action", Snackbar.LENGTH_LONG
+          view, "Scanner view is comming!", Snackbar.LENGTH_LONG
         ).setAction("Action", null).show();
       }
     });
