@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements
             MainActivity.this, menuItem.getTitle(), Toast.LENGTH_LONG).show();
           return true;
         }
-
     });
 
     ListView listView = (ListView)findViewById(R.id.list_view);
