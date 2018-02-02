@@ -1,6 +1,7 @@
 package oddb.org.generika;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
@@ -56,7 +57,11 @@ public class MainActivity extends AppCompatActivity implements
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
+    Context context = (Context)this;
+
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+    // default: medications
+    toolbar.setTitle(context.getString(R.string.medications));
     setSupportActionBar(toolbar);
 
     ActionBar actionBar = getSupportActionBar();
@@ -127,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements
       TextView descriptionView = (TextView)convertView.findViewById(
         R.id.description);
       titleView.setText(context.getString(item.title));
-      descriptionView.setText(context.getString(item.title));
+      descriptionView.setText(context.getString(item.description));
       return convertView;
     }
   }
@@ -137,9 +142,10 @@ public class MainActivity extends AppCompatActivity implements
       AdapterView<?> parent, View view, int position, long id) {
     Item item = list.get(position);
 
-    // Use Intent
-    // Intent inten = ...
-    // startActivity(intent);
+    Intent intent = new Intent(this, WebViewActivity.class);
+    startActivity(intent);
+    overridePendingTransition(R.anim.slide_leave,
+                              R.anim.slide_enter);
   }
 
   @Override
