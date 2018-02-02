@@ -22,3 +22,5 @@
 *.iws
 *.jar
 *.war
+
+app/build.gradle
