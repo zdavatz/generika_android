@@ -5,10 +5,10 @@ if [ -f ".env" ]; then
 fi
 
 EMULATOR=${EMULATOR_PATH:-emulator}
-EMULATOR_ARGS=${@:-""}
+EMULATOR_ARGS=${@:-"-list-avds"}
 
 if [ -z "${EMULATOR_ARGS}" ]; then
   echo "Run with args like: ARGS=\"-list-avds\""
 else
-  ${EMULATOR} $@
+  ${EMULATOR} ${EMULATOR_ARGS}
 fi
