@@ -1,4 +1,4 @@
-package oddb.org.generika;
+package org.oddb.generika;
 
 import org.junit.Test;
 

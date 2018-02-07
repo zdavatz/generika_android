@@ -1,4 +1,4 @@
-package oddb.org.generika;
+package org.oddb.generika;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("oddb.org.generika", appContext.getPackageName());
+        assertEquals("org.oddb.generika", appContext.getPackageName());
     }
 }

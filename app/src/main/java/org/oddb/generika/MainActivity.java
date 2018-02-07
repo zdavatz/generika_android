@@ -1,4 +1,4 @@
-package oddb.org.generika;
+package org.oddb.generika;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +13,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,10 +76,10 @@ public class MainActivity extends AppCompatActivity implements
 
     mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
     mDrawerToggle = new ActionBarDrawerToggle(
-        this,
-        mDrawerLayout,
-        R.string.drawer_open,
-        R.string.drawer_close
+      this,
+      mDrawerLayout,
+      R.string.drawer_open,
+      R.string.drawer_close
     ) {
       public void onDrawerOpened(View view) {
         super.onDrawerOpened(view);
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements
         getSupportActionBar().setTitle(mTitle);
         invalidateOptionsMenu();  // onPrepareOptionsMenu
       }
-    }; 
+    };
     mDrawerToggle.syncState();
     mDrawerLayout.addDrawerListener(mDrawerToggle);
 
