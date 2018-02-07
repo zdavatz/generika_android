@@ -11,7 +11,7 @@ run: | run-emulator
 
 stop:
 	adb devices | grep '^emulator' | cut -f1 | \
-		while read line; do adb -s "${line}" emu kill; \
+		while read line; do adb -s "$${line}" emu kill; \
 		done
 .PHONY: stop
 
