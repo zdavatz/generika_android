@@ -6,7 +6,12 @@
     <string name="action_settings">Settings</string>
 
     <string name="medications">Medications</string>
+    <!--
     <string name="prescriptions">Prescriptions</string>
+    -->
+
+    <string name="drawer_close">Close</string>
+    <string name="drawer_open">Open</string>
 
     <string name="web_view_text">WebView</string>
 

@@ -10,6 +10,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity implements
   AdapterView.OnItemClickListener {
 
   private DrawerLayout mDrawerLayout;
+  private ActionBarDrawerToggle mDrawerToggle;
+  private CharSequence mTitle;
 
   private static final List<Item> list = new ArrayList<Item>() {
     {
@@ -57,18 +60,45 @@ public class MainActivity extends AppCompatActivity implements
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
+    initViews();
+  }
+
+  private void initViews() {
     Context context = (Context)this;
 
-    Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     // default: medications
-    toolbar.setTitle(context.getString(R.string.medications));
+    mTitle = context.getString(R.string.medications);
+
+    Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+    toolbar.setTitle(mTitle);
     setSupportActionBar(toolbar);
+
+    mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+    mDrawerToggle = new ActionBarDrawerToggle(
+        this,
+        mDrawerLayout,
+        R.string.drawer_open,
+        R.string.drawer_close
+    ) {
+      public void onDrawerOpened(View view) {
+        super.onDrawerOpened(view);
+        getSupportActionBar().setTitle(mTitle);
+        invalidateOptionsMenu(); // onPrepareOptionsMenu
+      }
+
+      public void onDrawerClosed(View view) {
+        super.onDrawerClosed(view);
+        // TODO: update title
+        getSupportActionBar().setTitle(mTitle);
+        invalidateOptionsMenu();  // onPrepareOptionsMenu
+      }
+    }; 
+    mDrawerToggle.syncState();
+    mDrawerLayout.addDrawerListener(mDrawerToggle);
 
     ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
-
-    mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
 
     NavigationView navigationView = (NavigationView)findViewById(
       R.id.navigation_view);
@@ -98,6 +128,12 @@ public class MainActivity extends AppCompatActivity implements
         ).setAction("Action", null).show();
       }
     });
+  }
+
+  @Override
+  public boolean onPrepareOptionsMenu(Menu menu) {
+    // TODO: set options menu by selected item (drawer)
+    return super.onPrepareOptionsMenu(menu);
   }
 
   private static class ListAdapter extends BaseAdapter {

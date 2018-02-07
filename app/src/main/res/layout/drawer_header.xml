@@ -3,30 +3,19 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="150dp"
+    android:layout_height="80dp"
     android:background="?attr/colorPrimaryDark"
-    android:padding="16dp"
+    android:padding="6dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark"
     android:gravity="bottom">
-
-    <ImageView
-        android:id="@+id/app_icon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="left"
-        android:paddingLeft="0dp"
-        android:paddingBottom="3dp"
-        android:clipToPadding="false"
-        android:layout_marginLeft="-4dp"
-        android:baselineAlignBottom="true"
-        android:src="@mipmap/ic_launcher" />
 
     <TextView
         android:id="@+id/app_name_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="2dp"
+        android:layout_marginLeft="12dp"
         android:text="@string/app_name"
+        android:textSize="15sp"
         android:baselineAlignBottom="true"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
@@ -34,10 +23,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:layout_marginLeft="3dp"
+        android:layout_marginLeft="13dp"
         android:layout_below="@+id/app_name_text"
         android:text="@string/versionName"
-        android:textSize="9sp"
+        android:textSize="10sp"
         android:baselineAlignBottom="true"
         android:textColor="#f3f3f3"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />

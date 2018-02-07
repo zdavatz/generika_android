@@ -45,6 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:paddingTop="@dimen/design_navigation_separator_vertical_padding"
         app:headerLayout="@layout/drawer_header"
         app:menu="@menu/drawer"/>
 
