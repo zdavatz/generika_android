@@ -9,6 +9,12 @@ run-emulator:
 run: | run-emulator
 .PHONY: run
 
+stop:
+	adb devices | grep '^emulator' | cut -f1 | \
+		while read line; do adb -s "${line}" emu kill; \
+		done
+.PHONY: stop
+
 test:
 	./bin/gradlew test
 .PHONY: test
