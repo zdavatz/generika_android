@@ -64,6 +64,19 @@ Pixel_2_XL_API_26
 % make run ARGS="-avd Nexus_5_API_27"
 ```
 
+For example, build-run-stop (cycle) will be like this:  
+(at console, run an emulator on X11 DISPLAY)
+
+```zsh
+# pass $ARGS to gradlew
+% make build ARGS="-x lint"
+
+# run on your X11 DISPLAY ;)
+% DISPLAY=":0" make run ARGS="-avd Nexus_5_API_27"
+
+% make stop
+```
+
 ### Test
 
 Run JUnit Tests.

@@ -1,5 +1,5 @@
 build:
-	./bin/gradlew build
+	./bin/gradlew build $(ARGS)
 .PHONY: build
 
 run-emulator:
