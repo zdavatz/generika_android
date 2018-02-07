@@ -14,6 +14,9 @@ https://github.com/zdavatz/generika_android
 ### Requirements
 
 * [IcedTea](https://icedtea.classpath.org/wiki/Main_Page) 3.6 (OpenJDK 8)
+* Play Service Vision API (For Barcode Detection)
+
+#### IcedTea
 
 E.g. on Gentoo Linux
 
@@ -35,6 +38,13 @@ You may want also following packages:
 See a link below about Android specific packages.
 
 https://wiki.gentoo.org/wiki/Android
+
+#### Play Service (Vision API)
+
+It's automatically prepared before initial boot on device.  
+This application is needed.
+
+https://play.google.com/store/apps/details?id=com.google.android.gms&hl=en
 
 
 ### Build
@@ -97,3 +107,39 @@ Copyright (c) 2018 ywesee GmbH
 ```
 
 See [LICENSE.txt](LICENCE).
+
+
+Some parts of barcode detection work with Android Mobile Vision API using
+extended codes based on codes which are included in samples project provided
+by The Android Open Source Project as `APACHE-2.0`.
+
+https://apache.org/licenses/GPL-compatibility.html
+
+```txt
+Apache 2 software can therefore be included in GPLv3 projects, because
+the GPLv3 license accepts our software into GPLv3 works. However, GPLv3
+software cannot be included in Apache projects. The licenses are incompatible
+in one direction only, and it is a result of ASF's licensing philosophy and
+the GPLv3 authors' interpretation of copyright law.
+```
+
+```txt
+/*
+ * Copyright (C) The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+See [googlesamples/android-vision](
+https://github.com/googlesamples/android-vision).
