@@ -186,7 +186,8 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements
     }
 
     mCameraSource = builder
-      .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
+      .setFlashMode( // Enable only auto mode flash
+          useFlash ? Camera.Parameters.FLASH_MODE_AUTO : null)
       .build();
   }
 
