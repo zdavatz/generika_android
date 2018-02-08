@@ -90,11 +90,11 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements
     super.onCreate(icicle);
     setContentView(R.layout.barcode_capture);
 
-    mPreview = (CameraSourcePreview) findViewById(R.id.preview);
-    mGraphicOverlay = (GraphicOverlay<BarcodeGraphic>) findViewById(
+    mPreview = (CameraSourcePreview)findViewById(R.id.preview);
+    mGraphicOverlay = (GraphicOverlay<BarcodeGraphic>)findViewById(
         R.id.graphicOverlay);
 
-    // Read parameters from the main intent
+    // Options: from the main intent
     boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
     boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
 
@@ -107,9 +107,10 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements
       requestCameraPermission();
     }
 
-    Snackbar.make(mGraphicOverlay,
-                  "Tap to capture. Pinch/Stretch to zoom",
-                  Snackbar.LENGTH_LONG).show();
+    Snackbar.make(
+      mGraphicOverlay,
+      "Hold rear camera out over the barcode of package",
+      Snackbar.LENGTH_LONG).show();
   }
 
   private void requestCameraPermission() {
@@ -174,9 +175,9 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements
 
     CameraSource.Builder builder = new CameraSource.Builder(
         getApplicationContext(), barcodeDetector)
-        .setFacing(CameraSource.CAMERA_FACING_BACK)
-        .setRequestedPreviewSize(1600, 1024)
-        .setRequestedFps(15.0f);
+          .setFacing(CameraSource.CAMERA_FACING_BACK)
+          .setRequestedPreviewSize(1600, 1024)
+          .setRequestedFps(15.0f);
 
     // auto focus
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {

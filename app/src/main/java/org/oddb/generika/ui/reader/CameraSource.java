@@ -789,14 +789,16 @@ public class CameraSource {
               return;
             }
           }
-
           if (!mActive) {
             return;
           }
 
           outputFrame = new Frame.Builder()
-            .setImageData(mPendingFrameData, mPreviewSize.getWidth(),
-                          mPreviewSize.getHeight(), ImageFormat.NV21)
+            .setImageData(
+                mPendingFrameData,
+                mPreviewSize.getWidth(),
+                mPreviewSize.getHeight(),
+                ImageFormat.NV21)
             .setId(mPendingFrameId)
             .setTimestampMillis(mPendingTimeMillis)
             .setRotation(mRotation)
