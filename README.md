@@ -52,6 +52,10 @@ https://play.google.com/store/apps/details?id=com.google.android.gms&hl=en
 ```zsh
 # via gradlew
 % make build
+# create apk (debug)
+% make archive
+# create apk (release)
+% make release
 ```
 
 ### Run

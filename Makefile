@@ -2,6 +2,16 @@ build:
 	./bin/gradlew build $(ARGS)
 .PHONY: build
 
+archive:
+	# generate apk with buildType:debug
+	./bin/gradlew assemble $(ARGS)
+.PHONY: archive
+
+release:
+	# generate apk with buildType:release
+	./bin/gradlew assembleRelease $(ARGS)
+.PHONY: release
+
 run-emulator:
 	./bin/emulator $(ARGS)
 .PHONY: run-emulator
