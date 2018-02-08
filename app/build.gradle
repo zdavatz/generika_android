@@ -17,6 +17,13 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
+    // https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.LintOptions.html#com.android.build.gradle.internal.dsl.LintOptions
+    lintOptions {
+      // check but allow bulding for warnings
+      checkReleaseBuilds true
+      abortOnError false
+    }
+
     buildTypes {
         release {
             minifyEnabled false
