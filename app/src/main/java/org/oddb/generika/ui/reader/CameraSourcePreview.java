@@ -173,12 +173,30 @@ public class CameraSourcePreview extends ViewGroup {
     final int layoutWidth = right - left;
     final int layoutHeight = bottom - top;
 
-    // fix (just use layoutWidth for children)
-    int childWidth = layoutWidth;
-    int childHeight = layoutHeight;
+    // fix landscape mode and aspect ratio
+    int childWidth;
+    int childHeight;
+    int childOffsetX = 0;
+    int childOffsetY = 0;
+    float widthRatio = (float)layoutWidth / (float)width;
+    float heightRatio = (float)layoutHeight / (float)height;
+
+    if (widthRatio > heightRatio) {
+      childWidth = layoutWidth;
+      childHeight = (int)((float)height * widthRatio);
+      childOffsetY = (childHeight - layoutHeight) / 2;
+    } else {
+      childWidth = (int)((float)width * heightRatio);
+      childHeight = layoutHeight;
+      childOffsetX = (childWidth - layoutWidth) / 2;
+    }
 
     for (int i = 0; i < getChildCount(); ++i) {
-      getChildAt(i).layout(0, 0, childWidth, childHeight);
+      getChildAt(i).layout(
+        -1 * childOffsetX,
+        -1 * childOffsetY,
+        childWidth - childOffsetX,
+        childHeight - childOffsetY);
     }
 
     try {
