@@ -42,6 +42,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.vision.barcode.Barcode;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +55,9 @@ public class MainActivity extends AppCompatActivity implements
   private DrawerLayout mDrawerLayout;
   private ActionBarDrawerToggle mDrawerToggle;
   private CharSequence mTitle;
+
+  private static final int RC_BARCODE_CAPTURE = 9001;
+  private static final String TAG = "BarcodeMain";
 
   private static final List<Item> list = new ArrayList<Item>() {
     {
@@ -144,6 +150,12 @@ public class MainActivity extends AppCompatActivity implements
         Snackbar.make(
           view, "Scanner view is comming!", Snackbar.LENGTH_LONG
         ).setAction("Action", null).show();
+
+        Intent intent = new Intent(
+          MainActivity.this, BarcodeCaptureActivity.class);
+        intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
+        intent.putExtra(BarcodeCaptureActivity.UseFlash, true);
+        startActivityForResult(intent, RC_BARCODE_CAPTURE);
       }
     });
   }
@@ -226,6 +238,32 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  protected void onActivityResult(
+    int requestCode, int resultCode, Intent data) {
+
+    if (requestCode == RC_BARCODE_CAPTURE) {
+      if (resultCode == CommonStatusCodes.SUCCESS) {
+        if (data != null) {
+          Barcode barcode = data.getParcelableExtra(
+            BarcodeCaptureActivity.BarcodeObject);
+          Log.d(TAG, "Barcode found: " + barcode.displayValue);
+        } else {
+          Log.d(TAG, "Barcode not found");
+        }
+      } else {
+        Log.d(
+          TAG,
+          String.format(
+            getString(R.string.barcode_error),
+            CommonStatusCodes.getStatusCodeString(resultCode))
+        );
+      }
+    } else {
+      super.onActivityResult(requestCode, resultCode, data);
+    }
   }
 
   private static class Item {
