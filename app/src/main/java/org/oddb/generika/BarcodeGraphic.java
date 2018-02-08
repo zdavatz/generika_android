@@ -46,8 +46,7 @@ public class BarcodeGraphic extends GraphicOverlay.Graphic {
   private int mId;
 
   private static final int COLOR_CHOICES[] = {
-    Color.BLUE,
-    Color.CYAN,
+    // Generika uses only green (primary dark color) ;)
     Color.GREEN
   };
 
@@ -60,6 +59,7 @@ public class BarcodeGraphic extends GraphicOverlay.Graphic {
   BarcodeGraphic(GraphicOverlay overlay) {
     super(overlay);
 
+    // TODO: Change color for barcode type (barcode, qrcode etc.)
     mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
     final int selectedColor = COLOR_CHOICES[mCurrentColorIndex];
 
