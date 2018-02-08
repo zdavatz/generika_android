@@ -421,6 +421,7 @@ public class CameraSource {
   }
 
   private CameraSource() {
+    // pass
   }
 
   private class PictureStartCallback implements Camera.ShutterCallback {
@@ -518,8 +519,7 @@ public class CameraSource {
         parameters.setFocusMode(mFocusMode);
       } else {
         Log.i(TAG,
-          "Camera focus mode: " +
-          mFocusMode +
+          "Camera focus mode: " + mFocusMode +
           " is not supported on this device.");
       }
     }
@@ -532,8 +532,7 @@ public class CameraSource {
           parameters.setFlashMode(mFlashMode);
         } else {
           Log.i(TAG,
-            "Camera flash mode: " +
-            mFlashMode +
+            "Camera flash mode: " + mFlashMode +
             " is not supported on this device.");
         }
       }
@@ -818,4 +817,4 @@ public class CameraSource {
       }
     }
   }
-} 
+}
