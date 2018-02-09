@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements
       R.id.navigation_view);
     navigationView.setNavigationItemSelectedListener(
       new NavigationView.OnNavigationItemSelectedListener() {
+
         @Override
         public boolean onNavigationItemSelected(MenuItem menuItem) {
           menuItem.setChecked(true);
@@ -165,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements
     FloatingActionButton fab = (FloatingActionButton)findViewById(
       R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
+
       @Override
       public void onClick(View view) {
         Intent intent = new Intent(
@@ -225,6 +227,9 @@ public class MainActivity extends AppCompatActivity implements
           Barcode barcode = data.getParcelableExtra(
             BarcodeCaptureActivity.BarcodeObject);
           Log.d(TAG, "Barcode found: " + barcode.displayValue);
+          if (barcode.displayValue.length() == 13) {
+            addProduct(barcode.displayValue);
+          }
         } else {
           Log.d(TAG, "Barcode not found");
         }

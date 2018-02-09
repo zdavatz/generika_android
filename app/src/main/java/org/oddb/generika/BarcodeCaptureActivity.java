@@ -236,10 +236,9 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements
     }
 
     Log.e(TAG,
-      "Permission not granted: results len = " + 
-      grantResults.length +
-      " Result code = " +
-      (grantResults.length > 0 ? grantResults[0] : "(empty)"));
+      "Permission not granted: results len = " + grantResults.length +
+      " Result code = " + (
+        grantResults.length > 0 ? grantResults[0] : "(empty)"));
 
     DialogInterface.OnClickListener listener =
       new DialogInterface.OnClickListener() {
@@ -282,29 +281,25 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements
     float x = (rawX - location[0]) / mGraphicOverlay.getWidthScaleFactor();
     float y = (rawY - location[1]) / mGraphicOverlay.getHeightScaleFactor();
 
-    Barcode best = null;
+    Barcode barcode = null;
     float bestDistance = Float.MAX_VALUE;
     for (BarcodeGraphic graphic : mGraphicOverlay.getGraphics()) {
-      Barcode barcode = graphic.getBarcode();
-      if (barcode.getBoundingBox().contains((int) x, (int) y)) {
+      Barcode detected = graphic.getBarcode();
+      if (detected.getBoundingBox().contains((int) x, (int) y)) {
         // captured
-        best = barcode;
+        barcode = detected;
         break;
       }
-      float dx = x - barcode.getBoundingBox().centerX();
-      float dy = y - barcode.getBoundingBox().centerY();
+      float dx = x - detected.getBoundingBox().centerX();
+      float dy = y - detected.getBoundingBox().centerY();
       float distance = (dx * dx) + (dy * dy);
       if (distance < bestDistance) {
-        best = barcode;
+        barcode = detected;
         bestDistance = distance;
       }
     }
-
-    if (best != null) {
-      Intent data = new Intent();
-      data.putExtra(BarcodeObject, best);
-      setResult(CommonStatusCodes.SUCCESS, data);
-      finish();
+    if (barcode != null) {
+      onBarcodeDetected(barcode);
       return true;
     }
     return false;
@@ -312,6 +307,10 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements
 
   @Override
   public void onBarcodeDetected(Barcode barcode) {
-    // TODO
+    // just rerutrn detected barcode to activity and finish
+    Intent data = new Intent();
+    data.putExtra(BarcodeObject, barcode);
+    setResult(CommonStatusCodes.SUCCESS, data);
+    finish();
   }
 }
