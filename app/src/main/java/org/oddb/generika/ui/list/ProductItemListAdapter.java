@@ -31,7 +31,7 @@ import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.R;
 
 
-public class ProductItemAdapter extends RealmBaseAdapter<ProductItem>
+public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   implements ListAdapter {
 
     // TODO
@@ -51,7 +51,7 @@ public class ProductItemAdapter extends RealmBaseAdapter<ProductItem>
       void delete(long productId);
     }
 
-    public ProductItemAdapter(
+    public ProductItemListAdapter(
       OrderedRealmCollection<ProductItem> realmResults) {
       super(realmResults);
     }

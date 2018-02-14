@@ -19,6 +19,8 @@ package org.oddb.generika;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.NetworkInfo;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -48,24 +50,32 @@ import java.util.List;
 
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
-import org.oddb.generika.ui.list.ProductItemAdapter;
+import org.oddb.generika.ui.list.ProductItemListAdapter;
+import org.oddb.generika.network.ProductItemDataFetchFragment;
 
 
 public class MainActivity extends AppCompatActivity implements
   AdapterView.OnItemClickListener,
-  ProductItemAdapter.DeleteListener {
+  ProductItemListAdapter.DeleteListener,
+  ProductItemDataFetchFragment.FetchCallback<String> {
 
   private static final int RC_BARCODE_CAPTURE = 9001;
   private static final String TAG = "BarcodeMain";
 
+  // view
   private DrawerLayout mDrawerLayout;
   private ActionBarDrawerToggle mDrawerToggle;
   private CharSequence mTitle;
   private ListView mListView;
 
+  // database
   private Realm realm;
-  private Product product;
-  private ProductItemAdapter productItemAdapter;
+  private Product product;  // container object
+  private ProductItemListAdapter productItemListAdapter;
+
+  // network (headless fragment)
+  private boolean fetching = false;
+  private ProductItemDataFetchFragment productItemDataFetcher;
 
   // as place holder values
   private static final String[] initData = {
@@ -76,6 +86,11 @@ public class MainActivity extends AppCompatActivity implements
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
+    // TODO: use constant utility
+    this.productItemDataFetcher = ProductItemDataFetchFragment.getInstance(
+      getSupportFragmentManager(),
+      "https://ch.oddb.org/de/mobile/api_search/ean/");
 
     initProductItems();
     initViews();
@@ -92,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements
     realm = Realm.getDefaultInstance();
 
     // default
-    product = realm.where(Product.class)
+    this.product = realm.where(Product.class)
       .equalTo("sourceType", "scanner").findFirst();
 
     if (product.getItems().size() == 0) {
@@ -103,22 +118,23 @@ public class MainActivity extends AppCompatActivity implements
       realm.commitTransaction();
     }
 
-    productItemAdapter = new ProductItemAdapter(product.getItems());
-    productItemAdapter.setCallback(this);
+    this.productItemListAdapter = new ProductItemListAdapter(
+      product.getItems());
+    productItemListAdapter.setCallback(this);
   }
 
   private void initViews() {
     Context context = (Context)this;
 
     // default: medications
-    mTitle = context.getString(R.string.medications);
+    this.mTitle = context.getString(R.string.medications);
 
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(mTitle);
     setSupportActionBar(toolbar);
 
-    mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-    mDrawerToggle = new ActionBarDrawerToggle(
+    this.mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+    this.mDrawerToggle = new ActionBarDrawerToggle(
       this,
       mDrawerLayout,
       R.string.drawer_open,
@@ -144,8 +160,8 @@ public class MainActivity extends AppCompatActivity implements
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
 
-    mListView = (ListView)findViewById(R.id.list_view);
-    mListView.setAdapter(productItemAdapter);
+    this.mListView = (ListView)findViewById(R.id.list_view);
+    mListView.setAdapter(productItemListAdapter);
     mListView.setOnItemClickListener(this);
 
     NavigationView navigationView = (NavigationView)findViewById(
@@ -185,18 +201,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   @Override
-  public void onItemClick(
-    AdapterView<?> parent, View view, int position, long id) {
-
-    Intent intent = new Intent(this, WebViewActivity.class);
-    intent.putExtra("item_id", Long.toString(id));
-    startActivity(intent);
-
-    overridePendingTransition(R.anim.slide_leave,
-                              R.anim.slide_enter);
-  }
-
-  @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.menu_main, menu);
     return true;
@@ -222,12 +226,18 @@ public class MainActivity extends AppCompatActivity implements
     int requestCode, int resultCode, Intent data) {
 
     if (requestCode == RC_BARCODE_CAPTURE) {
+      // get result from barcode reader
       if (resultCode == CommonStatusCodes.SUCCESS) {
         if (data != null) {
           Barcode barcode = data.getParcelableExtra(
             BarcodeCaptureActivity.BarcodeObject);
           Log.d(TAG, "Barcode found: " + barcode.displayValue);
           if (barcode.displayValue.length() == 13) {
+            // starts async data fetching from API
+            startFetching(barcode.displayValue);
+
+            // TODO: move this into callback
+            // save record into realm
             addProduct(barcode.displayValue);
           }
         } else {
@@ -246,16 +256,6 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  // -- ProductItemAdapter
-
-  @Override
-  public void delete(long itemId) {
-    // should check sourceType of Product?
-    deleteProductItem(itemId);
-  }
-
-  // TODO: create product manager
-
   private void addProduct(final String ean) {
     realm.executeTransaction(new Realm.Transaction() {
       @Override
@@ -263,6 +263,28 @@ public class MainActivity extends AppCompatActivity implements
         ProductItem.createWithEanIntoSource(realm, ean, product);
       }
     });
+  }
+
+  // -- AdapterView.OnItemClickListener
+
+  @Override
+  public void onItemClick(
+    AdapterView<?> parent, View view, int position, long id) {
+
+    Intent intent = new Intent(this, WebViewActivity.class);
+    intent.putExtra("item_id", Long.toString(id));
+    startActivity(intent);
+
+    overridePendingTransition(R.anim.slide_leave,
+                              R.anim.slide_enter);
+  }
+
+  // -- ProductItemListAdapter.DeleteListener
+
+  @Override
+  public void delete(long itemId) {
+    // should check sourceType of Product?
+    deleteProductItem(itemId);
   }
 
   private void deleteProductItem(long productItemId) {
@@ -275,5 +297,42 @@ public class MainActivity extends AppCompatActivity implements
         productItem.deleteFromRealm();
       }
     });
+  }
+
+  private void startFetching(String ean) {
+      if (!fetching && productItemDataFetcher != null) {
+        productItemDataFetcher.invokeFetch(ean);
+        this.fetching = true;
+      }
+  }
+
+  // -- ProductItemDataFetchFragment.FetchCallback
+
+  @Override
+  public void updateFromFetch(String result) {
+    Log.d(TAG, "Fetch Result: " + result);
+    // TODO
+  }
+
+  @Override
+  public NetworkInfo getActiveNetworkInfo() {
+    // It seems that this cast is not redundant :'(
+    ConnectivityManager connectivityManager =
+      (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo networkinfo = connectivityManager.getActiveNetworkInfo();
+    return networkinfo;
+  }
+
+  @Override
+  public void onProgressUpdate(int progressCode, int percentComplete) {
+    // pass
+  }
+
+  @Override
+  public void finishFetching() {
+    this.fetching = false;
+    if (productItemDataFetcher != null) {
+      productItemDataFetcher.cancelFetch();
+    }
   }
 }
