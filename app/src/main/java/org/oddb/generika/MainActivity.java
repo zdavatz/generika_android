@@ -45,9 +45,12 @@ import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 
 import io.realm.Realm;
-import io.realm.RealmResults;
+import io.realm.RealmList;
+import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.OrderedCollectionChangeSet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.oddb.generika.model.Product;
@@ -90,6 +93,11 @@ public class MainActivity extends AppCompatActivity implements
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
+    // default: product
+    this.realm = Realm.getDefaultInstance();
+    this.product = realm.where(Product.class)
+      .equalTo("sourceType", "scanner").findFirst();
+
     // TODO: use constant utility
     this.productItemDataFetcher = ProductItemDataFetchFragment.getInstance(
       getSupportFragmentManager(),
@@ -107,12 +115,9 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void initProductItems() {
-    realm = Realm.getDefaultInstance();
-
-    // default
-    this.product = realm.where(Product.class)
-      .equalTo("sourceType", "scanner").findFirst();
-
+    if (product == null) {
+      return;
+    }
     if (product.getItems().size() == 0) {
       realm.beginTransaction();
       for (int i = 0; i < initData.length; i++) {
@@ -120,6 +125,29 @@ public class MainActivity extends AppCompatActivity implements
       }
       realm.commitTransaction();
     }
+
+    // Check new product item insertion via barcode reader
+    RealmList productItems = product.getItems();
+    productItems.removeAllChangeListeners();
+    productItems.addChangeListener(
+      new OrderedRealmCollectionChangeListener<RealmList<ProductItem>>() {
+
+      @Override
+      public void onChange(
+        RealmList<ProductItem> items,
+        OrderedCollectionChangeSet changeSet) {
+        Log.d(TAG, "(onActivityResult) items.size: " + items.size());
+
+        int i[] = changeSet.getInsertions();
+        if (i != null && i.length == 1) {  // new scan
+          Log.d(TAG, "(onActivityResult) inserttions: " + i[0]);
+          // get via location index
+          ProductItem productItem = items.get(i[0]);
+
+          startFetching(productItem);
+        }
+      }
+    });
 
     this.productItemListAdapter = new ProductItemListAdapter(
       product.getItems());
@@ -178,8 +206,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     });
 
-    FloatingActionButton fab = (FloatingActionButton)findViewById(
-      R.id.fab);
+    FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
 
       @Override
@@ -230,16 +257,14 @@ public class MainActivity extends AppCompatActivity implements
         if (data != null) {
           Barcode barcode = data.getParcelableExtra(
             BarcodeCaptureActivity.BarcodeObject);
-          Log.d(TAG, "Barcode found: " + barcode.displayValue);
+          Log.d(TAG,
+                "(onActivityResult) Barcode found: " + barcode.displayValue);
           if (barcode.displayValue.length() == 13) {
-            // starts async data fetching from API
-            startFetching(barcode.displayValue);
-            // TODO: move this into callback
-            // save record into realm
+            // save record into realm (next: changeset listener)
             addProduct(barcode.displayValue);
           }
         } else {
-          Log.d(TAG, "Barcode not found");
+          Log.d(TAG, "(onActivityResult) Barcode not found");
         }
       } else {
         Log.d(
@@ -256,9 +281,10 @@ public class MainActivity extends AppCompatActivity implements
 
   private void addProduct(final String ean) {
     realm.executeTransaction(new Realm.Transaction() {
+
       @Override
-      public void execute(Realm realm) {
-        ProductItem.createWithEanIntoSource(realm, ean, product);
+      public void execute(Realm realm_) {
+        ProductItem.createWithEanIntoSource(realm_, ean, product);
       }
     });
   }
@@ -288,18 +314,19 @@ public class MainActivity extends AppCompatActivity implements
   private void deleteProductItem(long productItemId) {
     final long id = productItemId;
     realm.executeTransaction(new Realm.Transaction() {
+
       @Override
-      public void execute(Realm realm) {
-        ProductItem productItem = realm.where(ProductItem.class)
+      public void execute(Realm realm_) {
+        ProductItem productItem = realm_.where(ProductItem.class)
           .equalTo("id", id).findFirst();
         productItem.deleteFromRealm();
       }
     });
   }
 
-  private void startFetching(String ean) {
+  private void startFetching(ProductItem productItem) {
     if (!fetching && productItemDataFetcher != null) {
-      productItemDataFetcher.invokeFetch(ean);
+      productItemDataFetcher.invokeFetch(productItem);
       this.fetching = true;
     }
   }
@@ -311,16 +338,36 @@ public class MainActivity extends AppCompatActivity implements
     ProductItemDataFetchFragment.FetchResult result) {
 
     String title = null, message = null;
-    if (result != null && result.item != null) {
-      ProductItem productItem = result.item;
-      Log.d(TAG,
-        "(updateFromFetch) resut.item.name: " + productItem.getName());
+    if (result != null && result.itemMap != null) {
+      final long id = result.itemId;
+      final HashMap<String, String> properties = result.itemMap;
 
+      realm.executeTransaction(new Realm.Transaction() {
+        @Override
+        public void execute(Realm realm_) {
+          ProductItem productItem = realm.where(ProductItem.class)
+            .equalTo("id", id).findFirst();
+          // update properties (map) from api fetch result
+          try {
+            productItem.updateProperties(properties);
+          } catch (Exception e) {
+            Log.d(TAG, "(updateFromFetch) Update error: " + e.getMessage());
+          }
+        }
+      });
+      // TODO: postExecute?
+      productItemListAdapter.notifyDataSetChanged();
+
+      Log.d(TAG,
+        "(updateFromFetch) resut.item.name: " + result.itemMap.get("name"));
+      // notify result to user
+      // TODO: replace with translated string
       title = "Generika.cc sagt";
+      String price = ProductItem.formatPrice(
+        "CHF", result.itemMap.get("price"));
       message = String.format(
         "%s,\n%s\n%s",
-        productItem.getName(), productItem.getSize(),
-        productItem.getPriceAs("CHF"));
+        result.itemMap.get("name"), result.itemMap.get("size"), price);
     } else if (result.errorMessage != null) {
       title = "";
       message = result.errorMessage;

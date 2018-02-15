@@ -65,6 +65,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     public View getView(
       final int position, View convertView, ViewGroup parent) {
 
+      ProductItem item = getItem(position);
+
       ViewHolder viewHolder;
       if (convertView == null) {
         convertView = LayoutInflater.from(parent.getContext()).inflate(
@@ -95,8 +97,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       }
 
       // TODO: (for now) set values as ean
-      viewHolder.title.setText(getItem(position).getEan());
-      viewHolder.description.setText(getItem(position).getEan());
+      viewHolder.title.setText(item.getEan());
+      viewHolder.description.setText(item.getName());
       return convertView;
     }
 }

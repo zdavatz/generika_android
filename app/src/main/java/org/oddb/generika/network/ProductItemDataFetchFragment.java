@@ -9,15 +9,19 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
+
 import org.json.JSONObject;
+import org.json.JSONException;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.lang.StringBuffer;
+import java.net.URL;
+import java.util.HashMap;
+
 import javax.net.ssl.HttpsURLConnection;
 
 import org.oddb.generika.model.ProductItem;
@@ -30,10 +34,13 @@ public class ProductItemDataFetchFragment extends Fragment {
   private static final String kAPI_KEY = "ApiKey";
   private static final String kBASE_URL = "BaseUrl";
 
-  private FetchCallback fetchCallback;
+  private FetchCallback<FetchResult> fetchCallback;
   private FetchTask fetchTask;
   private String baseUrl;
-  private String eanCode;
+
+  // ProductItem
+  private long itemId;
+  private String itemEan;
 
 
   public interface FetchCallback<T> {
@@ -55,13 +62,25 @@ public class ProductItemDataFetchFragment extends Fragment {
   }
 
   public class FetchResult {
-    public ProductItem item;
+    public long itemId;
+    public HashMap<String, String> itemMap;
     public String errorMessage;
 
-    public FetchResult(FetchTask.Result result) {
+    public FetchResult(FetchTask.Result result) throws JSONException {
       if (result != null) {
-        if (result.productItem != null) {
-          this.item = result.productItem;
+        this.itemId = result.itemId;
+
+        if (result.itemObj != null) {
+          JSONObject obj = result.itemObj;
+
+          // just map all values as string, here
+          HashMap<String, String> itemMap = new HashMap<String, String>();
+          itemMap.put("name", obj.getString("name"));
+          itemMap.put("size", obj.getString("size"));
+          itemMap.put("deduction", obj.getString("deduction"));
+          itemMap.put("price", obj.getString("price"));
+          itemMap.put("category", obj.getString("category"));
+          this.itemMap = itemMap;
         }
         if (result.exception != null) {
           this.errorMessage = result.exception.getMessage();
@@ -73,7 +92,7 @@ public class ProductItemDataFetchFragment extends Fragment {
   private class FetchTask extends
     AsyncTask<String, Integer, FetchTask.Result> {
 
-    private FetchCallback fetchCallback;
+    private FetchCallback<FetchResult> fetchCallback;
 
     FetchTask(FetchCallback<FetchResult> callback) {
       setCallback(callback);
@@ -85,11 +104,12 @@ public class ProductItemDataFetchFragment extends Fragment {
 
     // inner result object
     private class Result {
-      public ProductItem productItem;
+      public long itemId;
+      public JSONObject itemObj;
       public Exception exception;
 
-      public Result(ProductItem productItem) {
-        this.productItem = productItem;
+      public Result(JSONObject itemObj) {
+        this.itemObj = itemObj;
       }
 
       public Result(Exception exception) {
@@ -106,10 +126,17 @@ public class ProductItemDataFetchFragment extends Fragment {
             !networkinfo.isConnected() ||
             (networkinfo.getType() != ConnectivityManager.TYPE_WIFI &&
              networkinfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
-          Result result = new Result(
-            new Exception("Keine Verbindung zum Internet!"));
-          fetchCallback.updateFromFetch(new FetchResult(result));
-          cancel(true);
+          try {
+            // TODO: replace with translated string
+            Result result = new Result(
+              new Exception("Keine Verbindung zum Internet!"));
+            result.itemId = itemId;
+            fetchCallback.updateFromFetch(new FetchResult(result));
+          } catch (Exception e) {  // (unexpected) JSONException
+            // don't care
+          } finally {
+            cancel(true);
+          }
         }
       }
     }
@@ -124,30 +151,21 @@ public class ProductItemDataFetchFragment extends Fragment {
           URL url = new URL(urls[0]);
           String resultString = fetchUrl(url);
           Log.d(TAG, "(doInBackground) resultString: " + resultString);
+
           if (resultString != null) {
-            ProductItem productItem = new ProductItem();
-            // parse JSON
             JSONObject jsonObj = new JSONObject(resultString);
-            productItem.setName(jsonObj.getString("name"));
-            productItem.setSize(jsonObj.getString("size"));
-            productItem.setDeduction(jsonObj.getString("deduction"));
-            productItem.setPrice(jsonObj.getString("price"));
-            productItem.setCategory(jsonObj.getString("category"));
-            productItem.setEan(eanCode);
-            // TODO: parse JSON
-            // resultString
-            result = new Result(productItem);
+            result = new Result(jsonObj);  // inner result
           } else {
             throw new IOException("No response received");
           }
-        } catch(Exception e) {
-          // IOException, JSONException
+        } catch (Exception e) {  // IOException, JSONException
           Log.d(TAG, "(doInBackground) exception: " + e.getMessage());
           // replace as not found
+          // TODO: replace with translated string
           String message = String.format(
             "%s\n\"%s\"",
             "Kein Medikament gefunden auf Generika.cc mit dem folgenden EAN-Code:",
-            eanCode);
+            itemEan);
           result = new Result(new Exception(message));
         }
       }
@@ -157,12 +175,21 @@ public class ProductItemDataFetchFragment extends Fragment {
     @Override
     protected void onPostExecute(Result result) {
       if (fetchCallback != null) {
-        if (result != null) {
-          if (result.productItem != null || result.exception != null) {
-            fetchCallback.updateFromFetch(new FetchResult(result));
+        try {
+          if (result != null) {
+            if (result.itemObj != null || result.exception != null) {
+              // inner result to final result (FetchResult)
+              FetchResult fetchResult = new FetchResult(result);
+              fetchResult.itemId = itemId;
+              fetchCallback.updateFromFetch(fetchResult);
+            }
           }
+        } catch (JSONException e) {
+          // TODO: parse error
+          Log.d(TAG, "(onPostExecute) e: " + e.getMessage());
+        } finally {
+          fetchCallback.finishFetching();
         }
-        fetchCallback.finishFetching();
       }
     }
 
@@ -177,6 +204,7 @@ public class ProductItemDataFetchFragment extends Fragment {
       String response = null;
 
       try {
+        // TODO: set user-agent
         conn = (HttpsURLConnection)url.openConnection();
         conn.setReadTimeout(3000);
         conn.setConnectTimeout(3000);
@@ -288,13 +316,15 @@ public class ProductItemDataFetchFragment extends Fragment {
     super.onDestroy();
   }
 
-  public void invokeFetch(String ean) {
+  public void invokeFetch(ProductItem productItem) {
     cancelFetch();
     this.fetchTask = new FetchTask(this.fetchCallback);
-    this.eanCode = ean;
+
+    this.itemId = productItem.getId();
+    this.itemEan = productItem.getEan();
 
     String urlString = baseUrl;
-    urlString += this.eanCode;
+    urlString += itemEan;
 
     Log.d(TAG, "(invokeFetch) urlString: " + urlString);
     fetchTask.execute(urlString);

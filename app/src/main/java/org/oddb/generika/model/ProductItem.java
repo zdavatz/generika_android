@@ -17,6 +17,8 @@
  */
 package org.oddb.generika.model;
 
+import android.util.Log;
+
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.LinkingObjects;
 import io.realm.Realm;
@@ -24,7 +26,15 @@ import io.realm.RealmObject;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
+import java.lang.String;
+import java.lang.IllegalAccessException;
+import java.lang.IllegalArgumentException;
+import java.lang.NoSuchMethodException;
+import java.lang.SecurityException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
 
 
 public class ProductItem extends RealmObject {
@@ -106,12 +116,32 @@ public class ProductItem extends RealmObject {
     return Long.toString(id);
   }
 
-  public String getPriceAs(String unit) {
-    if (price != null && price != "") {
-      return String.format("%s: %s", unit, price);
-    } else {
-      return "";
+  public void updateProperties(HashMap<String, String> properties) throws
+    SecurityException, NoSuchMethodException, IllegalArgumentException,
+    IllegalAccessException, InvocationTargetException {
+    // TODO: validate format etc.
+    String[] keys = {"name", "size", "deduction", "price", "category"};
+    // this.getClass() fails :'(
+    Class c = ProductItem.class;
+    Class[] parameterTypes = new Class[]{String.class};
+    for (String key: keys) {
+      String value = properties.get(key);
+      if (value != null && value != "" && value != "null")  {
+        String methodName = "set" +
+          key.substring(0, 1).toUpperCase() + key.substring(1);
+        Method method = c.getDeclaredMethod(methodName, parameterTypes);
+        method.invoke(this, new Object[]{value});
+      }
     }
+  }
+
+  public static String formatPrice(String unit, String price) {
+    // TODO: replace translation text
+    String priceValue = "unknown";
+    if (price != null && !price.contains("null")) {
+      priceValue = price;
+    }
+    return String.format("%s: %s", unit, priceValue);
   }
 
   // call in transaction
