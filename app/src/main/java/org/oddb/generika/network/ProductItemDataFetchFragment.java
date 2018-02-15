@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,6 +19,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.lang.StringBuffer;
 import javax.net.ssl.HttpsURLConnection;
+
+import org.oddb.generika.model.ProductItem;
 
 
 public class ProductItemDataFetchFragment extends Fragment {
@@ -30,6 +33,7 @@ public class ProductItemDataFetchFragment extends Fragment {
   private FetchCallback fetchCallback;
   private FetchTask fetchTask;
   private String baseUrl;
+  private String eanCode;
 
 
   public interface FetchCallback<T> {
@@ -50,26 +54,42 @@ public class ProductItemDataFetchFragment extends Fragment {
     void finishFetching();
   }
 
+  public class FetchResult {
+    public ProductItem item;
+    public String errorMessage;
+
+    public FetchResult(FetchTask.Result result) {
+      if (result != null) {
+        if (result.productItem != null) {
+          this.item = result.productItem;
+        }
+        if (result.exception != null) {
+          this.errorMessage = result.exception.getMessage();
+        }
+      }
+    }
+  }
 
   private class FetchTask extends
     AsyncTask<String, Integer, FetchTask.Result> {
 
     private FetchCallback fetchCallback;
 
-    FetchTask(FetchCallback<String> callback) {
+    FetchTask(FetchCallback<FetchResult> callback) {
       setCallback(callback);
     }
 
-    void setCallback(FetchCallback<String> callback) {
+    void setCallback(FetchCallback<FetchResult> callback) {
       this.fetchCallback = callback;
     }
 
+    // inner result object
     private class Result {
-      public String resultValue;
+      public ProductItem productItem;
       public Exception exception;
 
-      public Result(String resultValue) {
-        this.resultValue = resultValue;
+      public Result(ProductItem productItem) {
+        this.productItem = productItem;
       }
 
       public Result(Exception exception) {
@@ -86,7 +106,9 @@ public class ProductItemDataFetchFragment extends Fragment {
             !networkinfo.isConnected() ||
             (networkinfo.getType() != ConnectivityManager.TYPE_WIFI &&
              networkinfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
-          fetchCallback.updateFromFetch(null);
+          Result result = new Result(
+            new Exception("Keine Verbindung zum Internet!"));
+          fetchCallback.updateFromFetch(new FetchResult(result));
           cancel(true);
         }
       }
@@ -103,15 +125,30 @@ public class ProductItemDataFetchFragment extends Fragment {
           String resultString = fetchUrl(url);
           Log.d(TAG, "(doInBackground) resultString: " + resultString);
           if (resultString != null) {
+            ProductItem productItem = new ProductItem();
+            // parse JSON
+            JSONObject jsonObj = new JSONObject(resultString);
+            productItem.setName(jsonObj.getString("name"));
+            productItem.setSize(jsonObj.getString("size"));
+            productItem.setDeduction(jsonObj.getString("deduction"));
+            productItem.setPrice(jsonObj.getString("price"));
+            productItem.setCategory(jsonObj.getString("category"));
+            productItem.setEan(eanCode);
             // TODO: parse JSON
-            Log.d(TAG, "Api Result: " + resultString);
-
-            result = new Result(resultString);
+            // resultString
+            result = new Result(productItem);
           } else {
-            throw new IOException("No response received.");
+            throw new IOException("No response received");
           }
         } catch(Exception e) {
-          result = new Result(e);
+          // IOException, JSONException
+          Log.d(TAG, "(doInBackground) exception: " + e.getMessage());
+          // replace as not found
+          String message = String.format(
+            "%s\n\"%s\"",
+            "Kein Medikament gefunden auf Generika.cc mit dem folgenden EAN-Code:",
+            eanCode);
+          result = new Result(new Exception(message));
         }
       }
       return result;
@@ -121,11 +158,8 @@ public class ProductItemDataFetchFragment extends Fragment {
     protected void onPostExecute(Result result) {
       if (fetchCallback != null) {
         if (result != null) {
-          if (result.exception != null) {
-            fetchCallback.updateFromFetch(result.exception.getMessage());
-          } else if (result.resultValue != null) {
-            // success
-            fetchCallback.updateFromFetch(result.resultValue);
+          if (result.productItem != null || result.exception != null) {
+            fetchCallback.updateFromFetch(new FetchResult(result));
           }
         }
         fetchCallback.finishFetching();
@@ -140,7 +174,7 @@ public class ProductItemDataFetchFragment extends Fragment {
     private String fetchUrl(URL url) throws IOException {
       InputStream stream = null;
       HttpsURLConnection conn = null;
-      String result = null;
+      String response = null;
 
       try {
         conn = (HttpsURLConnection)url.openConnection();
@@ -157,7 +191,7 @@ public class ProductItemDataFetchFragment extends Fragment {
         stream = conn.getInputStream();
         publishProgress(FetchCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
         if (stream != null) {
-          result = readStream(stream, 500);
+          response = readStream(stream, 500);
         }
       } finally {
         if (stream != null) {
@@ -167,7 +201,7 @@ public class ProductItemDataFetchFragment extends Fragment {
           conn.disconnect();
         }
       }
-      return result;
+      return response;
     }
 
     private String readStream(InputStream stream, int maxReadLength)
@@ -256,16 +290,13 @@ public class ProductItemDataFetchFragment extends Fragment {
 
   public void invokeFetch(String ean) {
     cancelFetch();
-
     this.fetchTask = new FetchTask(this.fetchCallback);
-
-    Log.d(TAG, "(invokeFetch) baseUrl: " + baseUrl);
+    this.eanCode = ean;
 
     String urlString = baseUrl;
-    urlString += ean;
+    urlString += this.eanCode;
 
     Log.d(TAG, "(invokeFetch) urlString: " + urlString);
-
     fetchTask.execute(urlString);
   }
 

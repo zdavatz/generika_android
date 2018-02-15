@@ -106,6 +106,14 @@ public class ProductItem extends RealmObject {
     return Long.toString(id);
   }
 
+  public String getPriceAs(String unit) {
+    if (price != null && price != "") {
+      return String.format("%s: %s", unit, price);
+    } else {
+      return "";
+    }
+  }
+
   // call in transaction
   public static void createWithEanIntoSource(
     Realm realm, String ean, Product product) {

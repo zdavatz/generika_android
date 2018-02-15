@@ -19,6 +19,7 @@ package org.oddb.generika;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.DialogInterface;
 import android.net.NetworkInfo;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -57,7 +59,8 @@ import org.oddb.generika.network.ProductItemDataFetchFragment;
 public class MainActivity extends AppCompatActivity implements
   AdapterView.OnItemClickListener,
   ProductItemListAdapter.DeleteListener,
-  ProductItemDataFetchFragment.FetchCallback<String> {
+  ProductItemDataFetchFragment.FetchCallback<
+    ProductItemDataFetchFragment.FetchResult> {
 
   private static final int RC_BARCODE_CAPTURE = 9001;
   private static final String TAG = "BarcodeMain";
@@ -125,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements
 
   private void initViews() {
     Context context = (Context)this;
-
     // default: medications
     this.mTitle = context.getString(R.string.medications);
 
@@ -135,11 +137,8 @@ public class MainActivity extends AppCompatActivity implements
 
     this.mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
     this.mDrawerToggle = new ActionBarDrawerToggle(
-      this,
-      mDrawerLayout,
-      R.string.drawer_open,
-      R.string.drawer_close
-    ) {
+      this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+
       public void onDrawerOpened(View view) {
         super.onDrawerOpened(view);
         getSupportActionBar().setTitle(mTitle);
@@ -235,7 +234,6 @@ public class MainActivity extends AppCompatActivity implements
           if (barcode.displayValue.length() == 13) {
             // starts async data fetching from API
             startFetching(barcode.displayValue);
-
             // TODO: move this into callback
             // save record into realm
             addProduct(barcode.displayValue);
@@ -300,18 +298,34 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void startFetching(String ean) {
-      if (!fetching && productItemDataFetcher != null) {
-        productItemDataFetcher.invokeFetch(ean);
-        this.fetching = true;
-      }
+    if (!fetching && productItemDataFetcher != null) {
+      productItemDataFetcher.invokeFetch(ean);
+      this.fetching = true;
+    }
   }
 
   // -- ProductItemDataFetchFragment.FetchCallback
 
   @Override
-  public void updateFromFetch(String result) {
-    Log.d(TAG, "Fetch Result: " + result);
-    // TODO
+  public void updateFromFetch(
+    ProductItemDataFetchFragment.FetchResult result) {
+
+    String title = null, message = null;
+    if (result != null && result.item != null) {
+      ProductItem productItem = result.item;
+      Log.d(TAG,
+        "(updateFromFetch) resut.item.name: " + productItem.getName());
+
+      title = "Generika.cc sagt";
+      message = String.format(
+        "%s,\n%s\n%s",
+        productItem.getName(), productItem.getSize(),
+        productItem.getPriceAs("CHF"));
+    } else if (result.errorMessage != null) {
+      title = "";
+      message = result.errorMessage;
+    }
+    alertDialog(title, message);
   }
 
   @Override
@@ -334,5 +348,20 @@ public class MainActivity extends AppCompatActivity implements
     if (productItemDataFetcher != null) {
       productItemDataFetcher.cancelFetch();
     }
+  }
+
+  private void alertDialog(String title, String message) {
+    Context context = (Context)this;
+    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    builder.setTitle(title);
+    builder.setMessage(message);
+    builder.setCancelable(true);
+    builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int id) {
+        dialog.cancel();
+      }
+    });
+    AlertDialog alert = builder.create();
+    alert.show();
   }
 }
