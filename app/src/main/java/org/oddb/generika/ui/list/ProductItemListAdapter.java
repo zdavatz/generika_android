@@ -31,7 +31,7 @@ import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.R;
 
 
-public class ProductItemAdapter extends RealmBaseAdapter<ProductItem>
+public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   implements ListAdapter {
 
     // TODO
@@ -51,7 +51,7 @@ public class ProductItemAdapter extends RealmBaseAdapter<ProductItem>
       void delete(long productId);
     }
 
-    public ProductItemAdapter(
+    public ProductItemListAdapter(
       OrderedRealmCollection<ProductItem> realmResults) {
       super(realmResults);
     }
@@ -64,6 +64,8 @@ public class ProductItemAdapter extends RealmBaseAdapter<ProductItem>
     @Override
     public View getView(
       final int position, View convertView, ViewGroup parent) {
+
+      ProductItem item = getItem(position);
 
       ViewHolder viewHolder;
       if (convertView == null) {
@@ -95,8 +97,8 @@ public class ProductItemAdapter extends RealmBaseAdapter<ProductItem>
       }
 
       // TODO: (for now) set values as ean
-      viewHolder.title.setText(getItem(position).getEan());
-      viewHolder.description.setText(getItem(position).getEan());
+      viewHolder.title.setText(item.getEan());
+      viewHolder.description.setText(item.getName());
       return convertView;
     }
 }
