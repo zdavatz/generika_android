@@ -320,10 +320,17 @@ public class MainActivity extends AppCompatActivity implements
   public void onItemClick(
     AdapterView<?> parent, View view, int position, long id) {
 
+    ProductItem productItem = realm.where(ProductItem.class)
+      .equalTo("id", id).findFirst();
+    if (productItem == null) {  // unexpected
+      return;
+    }
     Intent intent = new Intent(this, WebViewActivity.class);
-    intent.putExtra("item_id", Long.toString(id));
+    // TODO: support de/fr, fachinfo/patinfo and preis vergleich
+    intent.putExtra(WebViewActivity.Reg, productItem.getReg());
     startActivity(intent);
 
+    // TODO: fix
     overridePendingTransition(R.anim.slide_leave,
                               R.anim.slide_enter);
   }

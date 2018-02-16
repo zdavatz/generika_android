@@ -38,6 +38,11 @@ import android.widget.Toast;
 
 public class WebViewActivity extends AppCompatActivity {
 
+  // TODO: enable these values for patinfo
+  public static final String Reg = "reg";
+  public static final String Seq = "seq";
+  public static final String Pack = "pack";
+
   private WebView webView;
 
   private Activity activity;
@@ -56,8 +61,12 @@ public class WebViewActivity extends AppCompatActivity {
 
     initViews();
 
-    // TODO: get urlString (intent)
+    // TODO: patinfo
     String urlString = "https://i.ch.oddb.org/";
+    String reg = getIntent().getStringExtra(Reg);
+    if (reg != null && reg != "") {
+      urlString += "/de/mobile/fachinfo/reg/" + reg;
+    }
 
     if (webView != null && savedInstanceState == null) {
       webView.loadUrl(urlString);

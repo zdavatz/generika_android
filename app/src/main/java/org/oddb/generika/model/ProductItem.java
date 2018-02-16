@@ -35,6 +35,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.HashMap;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 
 public class ProductItem extends RealmObject {
@@ -49,6 +51,12 @@ public class ProductItem extends RealmObject {
   private final RealmResults<Product> source = null;
 
   private String ean;
+
+  private static final Pattern regPtrn = Pattern.compile(
+    "7680(\\d{5}).+");
+  private static final Pattern seqPtrn = Pattern.compile(
+    "7680\\d{5}(\\d{3}).+");
+
   // parsed partial numbers from EAN13 (ean)
   private String reg;
   private String seq;
@@ -88,7 +96,19 @@ public class ProductItem extends RealmObject {
   public String getEan() { return ean; }
   public void setEan(String ean) { this.ean = ean; }
 
-  public String getReg() { return reg; }
+  // no setter
+  public String getReg() {
+    if (reg != null && reg != "") {
+      return reg;
+    } else if (ean != null) {
+      Matcher m = regPtrn.matcher(ean);
+      while (m.find()) {
+        String s = m.group(1);
+        return s;
+      }
+    }
+    return null;
+  }
   public String getSeq() { return seq; }
   public String getPack() { return pack; }
 
