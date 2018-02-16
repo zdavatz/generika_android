@@ -111,7 +111,13 @@ public class ProductItem extends RealmObject {
   public String getPrice() { return price; }
   public void setPrice(String price) { this.price = price; }
 
-  public String getCategory() { return category; }
+  public String getCategory() {
+    // It seems that api response contains '&nbsp;' as white space.
+    if (category != null) {
+      return category.replace("&nbsp;", " ");
+    }
+    return category;
+  }
   public void setCategory(String category) { this.category = category; }
 
   public String getCountString() {
