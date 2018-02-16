@@ -24,3 +24,6 @@
 *.war
 
 signing.properties
+
+# release or maintenance scripts etc.
+/*.local.sh

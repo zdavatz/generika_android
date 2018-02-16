@@ -140,7 +140,7 @@ public class ProductItem extends RealmObject {
     String unit = "CHF";
     String priceString = "";  // default empty string if price value is unknown
     if (price != null && !price.contains("null")) {
-      priceString = String.format("%s: %s", unit, priceString);
+      priceString = String.format("%s: %s", unit, price);
     }
     String name = getName();
     if (name == null) { name = ""; }
