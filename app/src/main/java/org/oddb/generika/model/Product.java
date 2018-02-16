@@ -25,6 +25,7 @@ public class Product extends RealmObject {
   private String sourceType;
   private RealmList<ProductItem> items;
 
+  // sourceType: scanned/receipt
   public String getSourceType() { return sourceType; }
   public void setSourceType(String sourceType) {
     this.sourceType = sourceType; }

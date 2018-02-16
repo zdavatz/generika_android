@@ -40,9 +40,9 @@ public class GenerikaApplication extends Application {
           RealmResults<Product> products = realm.where(Product.class)
             .findAll();
           if (products.size() != 2) {
-            // by self / via scanner
+            // by patient oneself / via barcode reader
             Product p0 = realm.createObject(Product.class);
-            p0.setSourceType("scanner");
+            p0.setSourceType("scanned");
 
             // by doctor, pharmacy (operator) / via receipt
             Product p1 = realm.createObject(Product.class);

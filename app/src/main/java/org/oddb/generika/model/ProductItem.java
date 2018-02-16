@@ -54,9 +54,11 @@ public class ProductItem extends RealmObject {
   private String seq;
   private String pack;
 
-  // -- scanned product item
-  private String barcode;
+  // scanned_at/imported_at
   private String datetime;
+
+  // -- scanner product item (scanner medications)
+  private String barcode;
   private String expiresAt;  // TODO: valdatum
   // (values from oddb)
   private String name;
@@ -66,7 +68,7 @@ public class ProductItem extends RealmObject {
   private String category;
 
   // TODO: receipt (amk)
-  // -- imported receipt product item (medications)
+  // -- receipt product item (receipt medications)
   // (values from receipt)
   // * prescription_hash
   // * title
@@ -150,12 +152,13 @@ public class ProductItem extends RealmObject {
   }
 
   // must be called in transaction
-  public static void createWithEanIntoSource(
+  public static ProductItem createWithEanIntoSource(
     Realm realm, String ean, Product product) {
 
     RealmList<ProductItem> items = product.getItems();
     ProductItem item = realm.createObject(ProductItem.class, increment());
     item.setEan(ean);
     items.add(item);
+    return item;
   }
 }

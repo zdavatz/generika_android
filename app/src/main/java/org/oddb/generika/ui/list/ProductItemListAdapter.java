@@ -38,8 +38,19 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     private DeleteListener mListener;
 
     private static class ViewHolder {
-      TextView title;
-      TextView description;
+      TextView name;
+
+      TextView size;
+      TextView datetime;
+
+      TextView price;
+      TextView deduction;
+      TextView category;
+
+      TextView ean;
+      // TODO: valdatum
+      //TextView expiresAt;
+
       ImageView deleteButton;
     }
 
@@ -73,14 +84,25 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
         convertView = LayoutInflater.from(parent.getContext()).inflate(
           R.layout.activity_main_row, parent, false);
 
+        // scanned
         viewHolder = new ViewHolder();
-        viewHolder.title = (TextView)convertView.findViewById(
-          R.id.title);
-        viewHolder.description = (TextView)convertView.findViewById(
-          R.id.description);
+        viewHolder.name = (TextView)convertView.findViewById(
+          R.id.scanned_product_item_name);
+        viewHolder.size = (TextView)convertView.findViewById(
+          R.id.scanned_product_item_size);
+        viewHolder.datetime = (TextView)convertView.findViewById(
+          R.id.scanned_product_item_datetime);
+        viewHolder.price = (TextView)convertView.findViewById(
+          R.id.scanned_product_item_price);
+        viewHolder.deduction = (TextView)convertView.findViewById(
+          R.id.scanned_product_item_deduction);
+        viewHolder.category = (TextView)convertView.findViewById(
+          R.id.scanned_product_item_category);
+        viewHolder.ean = (TextView)convertView.findViewById(
+          R.id.scanned_product_item_ean);
 
         ImageView deleteButton = (ImageView)convertView.findViewById(
-          R.id.deleteButton);
+          R.id.scanned_product_item_delete_button);
         deleteButton.setTag(itemId);
         deleteButton.setOnClickListener(new View.OnClickListener() {
           @Override
@@ -96,9 +118,13 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
         viewHolder.deleteButton.setTag(itemId);
       }
 
-      // TODO: (for now) set values as ean
-      viewHolder.title.setText(item.getEan());
-      viewHolder.description.setText(item.getName());
+      viewHolder.name.setText(item.getName());
+      viewHolder.size.setText(item.getSize());
+      viewHolder.datetime.setText(item.getDatetime());
+      viewHolder.price.setText(item.getPrice());
+      viewHolder.deduction.setText(item.getDeduction());
+      viewHolder.category.setText(item.getCategory());
+      viewHolder.ean.setText(item.getEan());
       return convertView;
     }
 }

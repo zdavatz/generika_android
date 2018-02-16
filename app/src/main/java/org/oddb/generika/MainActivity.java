@@ -54,6 +54,7 @@ import io.realm.OrderedCollectionChangeSet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import org.oddb.generika.model.Product;
@@ -87,20 +88,26 @@ public class MainActivity extends AppCompatActivity implements
   private ProductItemDataFetchFragment productItemDataFetcher;
 
   // as place holder values
-  private static final String[] initData = {
-    "EAN13",
-  };
+  private static final HashMap<String, String> initData =
+    new HashMap<String, String>() {{
+      put("ean", "EAN 13");
+      put("name", "Name");
+      put("size", "Size");
+      put("datetime", "Scanned At");
+      put("price", "Price (CHF)");
+      put("deduction", "Deduction (%)");
+      put("category", "Category");
+    }};
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    // default: product
+    // default: `scanned` product items
     this.realm = Realm.getDefaultInstance();
     this.product = realm.where(Product.class)
-      .equalTo("sourceType", "scanner").findFirst();
-
+      .equalTo("sourceType", "scanned").findFirst();
 
     FragmentManager fragmentManager = getSupportFragmentManager();
     Fragment fragment = fragmentManager.findFragmentByTag(
@@ -130,9 +137,14 @@ public class MainActivity extends AppCompatActivity implements
     }
     if (product.getItems().size() == 0) {
       realm.beginTransaction();
-      for (int i = 0; i < initData.length; i++) {
-        ProductItem.createWithEanIntoSource(realm, initData[i], product);
-      }
+      ProductItem item = ProductItem.createWithEanIntoSource(
+        realm, initData.get("ean"), product);
+      item.setName(initData.get("name"));
+      item.setSize(initData.get("size"));
+      item.setDatetime(initData.get("datetime"));
+      item.setPrice(initData.get("price"));
+      item.setDeduction(initData.get("deduction"));
+      item.setCategory(initData.get("category"));
       realm.commitTransaction();
     }
 
