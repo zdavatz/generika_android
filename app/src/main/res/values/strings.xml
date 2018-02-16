@@ -13,30 +13,6 @@
     <string name="drawer_close">Close</string>
     <string name="drawer_open">Open</string>
 
-    <string name="web_view_text">WebView</string>
-
-    <string name="dummy_title0">Dummy Title 0</string>
-    <string name="dummy_title1">Dummy Title 1</string>
-    <string name="dummy_title2">Dummy Title 2</string>
-    <string name="dummy_title3">Dummy Title 3</string>
-    <string name="dummy_title4">Dummy Title 4</string>
-    <string name="dummy_title5">Dummy Title 5</string>
-    <string name="dummy_title6">Dummy Title 6</string>
-    <string name="dummy_title7">Dummy Title 7</string>
-    <string name="dummy_title8">Dummy Title 8</string>
-    <string name="dummy_title9">Dummy Title 9</string>
-
-    <string name="dummy_description0">Dummy Description 0</string>
-    <string name="dummy_description1">Dummy Description 1</string>
-    <string name="dummy_description2">Dummy Description 2</string>
-    <string name="dummy_description3">Dummy Description 3</string>
-    <string name="dummy_description4">Dummy Description 4</string>
-    <string name="dummy_description5">Dummy Description 5</string>
-    <string name="dummy_description6">Dummy Description 6</string>
-    <string name="dummy_description7">Dummy Description 7</string>
-    <string name="dummy_description8">Dummy Description 8</string>
-    <string name="dummy_description9">Dummy Description 9</string>
-
     <string name="ok">OK</string>
     <string name="permission_camera_rationale">
       Access to the camera is needed for detection</string>

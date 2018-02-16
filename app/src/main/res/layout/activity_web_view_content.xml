@@ -8,11 +8,9 @@
     tools:context="org.oddb.generika.WebViewActivity"
     tools:showIn="@layout/activity_web_view">
 
-    <TextView
-        android:id="@+id/text_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:textColor="#222222" />
+    <WebView
+        android:id="@+id/web_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"/>
 
 </android.support.constraint.ConstraintLayout>
