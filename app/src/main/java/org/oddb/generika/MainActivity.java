@@ -45,6 +45,7 @@ import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.OrderedCollectionChangeSet;
@@ -336,43 +337,52 @@ public class MainActivity extends AppCompatActivity implements
   @Override
   public void updateFromFetch(
     ProductItemDataFetchFragment.FetchResult result) {
-
-    String title = null, message = null;
-    if (result != null && result.itemMap != null) {
+    if (result == null) {
+      return;
+    }
+    if (result.errorMessage != null) {
+      String title = "";
+      String message = result.errorMessage;
+      alertDialog(title, message);
+    } else if (result.itemMap != null) {
       final long id = result.itemId;
       final HashMap<String, String> properties = result.itemMap;
+      final ProductItem productItem = realm.where(ProductItem.class)
+        .equalTo("id", id).findFirst();
 
+      productItem.addChangeListener(new RealmChangeListener<ProductItem>() {
+
+        @Override
+        public void onChange(ProductItem productItem_) {
+          Log.d(TAG,
+            "(updateFromFetch) resut.item.name: " + properties.get("name"));
+          if (productItem_.getName() != null) {
+            // update ui (listview)
+            productItemListAdapter.notifyDataSetChanged();
+            // notify result to user
+            // TODO: replace with translated string
+            String title = "Generika.cc sagt";
+            String price = ProductItem.formatPrice(
+              "CHF", properties.get("price"));
+            String message = String.format(
+              "%s,\n%s\n%s",
+              properties.get("name"), properties.get("size"), price);
+            alertDialog(title, message);
+          }
+        }
+      });
       realm.executeTransaction(new Realm.Transaction() {
+
         @Override
         public void execute(Realm realm_) {
-          ProductItem productItem = realm.where(ProductItem.class)
-            .equalTo("id", id).findFirst();
-          // update properties (map) from api fetch result
-          try {
+          try { // update properties (map) from api fetch result
             productItem.updateProperties(properties);
           } catch (Exception e) {
             Log.d(TAG, "(updateFromFetch) Update error: " + e.getMessage());
           }
         }
       });
-      // TODO: postExecute?
-      productItemListAdapter.notifyDataSetChanged();
-
-      Log.d(TAG,
-        "(updateFromFetch) resut.item.name: " + result.itemMap.get("name"));
-      // notify result to user
-      // TODO: replace with translated string
-      title = "Generika.cc sagt";
-      String price = ProductItem.formatPrice(
-        "CHF", result.itemMap.get("price"));
-      message = String.format(
-        "%s,\n%s\n%s",
-        result.itemMap.get("name"), result.itemMap.get("size"), price);
-    } else if (result.errorMessage != null) {
-      title = "";
-      message = result.errorMessage;
     }
-    alertDialog(title, message);
   }
 
   @Override
