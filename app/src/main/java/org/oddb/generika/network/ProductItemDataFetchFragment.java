@@ -72,7 +72,6 @@ public class ProductItemDataFetchFragment extends Fragment {
 
         if (result.itemObj != null) {
           JSONObject obj = result.itemObj;
-
           // just map all values as string, here
           HashMap<String, String> itemMap = new HashMap<String, String>();
           itemMap.put("name", obj.getString("name"));
@@ -291,7 +290,7 @@ public class ProductItemDataFetchFragment extends Fragment {
     this.baseUrl = getArguments().getString(kBASE_URL);
     Log.d(TAG, "(onCreate) baseUrl: " + baseUrl);
 
-    // retain fragment,even if situation changes
+    // retain fragment, even if situation changes
     setRetainInstance(true);
   }
 

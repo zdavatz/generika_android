@@ -27,6 +27,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -99,10 +101,17 @@ public class MainActivity extends AppCompatActivity implements
     this.product = realm.where(Product.class)
       .equalTo("sourceType", "scanner").findFirst();
 
-    // TODO: use constant utility
-    this.productItemDataFetcher = ProductItemDataFetchFragment.getInstance(
-      getSupportFragmentManager(),
-      "https://ch.oddb.org/de/mobile/api_search/ean/");
+
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    Fragment fragment = fragmentManager.findFragmentByTag(
+      ProductItemDataFetchFragment.TAG);
+    if (fragment == null) {
+      // TODO: use constant utility
+      fragment = ProductItemDataFetchFragment.getInstance(
+        fragmentManager,
+        "https://ch.oddb.org/de/mobile/api_search/ean/");
+    }
+    this.productItemDataFetcher = (ProductItemDataFetchFragment)fragment;
 
     initProductItems();
     initViews();
