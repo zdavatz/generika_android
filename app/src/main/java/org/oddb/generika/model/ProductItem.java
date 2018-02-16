@@ -135,18 +135,18 @@ public class ProductItem extends RealmObject {
     }
   }
 
+  // converts as message to application user
   public String toMessage() {
-    return String.format(
-      "%s,\n%s\n%s",
-      getName(), getSize(), ProductItem.formatPrice("CHF", getPrice()));
-  }
-
-  public static String formatPrice(String unit, String price) {
-    String priceString = "unknown";
+    String unit = "CHF";
+    String priceString = "";  // default empty string if price value is unknown
     if (price != null && !price.contains("null")) {
-      priceString = price;
+      priceString = String.format("%s: %s", unit, priceString);
     }
-    return String.format("%s: %s", unit, priceString);
+    String name = getName();
+    if (name == null) { name = ""; }
+    String size = getSize();
+    if (size == null) { size = ""; }
+    return String.format("%s,\n%s\n%s", name, size, priceString);
   }
 
   // must be called in transaction
