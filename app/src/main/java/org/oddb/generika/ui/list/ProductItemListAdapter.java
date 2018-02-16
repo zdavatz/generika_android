@@ -65,7 +65,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     public View getView(
       final int position, View convertView, ViewGroup parent) {
 
-      ProductItem item = getItem(position);
+      final ProductItem item = (ProductItem)getItem(position);
+      final long itemId = item.getId();
 
       ViewHolder viewHolder;
       if (convertView == null) {
@@ -80,7 +81,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
 
         ImageView deleteButton = (ImageView)convertView.findViewById(
           R.id.deleteButton);
-        deleteButton.setTag(getItemId(position));
+        deleteButton.setTag(itemId);
         deleteButton.setOnClickListener(new View.OnClickListener() {
           @Override
           public void onClick(View view) {
@@ -92,8 +93,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
         convertView.setTag(viewHolder);
       } else {
         viewHolder = (ViewHolder)convertView.getTag();
-
-        viewHolder.deleteButton.setTag(getItemId(position));
+        viewHolder.deleteButton.setTag(itemId);
       }
 
       // TODO: (for now) set values as ean

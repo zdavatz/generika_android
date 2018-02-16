@@ -135,21 +135,25 @@ public class ProductItem extends RealmObject {
     }
   }
 
-  public static String formatPrice(String unit, String price) {
-    // TODO: replace translation text
-    String priceValue = "unknown";
-    if (price != null && !price.contains("null")) {
-      priceValue = price;
-    }
-    return String.format("%s: %s", unit, priceValue);
+  public String toMessage() {
+    return String.format(
+      "%s,\n%s\n%s",
+      getName(), getSize(), ProductItem.formatPrice("CHF", getPrice()));
   }
 
-  // call in transaction
+  public static String formatPrice(String unit, String price) {
+    String priceString = "unknown";
+    if (price != null && !price.contains("null")) {
+      priceString = price;
+    }
+    return String.format("%s: %s", unit, priceString);
+  }
+
+  // must be called in transaction
   public static void createWithEanIntoSource(
     Realm realm, String ean, Product product) {
 
     RealmList<ProductItem> items = product.getItems();
-
     ProductItem item = realm.createObject(ProductItem.class, increment());
     item.setEan(ean);
     items.add(item);

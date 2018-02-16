@@ -322,6 +322,7 @@ public class ProductItemDataFetchFragment extends Fragment {
 
     this.itemId = productItem.getId();
     this.itemEan = productItem.getEan();
+    productItem = null;
 
     String urlString = baseUrl;
     urlString += itemEan;

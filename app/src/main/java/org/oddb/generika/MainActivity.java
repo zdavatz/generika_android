@@ -144,8 +144,11 @@ public class MainActivity extends AppCompatActivity implements
           Log.d(TAG, "(onActivityResult) inserttions: " + i[0]);
           // get via location index
           ProductItem productItem = items.get(i[0]);
-
-          startFetching(productItem);
+          // pass dummy object as container for id and ean
+          ProductItem item = new ProductItem();
+          item.setId(productItem.getId());
+          item.setEan(productItem.getEan());
+          startFetching(item);
         }
       }
     });
@@ -320,9 +323,12 @@ public class MainActivity extends AppCompatActivity implements
       public void execute(Realm realm_) {
         ProductItem productItem = realm_.where(ProductItem.class)
           .equalTo("id", id).findFirst();
-        productItem.deleteFromRealm();
+        if (productItem != null) {
+          productItem.deleteFromRealm();
+        }
       }
     });
+    //mListView.invalidateViews();
   }
 
   private void startFetching(ProductItem productItem) {
@@ -341,32 +347,35 @@ public class MainActivity extends AppCompatActivity implements
       return;
     }
     if (result.errorMessage != null) {
-      String title = "";
-      String message = result.errorMessage;
-      alertDialog(title, message);
+      alertDialog("", result.errorMessage);
     } else if (result.itemMap != null) {
       final long id = result.itemId;
+      Log.d(TAG, "(updateFromFetch) resut.itemId: " + id);
+
       final HashMap<String, String> properties = result.itemMap;
       final ProductItem productItem = realm.where(ProductItem.class)
         .equalTo("id", id).findFirst();
 
+      if (productItem == null) {
+        return;
+      }
       productItem.addChangeListener(new RealmChangeListener<ProductItem>() {
 
         @Override
         public void onChange(ProductItem productItem_) {
-          Log.d(TAG,
-            "(updateFromFetch) resut.item.name: " + properties.get("name"));
-          if (productItem_.getName() != null) {
-            // update ui (listview)
-            productItemListAdapter.notifyDataSetChanged();
+          if (productItem_ == null || !productItem_.isValid()) {
+            return;
+          }
+          // only once (remove self)
+          productItem_.removeAllChangeListeners();
+          if (productItem_.getName() != null &&
+              productItem_.getSize() != null) {
+            Log.d(TAG,
+              "(updateFromFetch) productItem.name: " + productItem_.getName());
             // notify result to user
             // TODO: replace with translated string
             String title = "Generika.cc sagt";
-            String price = ProductItem.formatPrice(
-              "CHF", properties.get("price"));
-            String message = String.format(
-              "%s,\n%s\n%s",
-              properties.get("name"), properties.get("size"), price);
+            String message = productItem_.toMessage();
             alertDialog(title, message);
           }
         }
@@ -376,7 +385,9 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public void execute(Realm realm_) {
           try { // update properties (map) from api fetch result
-            productItem.updateProperties(properties);
+            if (productItem.isValid()) {
+              productItem.updateProperties(properties);
+            }
           } catch (Exception e) {
             Log.d(TAG, "(updateFromFetch) Update error: " + e.getMessage());
           }
@@ -414,7 +425,7 @@ public class MainActivity extends AppCompatActivity implements
     builder.setMessage(message);
     builder.setCancelable(true);
     builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int id) {
+      public void onClick(DialogInterface dialog, int _id) {
         dialog.cancel();
       }
     });
