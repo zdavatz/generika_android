@@ -17,6 +17,7 @@
  */
 package org.oddb.generika;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -26,19 +27,32 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.KeyEvent;
+import android.view.Window;
 import android.webkit.WebView;
+import android.webkit.WebChromeClient;
 import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 
 public class WebViewActivity extends AppCompatActivity {
 
   private WebView webView;
 
+  private Activity activity;
+  private ProgressBar progressBar;
+
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    // enable progress bar (see also initViews)
+    getWindow().requestFeature(Window.FEATURE_PROGRESS);
+
     setContentView(R.layout.activity_web_view);
+
+    getWindow().setFeatureInt(
+      Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
 
     initViews();
 
@@ -59,6 +73,7 @@ public class WebViewActivity extends AppCompatActivity {
 
   private void initViews() {
     Context context = (Context)this;
+    this.activity = this;
 
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(context.getString(R.string.oddb_org));
@@ -70,7 +85,6 @@ public class WebViewActivity extends AppCompatActivity {
     actionBar.setDisplayShowHomeEnabled(true);
 
     this.webView = (WebView)findViewById(R.id.web_view);
-    webView.setWebViewClient(new WebViewClient());
     webView.setPadding(0, 0, 0, 0);
     webView.setScrollbarFadingEnabled(true);
     webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
@@ -85,6 +99,35 @@ public class WebViewActivity extends AppCompatActivity {
     // allow (pinch) zoom
     webSettings.setBuiltInZoomControls(true);
     webSettings.setDisplayZoomControls(false);
+
+    // lined progress bar
+    this.progressBar = (ProgressBar)findViewById(
+      R.id.web_view_progress_bar);
+    webView.setWebChromeClient(new WebChromeClient() {
+      public void onProgressChanged(WebView view, int progress) {
+        progressBar.setProgress(progress);
+        if (progress < 100 &&
+            progressBar.getVisibility() == ProgressBar.GONE) {
+          progressBar.setVisibility(ProgressBar.VISIBLE);
+
+        }
+        if (progress == 100) {
+          progressBar.setVisibility(ProgressBar.GONE);
+        }
+      }
+    });
+    webView.setWebViewClient(new WebViewClient() {
+      public void onReceivedSslError(
+        WebView view, int errorCode, String description, String failingUrl) {
+        Toast.makeText(activity, description, Toast.LENGTH_SHORT).show();
+      }
+
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        view.loadUrl(url);
+        return true;
+      }
+    });
   }
 
   @Override
