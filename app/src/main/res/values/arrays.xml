@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- [search type] -->
+  <string-array name="settings_search_type_names">
+    <item>@string/settings_price_comparison_fullname</item>
+    <item>@string/settings_consumer_info_fullname</item>
+    <item>@string/settings_professional_info_fullname</item>
+  </string-array>
+
+  <string-array name="settings_search_type_values">
+    <!-- NOTE: use same abbr (FI/PI) as value with ch.oddb.org (in german) -->
+    <item>fi</item>
+    <item>pi</item>
+    <!-- NOTE: preis vergleich (comparison) -->
+    <item>pr</item>
+  </string-array>
+
+  <!-- [search lang] -->
+  <string-array name="settings_search_lang_names">
+    <item>@string/lang_de_name</item>
+    <item>@string/lang_fr_name</item>
+  </string-array>
+
+  <string-array name="settings_search_lang_values">
+    <!-- NOTE: same as @string/lang_{de|fr|en}_abbr in strings.xml -->
+    <item>de</item>
+    <item>fr</item>
+  </string-array>
+</resources>

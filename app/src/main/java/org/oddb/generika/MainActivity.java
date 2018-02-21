@@ -265,7 +265,9 @@ public class MainActivity extends AppCompatActivity implements
       case android.R.id.home:
         mDrawerLayout.openDrawer(GravityCompat.START);
         return true;
-      case R.id.action_settings:
+      case R.id.settings:
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
         return true;
     }
 
