@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen
+		xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/settings_search">
+
+				<org.oddb.generika.preference.AppListPreference
+            android:key="kSearchType"
+            android:title="@string/settings_search_type_name"
+            android:dialogTitle="@string/settings_search_type_dialog_title"
+            android:entries="@array/settings_search_type_names"
+            android:entryValues="@array/settings_search_type_values"
+            android:defaultValue="pv" />
+
+				<org.oddb.generika.preference.AppListPreference
+            android:key="kSearchLang"
+            android:title="@string/settings_search_lang_name"
+            android:dialogTitle="@string/settings_search_lang_dialog_title"
+            android:entries="@array/settings_search_lang_names"
+            android:entryValues="@array/settings_search_lang_values"
+            android:defaultValue="de"/>
+
+    </android.support.v7.preference.PreferenceCategory>
+
+    <!--
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/settings_record">
+
+				<android.support.v7.preference.SwitchPreferenceCompat
+            android:key="kRecordSync"
+            android:title="@string/settings_record_sync_name"
+            android:summary="@string/settings_record_sync_summary"
+            android:defaultValue="false" />
+
+    </android.support.v7.preference.PreferenceCategory>
+    -->
+
+</android.support.v7.preference.PreferenceScreen>

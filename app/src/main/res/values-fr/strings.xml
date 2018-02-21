@@ -3,7 +3,7 @@
     <string name="app_name">Generika</string>
     <string name="oddb_org">ODDB.org</string>
     
-    <string name="action_settings">Settings</string>
+    <string name="settings">Settings</string>
 
     <string name="medications">Medications</string>
     <!--
