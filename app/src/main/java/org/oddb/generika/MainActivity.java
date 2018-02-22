@@ -60,8 +60,9 @@ import java.util.List;
 import org.oddb.generika.app.BaseActivity;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
-import org.oddb.generika.ui.list.ProductItemListAdapter;
 import org.oddb.generika.network.ProductItemDataFetchFragment;
+import org.oddb.generika.ui.list.ProductItemListAdapter;
+import org.oddb.generika.util.Constant;
 
 
 public class MainActivity extends BaseActivity implements
@@ -88,18 +89,6 @@ public class MainActivity extends BaseActivity implements
   private boolean fetching = false;
   private ProductItemDataFetchFragment productItemDataFetcher;
 
-  // as place holder values
-  private static final HashMap<String, String> initData =
-    new HashMap<String, String>() {{
-      put("ean", "EAN 13");
-      put("name", "Name");
-      put("size", "Size");
-      put("datetime", "Scanned At");
-      put("price", "Price (CHF)");
-      put("deduction", "Deduction (%)");
-      put("category", "Category");
-    }};
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -116,8 +105,7 @@ public class MainActivity extends BaseActivity implements
     if (fragment == null) {
       // TODO: use constant utility
       fragment = ProductItemDataFetchFragment.getInstance(
-        fragmentManager,
-        "https://ch.oddb.org/de/mobile/api_search/ean/");
+        fragmentManager, Constant.API_URL_BASE);
     }
     this.productItemDataFetcher = (ProductItemDataFetchFragment)fragment;
 
@@ -139,13 +127,13 @@ public class MainActivity extends BaseActivity implements
     if (product.getItems().size() == 0) {
       realm.beginTransaction();
       ProductItem item = ProductItem.createWithEanIntoSource(
-        realm, initData.get("ean"), product);
-      item.setName(initData.get("name"));
-      item.setSize(initData.get("size"));
-      item.setDatetime(initData.get("datetime"));
-      item.setPrice(initData.get("price"));
-      item.setDeduction(initData.get("deduction"));
-      item.setCategory(initData.get("category"));
+        realm, Constant.initData.get("ean"), product);
+      item.setName(Constant.initData.get("name"));
+      item.setSize(Constant.initData.get("size"));
+      item.setDatetime(Constant.initData.get("datetime"));
+      item.setPrice(Constant.initData.get("price"));
+      item.setDeduction(Constant.initData.get("deduction"));
+      item.setCategory(Constant.initData.get("category"));
       realm.commitTransaction();
     }
 

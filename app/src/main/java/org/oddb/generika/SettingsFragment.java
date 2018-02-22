@@ -19,7 +19,6 @@ package org.oddb.generika;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -27,7 +26,6 @@ import android.support.v7.preference.Preference;
 import android.support.v7.preference.Preference.OnPreferenceChangeListener;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.lang.Boolean;
@@ -36,18 +34,13 @@ import java.util.Locale;
 
 import org.oddb.generika.SettingsActivity;
 import org.oddb.generika.preference.AppListPreference;
+import org.oddb.generika.util.AppLocale;
+import org.oddb.generika.util.Constant;
 
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
   private static final String TAG = "SettingsFragment";
-
-  private final static String kSearchType = "kSearchType";
-  private final static String kSearchLang = "kSearchLang";
-  private final static String kAppUseSystemLocale = "kAppUseSystemLocale";
-  private final static String kAppLocale = "kAppLocale";
-  // TODO: enable cloud storage support
-  //private final static String kRecordSync = "kRecordSync";
 
   private SharedPreferences sharedPreferences;
 
@@ -56,23 +49,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     // load settings from xml file
     addPreferencesFromResource(R.xml.user_settings);
 
-    Context activity = getActivity();
+    Context context = getContext();
     this.sharedPreferences = PreferenceManager
-      .getDefaultSharedPreferences(activity);
+      .getDefaultSharedPreferences(context);
 
     initLocales();
   }
 
   private void initLocales() {
-    Preference useSystemLocale = findPreference(kAppUseSystemLocale);
-    Preference appLocale = findPreference(kAppLocale);
+    Preference useSystemLocale = findPreference(Constant.kAppUseSystemLocale);
+    Preference appLocale = findPreference(Constant.kAppLocale);
 
-    Boolean checked = sharedPreferences.getBoolean(kAppUseSystemLocale, false);
-    Log.d(TAG, "(initLocaleStates) checked: " + checked);
+    Boolean checked = sharedPreferences.getBoolean(
+      Constant.kAppUseSystemLocale, false);
+    Log.d(TAG, "(initLocaleStates) kAppUseSystemLocale checked: " + checked);
     if (checked) {
       Locale systemLocale = Resources.getSystem()
         .getConfiguration().locale;
-      setAppLocaleValue(systemLocale.getLanguage());
+      updateAppLocaleValue(systemLocale.getLanguage());
 
       appLocale.setEnabled(false);
     }
@@ -97,12 +91,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         public boolean onPreferenceChange(
           Preference _preference, Object newValue) {
 
-          Preference appLocale_ = findPreference(kAppLocale);
+          Preference appLocale_ = findPreference(Constant.kAppLocale);
           if ((Boolean)newValue) {
             Locale systemLocale = Resources.getSystem()
               .getConfiguration().locale;
 
-            setAppLocaleValue(systemLocale.getLanguage());
+            updateAppLocaleValue(systemLocale.getLanguage());
             appLocale_.setEnabled(false);
 
             // all activity extends BaseActivity (has currentLocale)
@@ -119,14 +113,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
   }
 
   /**
-   * Set application locale based on system locale (language) value.
+   * Update application locale based on system locale (language) value.
    * `de` is our default.
    */
-  private void setAppLocaleValue(String language) {
+  private void updateAppLocaleValue(String language) {
     Log.d(TAG, "(initLocaleStates) language: " + language);
 
     AppListPreference appLocale = (AppListPreference)findPreference(
-      kAppLocale);
+      Constant.kAppLocale);
     switch (language) {
       case "de": case "fr": case "en":
         appLocale.setValue(language);
@@ -142,11 +136,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
    * SettingsActivity will be refreshed.
    */
   private void changeCurrentLocale(Locale newLocale) {
-    Resources resources = getResources(); 
-    DisplayMetrics metrics = resources.getDisplayMetrics(); 
-    Configuration configuration = resources.getConfiguration(); 
-    configuration.locale = newLocale; 
-    resources.updateConfiguration(configuration, metrics); 
+    AppLocale.setLocale(getContext(), newLocale);
 
     // refresh
     ((SettingsActivity)getActivity()).finish();

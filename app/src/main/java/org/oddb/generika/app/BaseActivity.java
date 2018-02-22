@@ -17,21 +17,14 @@
  */
 package org.oddb.generika.app;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.PreferenceManager;
 
 import java.util.Locale;
 
+import org.oddb.generika.util.AppLocale;
+
 
 public class BaseActivity extends AppCompatActivity {
-
-  private final static String kAppLocale = "kAppLocale";
 
   public Locale currentLocale;
 
@@ -45,28 +38,11 @@ public class BaseActivity extends AppCompatActivity {
   @Override
   protected void onRestart() {
     super.onRestart();
-    Locale locale = getLocale(this);
+    Locale locale = AppLocale.getLocale(this);
 
     if (!locale.equals(currentLocale)) {
       currentLocale = locale;
       recreate();
     }
-  }
-
-  private static Locale getLocale(Context context) {
-    Locale locale;
-
-    SharedPreferences sharedPreferences = PreferenceManager
-      .getDefaultSharedPreferences(context);
-    String language = sharedPreferences.getString(kAppLocale, "de");
-    switch (language) {
-      case "de": case "fr": case "en":
-        locale = new Locale(language);
-        break;
-      default:
-        locale = new Locale("de");
-        break;
-    }
-    return locale;
   }
 }
