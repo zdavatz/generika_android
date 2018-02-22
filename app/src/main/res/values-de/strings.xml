@@ -1,19 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- [application] -->
     <string name="app_name">Generika</string>
     <string name="oddb_org">ODDB.org</string>
     
-    <string name="settings">Settings</string>
+    <!-- [menu] -->
+    <string name="settings">Einstellungen</string>
+
+    <!-- [drawer] -->
+    <string name="drawer_close">Schlissen</string>
+    <string name="drawer_open">Öffnen</string>
 
     <string name="medications">Medikamente</string>
     <!--
     <string name="prescriptions">Rezepte</string>
     -->
 
-    <string name="drawer_close">Close</string>
-    <string name="drawer_open">Open</string>
+    <!-- [settings]-->
+    <!-- groups -->
+    <string name="settings_search">Suchen</string>
+    <!--
+    <string name="settings_record">Speichern</string>
+    -->
+    <!-- search_type -->
+    <string name="settings_search_type_name">Typ</string>
+    <string name="settings_search_type_dialog_title">Typ Wählen</string>
+    <string name="settings_search_type_dialog_description">Dokument Typ gezeigt nach Scannen.</string>
+    <!-- search_type/entry titles -->
+    <string name="settings_price_comparison_fullname">Preis Vergleich</string>
+    <string name="settings_consumer_info_fullname">Patienteninformation</string>
+    <string name="settings_professional_info_fullname">Fachinformation</string>
+    <!-- search_lang -->
+    <string name="settings_search_lang_name">Sprache</string>
+    <string name="settings_search_lang_dialog_title">Sprache Wählen</string>
+    <string name="settings_search_lang_dialog_description">Sprache für Such Resultat auf Web Seite.</string>
+    <!-- search_lang/entry titles -->
+    <!-- use lang_{de|fr}_abbr -->
 
+    <!-- record_sync -->
+    <!--
+    <string name="settings_record_sync_name">Snchronisieren</string>
+    <string name="settings_record_sync_summary"></string>
+    -->
+
+    <!-- [general] -->
     <string name="ok">OK</string>
+
+    <!-- [languages] -->
+    <string name="lang_de_name">Deutsch</string>
+    <string name="lang_fr_name">Français</string>
+
+    <string name="lang_de_abbr">de</string>
+    <string name="lang_fr_abbr">fr</string>
+
+    <!-- [barcode reader] -->
     <string name="permission_camera_rationale">
       Access to the camera is needed for detection</string>
     <string name="no_camera_permission">
