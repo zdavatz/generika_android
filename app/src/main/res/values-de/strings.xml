@@ -19,6 +19,7 @@
     <!-- [settings]-->
     <!-- groups -->
     <string name="settings_search">Suchen</string>
+    <string name="settings_app">Applikation</string>
     <!--
     <string name="settings_record">Speichern</string>
     -->
@@ -37,6 +38,14 @@
     <!-- search_lang/entry titles -->
     <!-- use lang_{de|fr}_abbr -->
 
+    <!-- app_use_system_locale -->
+    <string name="settings_app_use_system_locale_name">Gebietsschema des System Verwenden</string>
+    <string name="settings_app_use_system_locale_summary">App Gebietsschema wie gleich das Schema des System Setzen, sonst \"de\" (Default)</string>
+    <!-- app_locale -->
+    <string name="settings_app_locale_name">Gebietsschema</string>
+    <string name="settings_app_locale_dialog_title">Gebietsschema Wählen</string>
+    <string name="settings_app_locale_dialog_description">Gebietsschema für das App UI.</string>
+
     <!-- record_sync -->
     <!--
     <string name="settings_record_sync_name">Snchronisieren</string>
@@ -49,9 +58,11 @@
     <!-- [languages] -->
     <string name="lang_de_name">Deutsch</string>
     <string name="lang_fr_name">Français</string>
+    <string name="lang_en_name">English</string>
 
     <string name="lang_de_abbr">de</string>
     <string name="lang_fr_abbr">fr</string>
+    <string name="lang_en_abbr">en</string>
 
     <!-- [barcode reader] -->
     <string name="permission_camera_rationale">

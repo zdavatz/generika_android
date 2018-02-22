@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- web search -->
     <android.support.v7.preference.PreferenceCategory
         android:title="@string/settings_search">
 
@@ -25,10 +26,30 @@
 
     </android.support.v7.preference.PreferenceCategory>
 
-    <!--
+    <!-- application -->
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/settings_app">
+
+				<android.support.v7.preference.SwitchPreferenceCompat
+            android:key="kAppUseSystemLocale"
+            android:title="@string/settings_app_use_system_locale_name"
+            android:summary="@string/settings_app_use_system_locale_summary"
+            android:defaultValue="true" />
+
+				<org.oddb.generika.preference.AppListPreference
+            android:key="kAppLocale"
+            android:title="@string/settings_app_locale_name"
+            android:dialogTitle="@string/settings_app_locale_dialog_title"
+            android:entries="@array/settings_app_locale_names"
+            android:entryValues="@array/settings_app_locale_values"
+            android:defaultValue="de" />
+
+    </android.support.v7.preference.PreferenceCategory>
+
+    <!-- cloud sync -->
+    <!---
     <android.support.v7.preference.PreferenceCategory
         android:title="@string/settings_record">
-
 
 				<android.support.v7.preference.SwitchPreferenceCompat
             android:key="kRecordSync"

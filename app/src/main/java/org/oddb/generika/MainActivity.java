@@ -20,9 +20,9 @@ package org.oddb.generika;
 import android.content.Context;
 import android.content.Intent;
 import android.content.DialogInterface;
-import android.net.NetworkInfo;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -57,13 +57,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
+import org.oddb.generika.app.BaseActivity;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.ui.list.ProductItemListAdapter;
 import org.oddb.generika.network.ProductItemDataFetchFragment;
 
 
-public class MainActivity extends AppCompatActivity implements
+public class MainActivity extends BaseActivity implements
   AdapterView.OnItemClickListener,
   ProductItemListAdapter.DeleteListener,
   ProductItemDataFetchFragment.FetchCallback<

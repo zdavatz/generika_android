@@ -24,14 +24,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import org.oddb.generika.app.BaseActivity;
 
-public class SettingsActivity extends AppCompatActivity {
 
-  private final static String kSearchType = "kSearchType";
-  private final static String kSearchLang = "kSearchLang";
-  // TODO: enable cloud storage support
-  //private final static String kRecordSync = "kRecordSync";
-
+public class SettingsActivity extends BaseActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

@@ -18,19 +18,30 @@
 package org.oddb.generika;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.content.SharedPreferences;
+import android.support.v7.preference.PreferenceManager;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.RealmConfiguration;
+
+import java.util.Locale;
 
 import org.oddb.generika.model.Product;
 
 
 public class GenerikaApplication extends Application {
 
+  private final static String kAppLocale = "kAppLocale";
+
   @Override
   public void onCreate() {
     super.onCreate();
+
+    setLocale();
 
     Realm.init(this);
     RealmConfiguration realmConfig = new RealmConfiguration.Builder()
@@ -56,5 +67,37 @@ public class GenerikaApplication extends Application {
     Realm.deleteRealm(realmConfig);
 
     Realm.setDefaultConfiguration(realmConfig);
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+  }
+
+  private static Locale getLocale(Context context) {
+    Locale locale;
+
+    SharedPreferences sharedPreferences = PreferenceManager
+      .getDefaultSharedPreferences(context);
+    String language = sharedPreferences.getString(kAppLocale, "de");
+    switch (language) {
+      case "de": case "fr": case "en":
+        locale = new Locale(language);
+        break;
+      default:
+        locale = new Locale("de");
+        break;
+    }
+    return locale;
+  }
+
+  private void setLocale() {
+    final Resources resources = getResources();
+    final Configuration configuration = resources.getConfiguration();
+    final Locale locale = getLocale(this);
+    if (!configuration.locale.equals(locale)) {
+      configuration.setLocale(locale);
+      resources.updateConfiguration(configuration, null);
+    }
   }
 }
