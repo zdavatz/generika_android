@@ -11,8 +11,8 @@
     <!-- NOTE: use same abbr (FI/PI) as value with ch.oddb.org (in german) -->
     <item>fi</item>
     <item>pi</item>
-    <!-- NOTE: preis vergleich (comparison) -->
-    <item>pr</item>
+    <!-- NOTE: [p]reis [v]ergleich -->
+    <item>pv</item>
   </string-array>
 
   <!-- [search lang] -->

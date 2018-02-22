@@ -29,6 +29,7 @@
     <android.support.v7.preference.PreferenceCategory
         android:title="@string/settings_record">
 
+
 				<android.support.v7.preference.SwitchPreferenceCompat
             android:key="kRecordSync"
             android:title="@string/settings_record_sync_name"
