@@ -19,6 +19,7 @@
     <!-- [settings]-->
     <!-- groups -->
     <string name="settings_search">Search</string>
+    <string name="settings_app">Application</string>
     <!--
     <string name="settings_record">Record</string>
     -->
@@ -37,6 +38,14 @@
     <!-- search_lang/entry titles -->
     <!-- use lang_{de|fr}_abbr -->
 
+    <!-- app_use_system_locale -->
+    <string name="settings_app_use_system_locale_name">Use System Locale</string>
+    <string name="settings_app_use_system_locale_summary">Set application locale same with system\'s one, or else \"de\" (default)</string>
+    <!-- app_locale -->
+    <string name="settings_app_locale_name">Locale</string>
+    <string name="settings_app_locale_dialog_title">Select Locale</string>
+    <string name="settings_app_locale_dialog_description">Locale used for this application UI.</string>
+
     <!-- record_sync -->
     <!--
     <string name="settings_record_sync_name">Sync</string>
@@ -49,9 +58,11 @@
     <!-- [languages] -->
     <string name="lang_de_name">Deutsch</string>
     <string name="lang_fr_name">Français</string>
+    <string name="lang_en_name">English</string>
 
     <string name="lang_de_abbr">de</string>
     <string name="lang_fr_abbr">fr</string>
+    <string name="lang_en_abbr">en</string>
 
     <!-- [barcode reader] -->
     <string name="permission_camera_rationale">

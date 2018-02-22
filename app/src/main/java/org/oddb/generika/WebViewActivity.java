@@ -35,8 +35,10 @@ import android.webkit.WebSettings;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import org.oddb.generika.app.BaseActivity;
 
-public class WebViewActivity extends AppCompatActivity {
+
+public class WebViewActivity extends BaseActivity {
 
   // TODO: enable these values for patinfo
   public static final String Reg = "reg";

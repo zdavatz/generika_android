@@ -64,12 +64,13 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
 
+import org.oddb.generika.app.BaseActivity;
 import org.oddb.generika.ui.reader.CameraSource;
 import org.oddb.generika.ui.reader.CameraSourcePreview;
 import org.oddb.generika.ui.reader.GraphicOverlay;
 
 
-public final class BarcodeCaptureActivity extends AppCompatActivity implements
+public final class BarcodeCaptureActivity extends BaseActivity implements
   BarcodeGraphicTracker.BarcodeUpdateListener {
 
   private static final int RC_HANDLE_GMS = 9001;

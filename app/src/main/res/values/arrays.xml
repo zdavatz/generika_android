@@ -15,15 +15,30 @@
     <item>fi</item>
   </string-array>
 
-  <!-- [search lang] -->
+  <!-- [search lang] (no english) -->
   <string-array name="settings_search_lang_names">
     <item>@string/lang_de_name</item>
     <item>@string/lang_fr_name</item>
   </string-array>
 
   <string-array name="settings_search_lang_values">
-    <!-- NOTE: same as @string/lang_{de|fr|en}_abbr in strings.xml -->
+    <!-- NOTE: same as @string/lang_{de|fr}_abbr in strings.xml -->
     <item>de</item>
     <item>fr</item>
   </string-array>
+
+  <!-- [app locale] -->
+  <string-array name="settings_app_locale_names">
+    <item>@string/lang_de_abbr</item>
+    <item>@string/lang_fr_abbr</item>
+    <item>@string/lang_en_abbr</item>
+  </string-array>
+
+  <string-array name="settings_app_locale_values">
+    <!-- NOTE: same as @string/lang_{de|fr|en}_abbr in strings.xml -->
+    <item>de</item>
+    <item>fr</item>
+    <item>en</item>
+  </string-array>
+
 </resources>
