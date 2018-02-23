@@ -270,8 +270,6 @@ public class MainActivity extends BaseActivity implements
       if (resultCode == CommonStatusCodes.SUCCESS) {
         if (data != null) {
           Barcode barcode = data.getParcelableExtra(Constant.kBarcode);
-          Log.d(TAG,
-                "(onActivityResult) Barcode found: " + barcode.displayValue);
           if (barcode.displayValue.length() == 13) {
             // save record into realm (next: changeset listener)
             addProduct(barcode.displayValue);
