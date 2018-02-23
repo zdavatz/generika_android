@@ -43,6 +43,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
+import android.icu.util.TimeZone;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -62,9 +67,15 @@ import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.BarcodeImageCapturingDetector;
 import org.oddb.generika.util.Constant;
 import org.oddb.generika.ui.reader.CameraSource;
 import org.oddb.generika.ui.reader.CameraSourcePreview;
@@ -72,12 +83,17 @@ import org.oddb.generika.ui.reader.GraphicOverlay;
 
 
 public final class BarcodeCaptureActivity extends BaseActivity implements
-  BarcodeGraphicTracker.BarcodeUpdateListener {
+  BarcodeGraphicTracker.BarcodeUpdateListener,
+  BarcodeImageCapturingDetector.BarcodeImageCaptureListener {
   private static final String TAG = "BarcodeCapture";
 
   private CameraSource mCameraSource;
   private CameraSourcePreview mPreview;
   private GraphicOverlay<BarcodeGraphic> mGraphicOverlay;
+
+  private final Object captureLock = new Object();
+  private boolean captured = false;
+  private String filepath;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -103,6 +119,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       requestCameraPermission();
     }
 
+    // TODO: use translate
     Snackbar.make(
       mGraphicOverlay,
       "Hold rear camera out over the barcode of package",
@@ -148,14 +165,21 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
   private void createCameraSource(boolean autoFocus, boolean useFlash) {
     Context context = getApplicationContext();
 
-    BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(
-      context).build();
+    // TODO: Enable support DATA_MATRIX and QR_CODE
+    BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context)
+        .setBarcodeFormats(Barcode.EAN_13)
+        .build();
+    // wrap barcode detector to capture image
+    BarcodeImageCapturingDetector detector = new BarcodeImageCapturingDetector(
+      context, barcodeDetector);
+    detector.setOnBarcodeImageCaptureListener(this);
+
     BarcodeTrackerFactory barcodeFactory = new BarcodeTrackerFactory(
       mGraphicOverlay, this);
-    barcodeDetector.setProcessor(
+    detector.setProcessor(
       new MultiProcessor.Builder<>(barcodeFactory).build());
 
-    if (!barcodeDetector.isOperational()) {
+    if (!detector.isOperational()) {
       Log.w(TAG, "Detector dependencies are not yet available.");
 
       IntentFilter lowstorageFilter = new IntentFilter(
@@ -170,17 +194,17 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     }
 
     CameraSource.Builder builder = new CameraSource.Builder(
-        getApplicationContext(), barcodeDetector)
-          .setFacing(CameraSource.CAMERA_FACING_BACK)
-          .setRequestedPreviewSize(1600, 1024)
-          .setRequestedFps(15.0f);
+      getApplicationContext(), detector)
+        .setFacing(CameraSource.CAMERA_FACING_BACK)
+        .setRequestedPreviewSize(1600, 1024)
+        .setRequestedFps(15.0f);
 
     // auto focus
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       builder = builder.setFocusMode(
         autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null);
     }
-
+    // auto flash
     mCameraSource = builder
       .setFlashMode( // Enable only auto mode flash
           useFlash ? Camera.Parameters.FLASH_MODE_AUTO : null)
@@ -226,7 +250,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       Log.d(TAG, "Camera permission granted - initialize the camera source");
       // we have permission, so create the camerasource
       boolean autoFocus = getIntent().getBooleanExtra(
-        Constant.kAutoFocus,false);
+        Constant.kAutoFocus, false);
       boolean useFlash = getIntent().getBooleanExtra(
         Constant.kUseFlash, false);
       createCameraSource(autoFocus, useFlash);
@@ -247,7 +271,8 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     };
 
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    builder.setTitle("Multitracker sample")
+    // TODO
+    builder.setTitle("Generika")
       .setMessage(R.string.no_camera_permission)
       .setPositiveButton(R.string.ok, listener)
       .show();
@@ -296,6 +321,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
         bestDistance = distance;
       }
     }
+    Log.d(TAG, "(onTap) barcode: " + barcode);
     if (barcode != null) {
       onBarcodeDetected(barcode);
       return true;
@@ -305,10 +331,102 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
   @Override
   public void onBarcodeDetected(Barcode barcode) {
-    // just rerutrn detected barcode to activity and finish
-    Intent data = new Intent();
-    data.putExtra(Constant.kBarcode, barcode);
-    setResult(CommonStatusCodes.SUCCESS, data);
-    finish();
+    Log.d(TAG, "(onBarcodeDetected) barcode: " + barcode.displayValue);
+
+    // wait filepath in async task invoked from another callback
+    synchronized (captureLock) {
+      while (filepath == null) {
+        try {
+          captureLock.wait();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+      Log.d(TAG, "(onBarcodeDetected) filepath: " + filepath);
+
+      // just rerutrn detected barcode to activity and finish
+      Intent data = new Intent();
+      data.putExtra(Constant.kBarcode, barcode);
+      setResult(CommonStatusCodes.SUCCESS, data);
+      finish();
+      return;
+    }
+  }
+
+  private static class CapturedData {
+    public File files;
+    public String barcodeValue;
+    public Bitmap bitmap;
+  }
+
+  private class SaveBarcodeImageTask extends AsyncTask<
+    CapturedData, Void, String> {
+
+    private final static String TAG = "SaveBarcodeImage";
+
+    @Override
+    protected String doInBackground(CapturedData... params) {
+      CapturedData data = (CapturedData)params[0];
+      File barcodes = new File(data.files, "barcodes");
+
+      // e.g. 20180223210923 in UTC
+      Calendar calendar = Calendar.getInstance();
+      SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+      String dateString = formatter.format(calendar.getTime());
+
+      String filename = String.format(
+        "%s-%s.jpg", data.barcodeValue, dateString);
+      Log.d(TAG, "(doInBackground) filename: " + filename);
+
+      String path = null;
+      OutputStream out = null;
+      try {
+        barcodes.mkdir();
+        File file = new File(barcodes, filename);
+        path = file.getAbsolutePath();
+        out = new BufferedOutputStream(
+          new FileOutputStream(path, true));
+        data.bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          if (out != null) {
+            out.close();
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        return path;
+      }
+    }
+
+    @Override
+    protected void onPostExecute(String path) {  // called on main ui thread
+      Log.d(TAG, "(onPostExecute) fullpath: " + path);
+
+      synchronized (captureLock) {
+        filepath = path;
+        captured = true;
+        captureLock.notifyAll();
+      }
+    }
+  }
+
+  @Override
+  public void onBarcodeImageCaptured(String barcodeValue, Bitmap bitmap) {
+    if (bitmap == null) {
+      return;
+    }
+    // build parameter
+    CapturedData capturedData = new CapturedData();
+    Context context = getApplicationContext();
+    capturedData.files = context.getFilesDir();
+    capturedData.barcodeValue = barcodeValue;
+    capturedData.bitmap = bitmap;
+
+    SaveBarcodeImageTask task = new SaveBarcodeImageTask();
+    task.execute(capturedData);
   }
 }

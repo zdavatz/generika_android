@@ -192,6 +192,7 @@ public class CameraSource {
   }
 
   public interface PictureCallback {
+    // jpeg
     void onPictureTaken(byte[] data);
   }
 
@@ -792,13 +793,17 @@ public class CameraSource {
           if (!mActive) {
             return;
           }
+          // skip if bytebuffer is empty
+          if (mPendingFrameData.slice().remaining() < 1) {
+            return;
+          }
+          int width = mPreviewSize.getWidth();
+          int height = mPreviewSize.getHeight();
 
+          // create a frame to pass barcode detection
           outputFrame = new Frame.Builder()
             .setImageData(
-                mPendingFrameData,
-                mPreviewSize.getWidth(),
-                mPreviewSize.getHeight(),
-                ImageFormat.NV21)
+              mPendingFrameData, width, height, ImageFormat.NV21)
             .setId(mPendingFrameId)
             .setTimestampMillis(mPendingTimeMillis)
             .setRotation(mRotation)
