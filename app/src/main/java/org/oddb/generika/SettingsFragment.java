@@ -121,11 +121,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     AppListPreference appLocale = (AppListPreference)findPreference(
       Constant.kAppLocale);
     switch (language) {
-      case "de": case "fr": case "en":
+      case Constant.LANG_DE: case Constant.LANG_FR: case Constant.LANG_EN:
         appLocale.setValue(language);
         break;
       default:
-        appLocale.setValue("de");
+        appLocale.setValue(Constant.LANG_DE);
         break;
     }
   }

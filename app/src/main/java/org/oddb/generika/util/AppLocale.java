@@ -37,13 +37,14 @@ public class AppLocale extends Object {
 
     SharedPreferences sharedPreferences = PreferenceManager
       .getDefaultSharedPreferences(context);
-    String language = sharedPreferences.getString(Constant.kAppLocale, "de");
+    String language = sharedPreferences.getString(
+      Constant.kAppLocale, Constant.LANG_DE);
     switch (language) {
-      case "de": case "fr": case "en":
+      case Constant.LANG_DE: case Constant.LANG_FR: case Constant.LANG_EN:
         locale = new Locale(language);
         break;
       default:
-        locale = new Locale("de");
+        locale = new Locale(Constant.LANG_DE);
         break;
     }
     return locale;

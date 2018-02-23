@@ -2,9 +2,9 @@
 <resources>
   <!-- [search type] -->
   <string-array name="settings_search_type_names">
-    <item>@string/settings_price_comparison_fullname</item>
-    <item>@string/settings_consumer_info_fullname</item>
-    <item>@string/settings_professional_info_fullname</item>
+    <item>@string/pv_fullname</item>
+    <item>@string/pi_fullname</item>
+    <item>@string/fi_fullname</item>
   </string-array>
 
   <string-array name="settings_search_type_values">

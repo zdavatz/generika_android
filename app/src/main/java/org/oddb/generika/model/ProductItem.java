@@ -53,13 +53,12 @@ public class ProductItem extends RealmObject {
   private String ean;
 
   private static final Pattern regPtrn = Pattern.compile(
-    "7680(\\d{5}).+");
-  private static final Pattern seqPtrn = Pattern.compile(
-    "7680\\d{5}(\\d{3}).+");
+    "^7680(\\d{5}).+");
+  private static final Pattern packPtrn = Pattern.compile(
+    "^7680\\d{5}(\\d{3}).+");
 
   // parsed partial numbers from EAN13 (ean)
   private String reg;
-  private String seq;
   private String pack;
 
   // scanned_at/imported_at
@@ -69,6 +68,7 @@ public class ProductItem extends RealmObject {
   private String barcode;
   private String expiresAt;  // TODO: valdatum
   // (values from oddb)
+  private String seq;
   private String name;
   private String size;
   private String deduction;
@@ -96,9 +96,9 @@ public class ProductItem extends RealmObject {
   public String getEan() { return ean; }
   public void setEan(String ean) { this.ean = ean; }
 
-  // no setter
+  // no setter (readonly)
   public String getReg() {
-    if (reg != null && reg != "") {
+    if (reg != null && !reg.equals("")) {
       return reg;
     } else if (ean != null) {
       Matcher m = regPtrn.matcher(ean);
@@ -109,8 +109,20 @@ public class ProductItem extends RealmObject {
     }
     return null;
   }
-  public String getSeq() { return seq; }
-  public String getPack() { return pack; }
+
+  // no setter (readonly)
+  public String getPack() {
+    if (pack != null && !pack.equals("")) {
+      return pack;
+    } else if (pack != null) {
+      Matcher m = packPtrn.matcher(ean);
+      while (m.find()) {
+        String s = m.group(1);
+        return s;
+      }
+    }
+    return null;
+  }
 
   public String getDatetime() { return datetime; }
   public void setDatetime(String datetime) { this.datetime = datetime; }
@@ -119,6 +131,9 @@ public class ProductItem extends RealmObject {
   public void setBarcode(String barcode) { this.barcode = barcode; }
 
   // (values from oddb)
+  public String getSeq() { return seq; }
+  public void setSeq(String seq) { this.seq = seq; }
+
   public String getName() { return name; }
   public void setName(String name) { this.name = name; }
 
@@ -148,7 +163,7 @@ public class ProductItem extends RealmObject {
     SecurityException, NoSuchMethodException, IllegalArgumentException,
     IllegalAccessException, InvocationTargetException {
     // TODO: validate format etc.
-    String[] keys = {"name", "size", "deduction", "price", "category"};
+    String[] keys = {"seq", "name", "size", "deduction", "price", "category"};
     // this.getClass() fails :'(
     Class c = ProductItem.class;
     Class[] parameterTypes = new Class[]{String.class};
@@ -161,6 +176,9 @@ public class ProductItem extends RealmObject {
         method.invoke(this, new Object[]{value});
       }
     }
+    // extarct values from ean
+    this.reg = getReg();
+    this.pack = getPack();
   }
 
   // converts as message to application user

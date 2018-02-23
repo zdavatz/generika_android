@@ -4,6 +4,10 @@
     <string name="app_name">Generika</string>
     <string name="oddb_org">ODDB.org</string>
 
+    <string name="pv_fullname">Price Comparison</string>
+    <string name="pi_fullname">Consumer information</string>
+    <string name="fi_fullname">Professional information</string>
+
     <!-- [menu] -->
     <string name="settings">Settings</string>
 
@@ -27,17 +31,10 @@
     <string name="settings_search_type_name">Type</string>
     <string name="settings_search_type_dialog_title">Select Type</string>
     <string name="settings_search_type_dialog_description">Document type displayed after barcode scan.</string>
-    <!-- search_type/entry titles -->
-    <string name="settings_price_comparison_fullname">Price Comparison</string>
-    <string name="settings_consumer_info_fullname">Consumer information</string>
-    <string name="settings_professional_info_fullname">Professional information</string>
     <!-- search_lang -->
     <string name="settings_search_lang_name">Language</string>
     <string name="settings_search_lang_dialog_title">Select Language</string>
     <string name="settings_search_lang_dialog_description">Language specified for search result web page.</string>
-    <!-- search_lang/entry titles -->
-    <!-- use lang_{de|fr}_abbr -->
-
     <!-- app_use_system_locale -->
     <string name="settings_app_use_system_locale_name">Use System Locale</string>
     <string name="settings_app_use_system_locale_summary">Set application locale same with system\'s one, or else \"de\" (default)</string>

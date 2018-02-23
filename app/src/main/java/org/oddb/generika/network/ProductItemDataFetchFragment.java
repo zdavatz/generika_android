@@ -71,7 +71,10 @@ public class ProductItemDataFetchFragment extends Fragment {
           JSONObject obj = result.itemObj;
           // just map all values as string, here
           HashMap<String, String> itemMap = new HashMap<String, String>();
+          itemMap.put("seq", obj.getString("seq"));
           itemMap.put("name", obj.getString("name"));
+          // not used (extracted from ean in ProductItem)
+          //itemMap.put("pack", obj.getString("pack"));
           itemMap.put("size", obj.getString("size"));
           itemMap.put("deduction", obj.getString("deduction"));
           itemMap.put("price", obj.getString("price"));
