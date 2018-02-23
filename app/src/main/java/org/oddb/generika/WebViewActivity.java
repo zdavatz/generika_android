@@ -19,12 +19,15 @@ package org.oddb.generika;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.view.Window;
@@ -34,6 +37,8 @@ import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import java.util.Arrays;
 
 import org.oddb.generika.app.BaseActivity;
 import org.oddb.generika.util.Constant;
@@ -47,6 +52,10 @@ public class WebViewActivity extends BaseActivity {
   private Activity activity;
   private ProgressBar progressBar;
 
+  private SharedPreferences sharedPreferences;
+  private String searchType;
+  private String searchLang;
+
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -58,16 +67,15 @@ public class WebViewActivity extends BaseActivity {
     getWindow().setFeatureInt(
       Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
 
+    Context context = (Context)this;
+    this.sharedPreferences = PreferenceManager
+      .getDefaultSharedPreferences(context);
+
+    loadSettings();
     initViews();
 
-    // TODO: patinfo
-    String urlString = "https://i.ch.oddb.org/";
-    String reg = getIntent().getStringExtra(Constant.kReg);
-    if (reg != null && reg != "") {
-      urlString += "/de/mobile/fachinfo/reg/" + reg;
-    }
-
     if (webView != null && savedInstanceState == null) {
+      String urlString = buildUrl();
       webView.loadUrl(urlString);
     }
   }
@@ -79,13 +87,21 @@ public class WebViewActivity extends BaseActivity {
     super.onDestroy();
   }
 
+  private void loadSettings() {
+    this.searchType = sharedPreferences.getString(
+      Constant.kSearchType, Constant.TYPE_PV);
+    this.searchLang = sharedPreferences.getString(
+      Constant.kSearchLang, Constant.LANG_DE);
+  }
+
   private void initViews() {
     Context context = (Context)this;
     this.activity = this;
 
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(context.getString(R.string.oddb_org));
-    toolbar.setSubtitle("https://i.ch.oddb.org/...");
+    toolbar.setSubtitle(String.format(
+        "%s - %s", searchLang, buildSearchTypeName()));
     setSupportActionBar(toolbar);
 
     ActionBar actionBar = getSupportActionBar();
@@ -132,6 +148,7 @@ public class WebViewActivity extends BaseActivity {
 
       @Override
       public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        Log.d(TAG, "(shouldOverrideUrlLoading) url: " + url);
         view.loadUrl(url);
         return true;
       }
@@ -174,5 +191,63 @@ public class WebViewActivity extends BaseActivity {
       finish();
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  /**
+   * Returns R.string.{pv|pi|fi}_fullname
+   */
+  private String buildSearchTypeName() {
+    String[] s = {Constant.TYPE_PV, Constant.TYPE_PI, Constant.TYPE_FI};
+    if (Arrays.asList(s).contains(searchType)) {
+      try {
+        String keyName = String.format("%s_fullname", searchType);
+        String packageName = getPackageName();
+        int resourceId = getResources().getIdentifier(
+          keyName, "string", packageName);
+        return getString(resourceId);
+      } catch (Exception e) {
+        Log.d(TAG, "(buildSearchTypeName) e: " + e.getMessage());
+      }
+      return "";
+    } else {
+      return "";
+    }
+  }
+
+  /**
+   * Builds url for ch.oddb.org using search{Type|Lang} instance vars, like:
+   *
+   * https://ch.oddb.org/{de|fr}/mobile/{compare|patinfo|fachinfo}/<args>...
+   */
+  private String buildUrl() {
+    Log.d(TAG, "(buildUrl) searchType: " + searchType);
+    Log.d(TAG, "(buildUrl) searchType: " + searchLang);
+
+    String urlString = String.format("https://%s/", Constant.WEB_URL_HOST);
+    if (searchType.equals(Constant.TYPE_PV)) {  // preisvergleich
+      String ean = getIntent().getStringExtra(Constant.kEan);
+
+      if (ean != null && !ean.equals("")) {
+        urlString += String.format(
+          Constant.WEB_URL_PATH_COMPARE, searchLang, ean);
+      }
+    } else if (searchType.equals(Constant.TYPE_PI)) {  // patinfo
+      String reg = getIntent().getStringExtra(Constant.kReg);
+      String seq = getIntent().getStringExtra(Constant.kSeq);
+
+      if (reg != null && !reg.equals("") && seq != null && !seq.equals("")) {
+        urlString += String.format(
+          Constant.WEB_URL_PATH_PATINFO, searchLang, reg, seq);
+      }
+    } else if (searchType.equals(Constant.TYPE_FI)) {  // fachinfo
+      String reg = getIntent().getStringExtra(Constant.kReg);
+
+      if (reg != null && !reg.equals("")) {
+        urlString += String.format(
+          Constant.WEB_URL_PATH_FACHINFO, searchLang, reg);
+      }
+    }
+    Log.d(TAG, "(buildUrl) urlString: " + urlString);
+    return urlString;
   }
 }

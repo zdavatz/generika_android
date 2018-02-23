@@ -310,15 +310,20 @@ public class MainActivity extends BaseActivity implements
 
     ProductItem productItem = realm.where(ProductItem.class)
       .equalTo("id", id).findFirst();
-    if (productItem == null) {  // unexpected
+    if (productItem == null || productItem.getEan() == null) {  // unexpected
       return;
     }
+    if (productItem.getEan().equals("EAN 13")) {  // place holder cell
+      return;
+    }
+    // WebView reads type and lang from shared preferences
+    // So, just puts arguments here.
     Intent intent = new Intent(this, WebViewActivity.class);
-    // TODO: support de/fr, fachinfo/patinfo and preis vergleich
+    intent.putExtra(Constant.kEan, productItem.getEan());
     intent.putExtra(Constant.kReg, productItem.getReg());
+    intent.putExtra(Constant.kSeq, productItem.getSeq());
     startActivity(intent);
 
-    // TODO: fix
     overridePendingTransition(R.anim.slide_leave,
                               R.anim.slide_enter);
   }
