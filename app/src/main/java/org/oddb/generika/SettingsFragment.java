@@ -39,7 +39,6 @@ import org.oddb.generika.util.Constant;
 
 
 public class SettingsFragment extends PreferenceFragmentCompat {
-
   private static final String TAG = "SettingsFragment";
 
   private SharedPreferences sharedPreferences;

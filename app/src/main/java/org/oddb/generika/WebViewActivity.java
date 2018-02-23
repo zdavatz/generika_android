@@ -36,14 +36,11 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.util.Constant;
 
 
 public class WebViewActivity extends BaseActivity {
-
-  // TODO: enable these values for patinfo
-  public static final String Reg = "reg";
-  public static final String Seq = "seq";
-  public static final String Pack = "pack";
+  private static final String TAG = "WebView";
 
   private WebView webView;
 
@@ -65,7 +62,7 @@ public class WebViewActivity extends BaseActivity {
 
     // TODO: patinfo
     String urlString = "https://i.ch.oddb.org/";
-    String reg = getIntent().getStringExtra(Reg);
+    String reg = getIntent().getStringExtra(Constant.kReg);
     if (reg != null && reg != "") {
       urlString += "/de/mobile/fachinfo/reg/" + reg;
     }

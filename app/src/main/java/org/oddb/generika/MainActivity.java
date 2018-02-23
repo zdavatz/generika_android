@@ -70,9 +70,7 @@ public class MainActivity extends BaseActivity implements
   ProductItemListAdapter.DeleteListener,
   ProductItemDataFetchFragment.FetchCallback<
     ProductItemDataFetchFragment.FetchResult> {
-
-  private static final int RC_BARCODE_CAPTURE = 9001;
-  private static final String TAG = "BarcodeMain";
+  private static final String TAG = "Main";
 
   // view
   private DrawerLayout mDrawerLayout;
@@ -227,9 +225,9 @@ public class MainActivity extends BaseActivity implements
       public void onClick(View view) {
         Intent intent = new Intent(
           MainActivity.this, BarcodeCaptureActivity.class);
-        intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
-        intent.putExtra(BarcodeCaptureActivity.UseFlash, true);
-        startActivityForResult(intent, RC_BARCODE_CAPTURE);
+        intent.putExtra(Constant.kAutoFocus, true);
+        intent.putExtra(Constant.kUseFlash, true);
+        startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
       }
     });
   }
@@ -267,12 +265,11 @@ public class MainActivity extends BaseActivity implements
   protected void onActivityResult(
     int requestCode, int resultCode, Intent data) {
 
-    if (requestCode == RC_BARCODE_CAPTURE) {
+    if (requestCode == Constant.RC_BARCODE_CAPTURE) {
       // get result from barcode reader
       if (resultCode == CommonStatusCodes.SUCCESS) {
         if (data != null) {
-          Barcode barcode = data.getParcelableExtra(
-            BarcodeCaptureActivity.BarcodeObject);
+          Barcode barcode = data.getParcelableExtra(Constant.kBarcode);
           Log.d(TAG,
                 "(onActivityResult) Barcode found: " + barcode.displayValue);
           if (barcode.displayValue.length() == 13) {
@@ -318,7 +315,7 @@ public class MainActivity extends BaseActivity implements
     }
     Intent intent = new Intent(this, WebViewActivity.class);
     // TODO: support de/fr, fachinfo/patinfo and preis vergleich
-    intent.putExtra(WebViewActivity.Reg, productItem.getReg());
+    intent.putExtra(Constant.kReg, productItem.getReg());
     startActivity(intent);
 
     // TODO: fix

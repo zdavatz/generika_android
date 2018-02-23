@@ -74,7 +74,8 @@ public class CameraSource {
   @SuppressLint("InlinedApi")
   public static final int CAMERA_FACING_FRONT = CameraInfo.CAMERA_FACING_FRONT;
 
-  private static final String TAG = "OpenCameraSource";
+  private static final String TAG = "CameraSource";
+
   private static final int DUMMY_TEXTURE_NAME = 100;
   private static final float ASPECT_RATIO_TOLERANCE = 0.01f;
 

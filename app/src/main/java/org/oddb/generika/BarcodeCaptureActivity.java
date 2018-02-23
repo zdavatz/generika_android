@@ -65,6 +65,7 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 import java.io.IOException;
 
 import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.util.Constant;
 import org.oddb.generika.ui.reader.CameraSource;
 import org.oddb.generika.ui.reader.CameraSourcePreview;
 import org.oddb.generika.ui.reader.GraphicOverlay;
@@ -72,15 +73,7 @@ import org.oddb.generika.ui.reader.GraphicOverlay;
 
 public final class BarcodeCaptureActivity extends BaseActivity implements
   BarcodeGraphicTracker.BarcodeUpdateListener {
-
-  private static final int RC_HANDLE_GMS = 9001;
-  private static final int RC_HANDLE_CAMERA_PERM = 2;
-
-  private static final String TAG = "Barcode-Reader";
-
-  public static final String AutoFocus = "AutoFocus";
-  public static final String UseFlash  = "UseFlash";
-  public static final String BarcodeObject = "Barcode";
+  private static final String TAG = "BarcodeCapture";
 
   private CameraSource mCameraSource;
   private CameraSourcePreview mPreview;
@@ -96,8 +89,10 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
         R.id.graphicOverlay);
 
     // Options: from the main intent
-    boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
-    boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
+    boolean autoFocus = getIntent().getBooleanExtra(
+      Constant.kAutoFocus, false);
+    boolean useFlash = getIntent().getBooleanExtra(
+      Constant.kUseFlash, false);
 
     // Check for the camera permission
     int rc = ActivityCompat.checkSelfPermission(
@@ -122,7 +117,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
       Manifest.permission.CAMERA)) {
       ActivityCompat.requestPermissions(
-        this, permissions, RC_HANDLE_CAMERA_PERM);
+        this, permissions, Constant.RC_HANDLE_CAMERA_PERM);
       return;
     }
 
@@ -132,7 +127,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       @Override
       public void onClick(View view) {
         ActivityCompat.requestPermissions(thisActivity, permissions,
-          RC_HANDLE_CAMERA_PERM);
+          Constant.RC_HANDLE_CAMERA_PERM);
       }
     };
 
@@ -220,7 +215,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     @NonNull String[] permissions,
     @NonNull int[] grantResults) {
 
-    if (requestCode != RC_HANDLE_CAMERA_PERM) {
+    if (requestCode != Constant.RC_HANDLE_CAMERA_PERM) {
       Log.d(TAG, "Got unexpected permission result: " + requestCode);
       super.onRequestPermissionsResult(requestCode, permissions, grantResults);
       return;
@@ -230,8 +225,10 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
         grantResults[0] == PackageManager.PERMISSION_GRANTED) {
       Log.d(TAG, "Camera permission granted - initialize the camera source");
       // we have permission, so create the camerasource
-      boolean autoFocus = getIntent().getBooleanExtra(AutoFocus,false);
-      boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
+      boolean autoFocus = getIntent().getBooleanExtra(
+        Constant.kAutoFocus,false);
+      boolean useFlash = getIntent().getBooleanExtra(
+        Constant.kUseFlash, false);
       createCameraSource(autoFocus, useFlash);
       return;
     }
@@ -261,7 +258,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       .isGooglePlayServicesAvailable(getApplicationContext());
     if (code != ConnectionResult.SUCCESS) {
       Dialog dlg = GoogleApiAvailability.getInstance().getErrorDialog(
-        this, code, RC_HANDLE_GMS);
+        this, code, Constant.RC_HANDLE_GMS);
       dlg.show();
     }
 
@@ -310,7 +307,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
   public void onBarcodeDetected(Barcode barcode) {
     // just rerutrn detected barcode to activity and finish
     Intent data = new Intent();
-    data.putExtra(BarcodeObject, barcode);
+    data.putExtra(Constant.kBarcode, barcode);
     setResult(CommonStatusCodes.SUCCESS, data);
     finish();
   }

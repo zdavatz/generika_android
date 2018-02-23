@@ -28,6 +28,8 @@ import org.oddb.generika.app.BaseActivity;
 
 
 public class SettingsActivity extends BaseActivity {
+  private static final String TAG = "Settings";
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

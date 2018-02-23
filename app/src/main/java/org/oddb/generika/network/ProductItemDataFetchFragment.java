@@ -25,14 +25,11 @@ import java.util.HashMap;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.util.Constant;
 
 
 public class ProductItemDataFetchFragment extends Fragment {
-
   public static final String TAG = "ProductItemDataFetchFragment";
-
-  private static final String kAPI_KEY = "ApiKey";
-  private static final String kBASE_URL = "BaseUrl";
 
   private FetchCallback<FetchResult> fetchCallback;
   private FetchTask fetchTask;
@@ -205,8 +202,8 @@ public class ProductItemDataFetchFragment extends Fragment {
       try {
         // TODO: set user-agent
         conn = (HttpsURLConnection)url.openConnection();
-        conn.setReadTimeout(3000);
-        conn.setConnectTimeout(3000);
+        conn.setReadTimeout(Constant.HUC_READ_TIMEOUT);
+        conn.setConnectTimeout(Constant.HUC_CONNECT_TIMEOUT);
         conn.setRequestMethod("GET");
         conn.setDoInput(true);
         conn.connect();
@@ -268,8 +265,8 @@ public class ProductItemDataFetchFragment extends Fragment {
     Bundle args = new Bundle();
 
     // TODO: use constant utility
-    args.putString(kAPI_KEY, "");
-    args.putString(kBASE_URL, baseUrl);
+    args.putString(Constant.kApiKey, "");
+    args.putString(Constant.kBaseUrl, baseUrl);
 
     fragment.setArguments(args);
     fragmentManager.beginTransaction().add(
@@ -287,7 +284,7 @@ public class ProductItemDataFetchFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    this.baseUrl = getArguments().getString(kBASE_URL);
+    this.baseUrl = getArguments().getString(Constant.kBaseUrl);
     Log.d(TAG, "(onCreate) baseUrl: " + baseUrl);
 
     // retain fragment, even if situation changes
