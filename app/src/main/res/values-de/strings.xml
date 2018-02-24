@@ -34,13 +34,13 @@
     <!-- search_lang -->
     <string name="settings_search_lang_name">Sprache</string>
     <string name="settings_search_lang_dialog_title">Sprache Wählen</string>
-    <string name="settings_search_lang_dialog_description">Sprache für Such Resultat auf Web Seite.</string>
+    <string name="settings_search_lang_dialog_description">Sprache für Suchresultat von generika.cc.</string>
     <!-- app_use_system_locale -->
-    <string name="settings_app_use_system_locale_name">Gebietsschema des System Verwenden</string>
-    <string name="settings_app_use_system_locale_summary">App Gebietsschema wie gleich das Schema des System Setzen, sonst \"de\" (Default)</string>
+    <string name="settings_app_use_system_locale_name">Gebietsschema des Systems verwenden</string>
+    <string name="settings_app_use_system_locale_summary">App Gebietsschema ist gleich wie das Schema des Betriebssystems, sonst \"de\" (Default)</string>
     <!-- app_locale -->
     <string name="settings_app_locale_name">Gebietsschema</string>
-    <string name="settings_app_locale_dialog_title">Gebietsschema Wählen</string>
+    <string name="settings_app_locale_dialog_title">Gebietsschema wählen</string>
     <string name="settings_app_locale_dialog_description">Gebietsschema für das App UI.</string>
 
     <!-- record_sync -->
@@ -63,13 +63,11 @@
 
     <!-- [barcode reader] -->
     <string name="permission_camera_rationale">
-      Access to the camera is needed for detection</string>
+      Zugriff auf die Kamera ist notwendig um den Barcode zu scannen.</string>
     <string name="no_camera_permission">
-      This application cannot run because it does not have the
-      camera permission.  The application will now exit.</string>
+      Die App kann ohne Zugriff auf die Kamera nicht funktionieren. Die App beendet sich jetzt selbst.</string>
     <string name="low_storage_error">
-      Face detector dependencies cannot be downloaded due to low device
-      storage</string>
+      Gesichtserkennungsbibliotheken können nicht heruntergeladen werden, da zu wenig Platz auf dem Gerät.</string>
     <string name="title_activity_main">Barcode Reader Sample</string>
     <string name="barcode_header">
       Click &quot;Read Barcode&quot; to read a barcode</string>
