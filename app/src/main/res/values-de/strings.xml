@@ -12,7 +12,6 @@
     <string name="settings">Einstellungen</string>
 
     <!-- [drawer] -->
-export PATH="$HOME/Android/Sdk/platform-tools:$PATH2
     <string name="drawer_close">Schliessen</string>
     <string name="drawer_open">Öffnen</string>
 
