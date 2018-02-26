@@ -12,7 +12,7 @@
     <string name="settings">Einstellungen</string>
 
     <!-- [drawer] -->
-    <string name="drawer_close">Schlissen</string>
+    <string name="drawer_close">Schliessen</string>
     <string name="drawer_open">Öffnen</string>
 
     <string name="medications">Medikamente</string>
