@@ -4,44 +4,44 @@
     <string name="app_name">Generika</string>
     <string name="oddb_org">ODDB.org</string>
 
-    <string name="pv_fullname">Price Comparison</string>
-    <string name="pi_fullname">Consumer information</string>
-    <string name="fi_fullname">Professional information</string>
+    <string name="pv_fullname">Comparatif des prix de la préparation originale et du médicament générique</string>
+    <string name="pi_fullname">Information des patients</string>
+    <string name="fi_fullname">Information professionelle</string>
 
     <!-- [menu] -->
-    <string name="settings">Settings</string>
+    <string name="settings">Ajustages</string>
 
     <!-- [drawer] -->
-    <string name="drawer_close">Close</string>
-    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Fermer</string>
+    <string name="drawer_open">Ouvrir</string>
 
-    <string name="medications">Medications</string>
+    <string name="medications">Médicaments</string>
     <!--
-    <string name="prescriptions">Prescriptions</string>
+    <string name="prescriptions">Ordonnance Médicale</string>
     -->
 
     <!-- [settings]-->
     <!-- groups -->
-    <string name="settings_search">Search</string>
+    <string name="settings_search">Chercher</string>
     <string name="settings_app">Application</string>
     <!--
     <string name="settings_record">Record</string>
     -->
     <!-- search_type -->
-    <string name="settings_search_type_name">Type</string>
-    <string name="settings_search_type_dialog_title">Select Type</string>
+    <string name="settings_search_type_name">Type de recherche</string>
+    <string name="settings_search_type_dialog_title">Choisir le type de recherche svp.</string>
     <string name="settings_search_type_dialog_description">Document type displayed after barcode scan.</string>
     <!-- search_lang -->
-    <string name="settings_search_lang_name">Language</string>
-    <string name="settings_search_lang_dialog_title">Select Language</string>
-    <string name="settings_search_lang_dialog_description">Language specified for search result web page.</string>
+    <string name="settings_search_lang_name">Langue</string>
+    <string name="settings_search_lang_dialog_title">Choisir la langue</string>
+    <string name="settings_search_lang_dialog_description">Langue préférée du tableau des résultats.</string>
     <!-- app_use_system_locale -->
-    <string name="settings_app_use_system_locale_name">Use System Locale</string>
-    <string name="settings_app_use_system_locale_summary">Set application locale same with system\'s one, or else \"de\" (default)</string>
+    <string name="settings_app_use_system_locale_name">Choix de langue du système.</string>
+    <string name="settings_app_use_system_locale_summary">Le choix de langue est analogue au système opérationnel; sinon \"de\" est la langue préférée.</string>
     <!-- app_locale -->
-    <string name="settings_app_locale_name">Locale</string>
-    <string name="settings_app_locale_dialog_title">Select Locale</string>
-    <string name="settings_app_locale_dialog_description">Locale used for this application UI.</string>
+    <string name="settings_app_locale_name">Langue</string>
+    <string name="settings_app_locale_dialog_title">Choisir la langue</string>
+    <string name="settings_app_locale_dialog_description">Choisir la langue de l‘interface utilisateur.</string>
 
     <!-- record_sync -->
     <!--
@@ -61,20 +61,18 @@
 
     <!-- [barcode reader] -->
     <string name="permission_camera_rationale">
-      Access to the camera is needed for detection</string>
+      L‘accès à la caméra est indispensable pour scanner le code-barres.</string>
     <string name="no_camera_permission">
-      This application cannot run because it does not have the
-      camera permission.  The application will now exit.</string>
+      L‘application dépend de l‘accès à la caméra. Elle s‘arrête maintenant.</string>
     <string name="low_storage_error">
-      Face detector dependencies cannot be downloaded due to low device
-      storage</string>
-    <string name="title_activity_main">Barcode Reader Sample</string>
+      La détection de visage ne peut être activée par manque d’espace de stockage.</string>
+    <string name="title_activity_main">Exemple barre-codes</string>
     <string name="barcode_header">
-      Click &quot;Read Barcode&quot; to read a barcode</string>
+      Cliquez &quot;lire Barre-codes&quot; pour reconnaître le Barre-code.</string>
     <string name="read_barcode">Read Barcode</string>
     <string name="auto_focus">Auto Focus</string>
-    <string name="use_flash">Use Flash</string>
-    <string name="barcode_success">Barcode read successfully</string>
-    <string name="barcode_failure">No barcode captured</string>
-    <string name="barcode_error">"Error reading barcode: %1$s"</string>
+    <string name="use_flash">Utiliser le flash</string>
+    <string name="barcode_success">Barre-codes reconnu</string>
+    <string name="barcode_failure">Pas de barre-codes reconnu</string>
+    <string name="barcode_error">"Erreur en lisant barre-codes: %1$s"</string>
 </resources>
