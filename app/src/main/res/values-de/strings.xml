@@ -28,9 +28,9 @@
     <string name="settings_record">Speichern</string>
     -->
     <!-- search_type -->
-    <string name="settings_search_type_name">Typ</string>
-    <string name="settings_search_type_dialog_title">Typ Wählen</string>
-    <string name="settings_search_type_dialog_description">Dokument Typ gezeigt nach Scannen.</string>
+    <string name="settings_search_type_name">Art der Suche</string>
+    <string name="settings_search_type_dialog_title">Art der Suche wählen.</string>
+    <string name="settings_search_type_dialog_description">Gewähltes Suchresultat.</string>
     <!-- search_lang -->
     <string name="settings_search_lang_name">Sprache</string>
     <string name="settings_search_lang_dialog_title">Sprache Wählen</string>
@@ -68,13 +68,13 @@
       Die App kann ohne Zugriff auf die Kamera nicht funktionieren. Die App beendet sich jetzt selbst.</string>
     <string name="low_storage_error">
       Gesichtserkennungsbibliotheken können nicht heruntergeladen werden, da zu wenig Platz auf dem Gerät.</string>
-    <string name="title_activity_main">Barcode Reader Sample</string>
+    <string name="title_activity_main">Barcodeleser Beispiel</string>
     <string name="barcode_header">
       Click &quot;Read Barcode&quot; to read a barcode</string>
-    <string name="read_barcode">Read Barcode</string>
+    <string name="read_barcode">Barcode Lesen</string>
     <string name="auto_focus">Auto Focus</string>
-    <string name="use_flash">Use Flash</string>
-    <string name="barcode_success">Barcode read successfully</string>
-    <string name="barcode_failure">No barcode captured</string>
-    <string name="barcode_error">"Error reading barcode: %1$s"</string>
+    <string name="use_flash">Flasch verwenden</string>
+    <string name="barcode_success">Barcode wurde erfolgreich gelesen.</string>
+    <string name="barcode_failure">Kein Barcode erkannt.</string>
+    <string name="barcode_error">"Error beim Lesen des Barcodes: %1$s"</string>
 </resources>
