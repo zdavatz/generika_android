@@ -153,3 +153,6 @@ the GPLv3 authors' interpretation of copyright law.
 
 See [googlesamples/android-vision](
 https://github.com/googlesamples/android-vision).
+
+## French Translations
+Dr. André Dubied
