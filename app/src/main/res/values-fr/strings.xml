@@ -29,8 +29,8 @@
     -->
     <!-- search_type -->
     <string name="settings_search_type_name">Type de recherche</string>
-    <string name="settings_search_type_dialog_title">Choisir le type de recherche svp.</string>
-    <string name="settings_search_type_dialog_description">Document type displayed after barcode scan.</string>
+    <string name="settings_search_type_dialog_title">Choisissez le type du document: IPro, IPat, Comparaison des prix.</string>
+    <string name="settings_search_type_dialog_description">Après le balayage le type du document sera affiché</string>
     <!-- search_lang -->
     <string name="settings_search_lang_name">Langue</string>
     <string name="settings_search_lang_dialog_title">Choisir la langue</string>
