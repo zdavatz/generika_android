@@ -115,6 +115,7 @@ public class WebViewActivity extends BaseActivity {
 
     WebSettings webSettings = webView.getSettings();
     webSettings.setJavaScriptEnabled(true);
+    webSettings.setUserAgentString(Constant.WEB_USER_AGENT);
 
     // fix initial zoom-in (as zoom-out at start)
     webView.setInitialScale(1);
@@ -221,7 +222,7 @@ public class WebViewActivity extends BaseActivity {
    */
   private String buildUrl() {
     Log.d(TAG, "(buildUrl) searchType: " + searchType);
-    Log.d(TAG, "(buildUrl) searchType: " + searchLang);
+    Log.d(TAG, "(buildUrl) searchLang: " + searchLang);
 
     String urlString = String.format("https://%s/", Constant.WEB_URL_HOST);
     if (searchType.equals(Constant.TYPE_PV)) {  // preisvergleich

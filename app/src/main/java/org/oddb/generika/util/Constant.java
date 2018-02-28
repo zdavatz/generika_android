@@ -59,6 +59,7 @@ public class Constant extends Object {
   // -- http client (HttpsURLConnection)
   public final static String API_URL_BASE =
     "https://ch.oddb.org/de/mobile/api_search/ean/";
+
   public static int HUC_READ_TIMEOUT = 3000;
   public static int HUC_CONNECT_TIMEOUT = 3000;
 
@@ -70,6 +71,8 @@ public class Constant extends Object {
   public static final String kSeq = "kSeq";
 
   // -- web view client (WebViewClient)
+  public final static String WEB_USER_AGENT = "org.oddb.generikacc";
+
   public final static String WEB_URL_HOST = "ch.oddb.org";
   public final static String WEB_URL_PATH_COMPARE =
     "%s/mobile/compare/ean13/%s";
