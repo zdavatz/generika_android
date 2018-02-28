@@ -372,46 +372,52 @@ public class MainActivity extends BaseActivity implements
       Log.d(TAG, "(updateFromFetch) resut.itemId: " + id);
 
       final HashMap<String, String> properties = result.itemMap;
-      final ProductItem productItem = realm.where(ProductItem.class)
-        .equalTo("id", id).findFirst();
 
-      if (productItem == null) {
-        return;
-      }
-      productItem.addChangeListener(new RealmChangeListener<ProductItem>() {
+      // realm is not transferred via background async task
+      Realm realm_ = Realm.getDefaultInstance();
+      try {
+        final ProductItem productItem = realm_.where(ProductItem.class)
+          .equalTo("id", id).findFirst();
 
-        @Override
-        public void onChange(ProductItem productItem_) {
-          if (productItem_ == null || !productItem_.isValid()) {
-            return;
-          }
-          // only once (remove self)
-          productItem_.removeAllChangeListeners();
-          if (productItem_.getName() != null &&
-              productItem_.getSize() != null) {
-            Log.d(TAG,
-              "(updateFromFetch) productItem.name: " + productItem_.getName());
-            // notify result to user
-            // TODO: replace with translated string
-            String title = "Generika.cc sagt";
-            String message = productItem_.toMessage();
-            alertDialog(title, message);
-          }
+        if (productItem == null) {
+          return;
         }
-      });
-      realm.executeTransaction(new Realm.Transaction() {
-
-        @Override
-        public void execute(Realm realm_) {
-          try { // update properties (map) from api fetch result
-            if (productItem.isValid()) {
-              productItem.updateProperties(properties);
+        productItem.addChangeListener(new RealmChangeListener<ProductItem>() {
+          @Override
+          public void onChange(ProductItem productItem_) {
+            if (productItem_ == null || !productItem_.isValid()) {
+              return;
             }
-          } catch (Exception e) {
-            Log.d(TAG, "(updateFromFetch) Update error: " + e.getMessage());
+            // only once (remove self)
+            productItem_.removeAllChangeListeners();
+            if (productItem_.getName() != null &&
+                productItem_.getSize() != null) {
+              Log.d(TAG,
+                "(updateFromFetch) productItem.name: " + productItem_.getName());
+              // notify result to user
+              // TODO: replace with translated string
+              String title = "Generika.cc sagt";
+              String message = productItem_.toMessage();
+              alertDialog(title, message);
+            }
           }
-        }
-      });
+        });
+        realm_.executeTransaction(new Realm.Transaction() {
+
+          @Override
+          public void execute(Realm realm_) {
+            try { // update properties (map) from api fetch result
+              if (productItem.isValid()) {
+                productItem.updateProperties(properties);
+              }
+            } catch (Exception e) {
+              Log.d(TAG, "(updateFromFetch) Update error: " + e.getMessage());
+            }
+          }
+        });
+      } finally {
+        realm_.close();
+      }
     }
   }
 

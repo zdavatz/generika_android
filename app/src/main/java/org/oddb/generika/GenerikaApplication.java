@@ -38,6 +38,7 @@ public class GenerikaApplication extends Application {
 
     Realm.init(this);
     RealmConfiguration realmConfig = new RealmConfiguration.Builder()
+      .name("generika.realm")
       .initialData(new Realm.Transaction() {
         @Override
         public void execute(Realm realm) {

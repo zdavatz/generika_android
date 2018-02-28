@@ -173,6 +173,7 @@ public class ProductItemDataFetchFragment extends Fragment {
 
     @Override
     protected void onPostExecute(Result result) {
+      // main ui thread
       if (fetchCallback != null) {
         try {
           if (result != null) {
