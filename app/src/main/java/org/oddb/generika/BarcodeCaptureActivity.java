@@ -87,9 +87,9 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
   BarcodeImageCapturingDetector.BarcodeImageCaptureListener {
   private static final String TAG = "BarcodeCapture";
 
-  private CameraSource mCameraSource;
-  private CameraSourcePreview mPreview;
-  private GraphicOverlay<BarcodeGraphic> mGraphicOverlay;
+  private CameraSource cameraSource;
+  private CameraSourcePreview preview;
+  private GraphicOverlay<BarcodeGraphic> graphicOverlay;
 
   private final Object captureLock = new Object();
   private boolean captured = false;
@@ -100,9 +100,9 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     super.onCreate(icicle);
     setContentView(R.layout.barcode_capture);
 
-    mPreview = (CameraSourcePreview)findViewById(R.id.preview);
-    mGraphicOverlay = (GraphicOverlay<BarcodeGraphic>)findViewById(
-        R.id.graphicOverlay);
+    this.preview = (CameraSourcePreview)findViewById(R.id.preview);
+    this.graphicOverlay = (GraphicOverlay<BarcodeGraphic>)findViewById(
+      R.id.graphicOverlay);
 
     // Options: from the main intent
     boolean autoFocus = getIntent().getBooleanExtra(
@@ -121,7 +121,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
     // TODO: use translate
     Snackbar.make(
-      mGraphicOverlay,
+      graphicOverlay,
       "Hold rear camera out over the barcode of package",
       Snackbar.LENGTH_LONG).show();
   }
@@ -150,7 +150,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
     findViewById(R.id.topLayout).setOnClickListener(listener);
     Snackbar.make(
-      mGraphicOverlay,
+      graphicOverlay,
       R.string.permission_camera_rationale, Snackbar.LENGTH_INDEFINITE)
         .setAction(R.string.ok, listener)
         .show();
@@ -167,15 +167,15 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
     // TODO: Enable support DATA_MATRIX and QR_CODE
     BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context)
-        .setBarcodeFormats(Barcode.EAN_13)
-        .build();
+      .setBarcodeFormats(Barcode.EAN_13)
+      .build();
     // wrap barcode detector to capture image
     BarcodeImageCapturingDetector detector = new BarcodeImageCapturingDetector(
       context, barcodeDetector);
     detector.setOnBarcodeImageCaptureListener(this);
 
     BarcodeTrackerFactory barcodeFactory = new BarcodeTrackerFactory(
-      mGraphicOverlay, this);
+      graphicOverlay, this);
     detector.setProcessor(
       new MultiProcessor.Builder<>(barcodeFactory).build());
 
@@ -205,9 +205,9 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
         autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null);
     }
     // auto flash
-    mCameraSource = builder
+    this.cameraSource = builder
       .setFlashMode( // Enable only auto mode flash
-          useFlash ? Camera.Parameters.FLASH_MODE_AUTO : null)
+        useFlash ? Camera.Parameters.FLASH_MODE_AUTO : null)
       .build();
   }
 
@@ -220,16 +220,16 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
   @Override
   protected void onPause() {
     super.onPause();
-    if (mPreview != null) {
-      mPreview.stop();
+    if (preview != null) {
+      preview.stop();
     }
   }
 
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    if (mPreview != null) {
-      mPreview.release();
+    if (preview != null) {
+      preview.release();
     }
   }
 
@@ -287,26 +287,26 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       dlg.show();
     }
 
-    if (mCameraSource != null) {
+    if (cameraSource != null) {
       try {
-        mPreview.start(mCameraSource, mGraphicOverlay);
+        preview.start(cameraSource, graphicOverlay);
       } catch (IOException e) {
         Log.e(TAG, "Unable to start camera source.", e);
-        mCameraSource.release();
-        mCameraSource = null;
+        cameraSource.release();
+        this.cameraSource = null;
       }
     }
   }
 
   private boolean onTap(float rawX, float rawY) {
     int[] location = new int[2];
-    mGraphicOverlay.getLocationOnScreen(location);
-    float x = (rawX - location[0]) / mGraphicOverlay.getWidthScaleFactor();
-    float y = (rawY - location[1]) / mGraphicOverlay.getHeightScaleFactor();
+    graphicOverlay.getLocationOnScreen(location);
+    float x = (rawX - location[0]) / graphicOverlay.getWidthScaleFactor();
+    float y = (rawY - location[1]) / graphicOverlay.getHeightScaleFactor();
 
     Barcode barcode = null;
     float bestDistance = Float.MAX_VALUE;
-    for (BarcodeGraphic graphic : mGraphicOverlay.getGraphics()) {
+    for (BarcodeGraphic graphic : graphicOverlay.getGraphics()) {
       Barcode detected = graphic.getBarcode();
       if (detected.getBoundingBox().contains((int) x, (int) y)) {
         // captured
@@ -409,6 +409,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       synchronized (captureLock) {
         filepath = path;
         captured = true;
+
         captureLock.notifyAll();
       }
     }

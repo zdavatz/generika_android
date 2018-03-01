@@ -73,10 +73,10 @@ public class MainActivity extends BaseActivity implements
   private static final String TAG = "Main";
 
   // view
-  private DrawerLayout mDrawerLayout;
-  private ActionBarDrawerToggle mDrawerToggle;
-  private CharSequence mTitle;
-  private ListView mListView;
+  private DrawerLayout drawerLayout;
+  private ActionBarDrawerToggle drawerToggle;
+  private CharSequence title;
+  private ListView listView;
 
   // database
   private Realm realm;
@@ -169,39 +169,39 @@ public class MainActivity extends BaseActivity implements
   private void initViews() {
     Context context = (Context)this;
     // default: medications
-    this.mTitle = context.getString(R.string.medications);
+    this.title = context.getString(R.string.medications);
 
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
-    toolbar.setTitle(mTitle);
+    toolbar.setTitle(title);
     setSupportActionBar(toolbar);
 
-    this.mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-    this.mDrawerToggle = new ActionBarDrawerToggle(
-      this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+    this.drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+    this.drawerToggle = new ActionBarDrawerToggle(
+      this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {
 
       public void onDrawerOpened(View view) {
         super.onDrawerOpened(view);
-        getSupportActionBar().setTitle(mTitle);
+        getSupportActionBar().setTitle(title);
         invalidateOptionsMenu(); // onPrepareOptionsMenu
       }
 
       public void onDrawerClosed(View view) {
         super.onDrawerClosed(view);
         // TODO: update title
-        getSupportActionBar().setTitle(mTitle);
+        getSupportActionBar().setTitle(title);
         invalidateOptionsMenu();  // onPrepareOptionsMenu
       }
     };
-    mDrawerToggle.syncState();
-    mDrawerLayout.addDrawerListener(mDrawerToggle);
+    drawerToggle.syncState();
+    drawerLayout.addDrawerListener(drawerToggle);
 
     ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
 
-    this.mListView = (ListView)findViewById(R.id.list_view);
-    mListView.setAdapter(productItemListAdapter);
-    mListView.setOnItemClickListener(this);
+    this.listView = (ListView)findViewById(R.id.list_view);
+    listView.setAdapter(productItemListAdapter);
+    listView.setOnItemClickListener(this);
 
     NavigationView navigationView = (NavigationView)findViewById(
       R.id.navigation_view);
@@ -211,7 +211,7 @@ public class MainActivity extends BaseActivity implements
         @Override
         public boolean onNavigationItemSelected(MenuItem menuItem) {
           menuItem.setChecked(true);
-          mDrawerLayout.closeDrawers();
+          drawerLayout.closeDrawers();
           Toast.makeText(
             MainActivity.this, menuItem.getTitle(), Toast.LENGTH_LONG).show();
           return true;
@@ -250,7 +250,7 @@ public class MainActivity extends BaseActivity implements
 
     switch (id) {
       case android.R.id.home:
-        mDrawerLayout.openDrawer(GravityCompat.START);
+        drawerLayout.openDrawer(GravityCompat.START);
         return true;
       case R.id.settings:
         Intent intent = new Intent(this, SettingsActivity.class);

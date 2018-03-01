@@ -43,22 +43,22 @@ import org.oddb.generika.ui.reader.GraphicOverlay;
 
 
 public class BarcodeGraphicTracker extends Tracker<Barcode> {
-  private GraphicOverlay<BarcodeGraphic> mOverlay;
-  private BarcodeGraphic mGraphic;
+  private GraphicOverlay<BarcodeGraphic> overlay;
+  private BarcodeGraphic graphic;
 
-  private BarcodeUpdateListener mBarcodeUpdateListener;
+  private BarcodeUpdateListener barcodeUpdateListener;
 
   public interface BarcodeUpdateListener {
     @UiThread
     void onBarcodeDetected(Barcode barcode);
   }
 
-  BarcodeGraphicTracker(GraphicOverlay<BarcodeGraphic> mOverlay,
-    BarcodeGraphic mGraphic, Context context) {
-    this.mOverlay = mOverlay;
-    this.mGraphic = mGraphic;
+  BarcodeGraphicTracker(GraphicOverlay<BarcodeGraphic> overlay_,
+    BarcodeGraphic graphic_, Context context) {
+    this.overlay = overlay_;
+    this.graphic = graphic_;
     if (context instanceof BarcodeUpdateListener) {
-      this.mBarcodeUpdateListener = (BarcodeUpdateListener) context;
+      this.barcodeUpdateListener = (BarcodeUpdateListener) context;
     } else {
       throw new RuntimeException(
         "Hosting activity must implement BarcodeUpdateListener");
@@ -67,24 +67,24 @@ public class BarcodeGraphicTracker extends Tracker<Barcode> {
 
   @Override
   public void onNewItem(int id, Barcode item) {
-    mGraphic.setId(id);
-    mBarcodeUpdateListener.onBarcodeDetected(item);
+    graphic.setId(id);
+    barcodeUpdateListener.onBarcodeDetected(item);
   }
 
   @Override
   public void onUpdate(Detector.Detections<Barcode> detectionResults,
                        Barcode item) {
-    mOverlay.add(mGraphic);
-    mGraphic.updateItem(item);
+    overlay.add(graphic);
+    graphic.updateItem(item);
   }
 
   @Override
   public void onMissing(Detector.Detections<Barcode> detectionResults) {
-    mOverlay.remove(mGraphic);
+    overlay.remove(graphic);
   }
 
   @Override
   public void onDone() {
-    mOverlay.remove(mGraphic);
+    overlay.remove(graphic);
   }
 }

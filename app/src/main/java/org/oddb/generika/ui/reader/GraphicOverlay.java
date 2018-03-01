@@ -46,34 +46,34 @@ import java.util.Vector;
 
 
 public class GraphicOverlay<T extends GraphicOverlay.Graphic> extends View {
-  private final Object mLock = new Object();
-  private int mPreviewWidth;
-  private float mWidthScaleFactor = 1.0f;
-  private int mPreviewHeight;
-  private float mHeightScaleFactor = 1.0f;
-  private int mFacing = CameraSource.CAMERA_FACING_BACK;
-  private Set<T> mGraphics = new HashSet<>();
+  private final Object lock = new Object();
+  private int previewWidth;
+  private float widthScaleFactor = 1.0f;
+  private int previewHeight;
+  private float heightScaleFactor = 1.0f;
+  private int facing = CameraSource.CAMERA_FACING_BACK;
+  private Set<T> graphics = new HashSet<>();
 
   public static abstract class Graphic {
-    private GraphicOverlay mOverlay;
+    private GraphicOverlay overlay;
 
-    public Graphic(GraphicOverlay overlay) {
-      mOverlay = overlay;
+    public Graphic(GraphicOverlay overlay_) {
+      this.overlay = overlay_;
     }
 
     public abstract void draw(Canvas canvas);
 
     public float scaleX(float horizontal) {
-      return horizontal * mOverlay.mWidthScaleFactor;
+      return horizontal * overlay.widthScaleFactor;
     }
 
     public float scaleY(float vertical) {
-      return vertical * mOverlay.mHeightScaleFactor;
+      return vertical * overlay.heightScaleFactor;
     }
 
     public float translateX(float x) {
-      if (mOverlay.mFacing == CameraSource.CAMERA_FACING_FRONT) {
-        return mOverlay.getWidth() - scaleX(x);
+      if (overlay.facing == CameraSource.CAMERA_FACING_FRONT) {
+        return overlay.getWidth() - scaleX(x);
       } else {
         return scaleX(x);
       }
@@ -84,7 +84,7 @@ public class GraphicOverlay<T extends GraphicOverlay.Graphic> extends View {
     }
 
     public void postInvalidate() {
-      mOverlay.postInvalidate();
+      overlay.postInvalidate();
     }
   }
 
@@ -93,45 +93,46 @@ public class GraphicOverlay<T extends GraphicOverlay.Graphic> extends View {
   }
 
   public void clear() {
-    synchronized (mLock) {
-      mGraphics.clear();
+    synchronized (lock) {
+      graphics.clear();
     }
     postInvalidate();
   }
 
   public void add(T graphic) {
-    synchronized (mLock) {
-      mGraphics.add(graphic);
+    synchronized (lock) {
+      graphics.add(graphic);
     }
     postInvalidate();
   }
 
   public void remove(T graphic) {
-    synchronized (mLock) {
-      mGraphics.remove(graphic);
+    synchronized (lock) {
+      graphics.remove(graphic);
     }
     postInvalidate();
   }
 
   public List<T> getGraphics() {
-    synchronized (mLock) {
-      return new Vector(mGraphics);
+    synchronized (lock) {
+      return new Vector(graphics);
     }
   }
 
   public float getWidthScaleFactor() {
-    return mWidthScaleFactor;
+    return widthScaleFactor;
   }
 
   public float getHeightScaleFactor() {
-    return mHeightScaleFactor;
+    return heightScaleFactor;
   }
 
-  public void setCameraInfo(int previewWidth, int previewHeight, int facing) {
-    synchronized (mLock) {
-      mPreviewWidth = previewWidth;
-      mPreviewHeight = previewHeight;
-      mFacing = facing;
+  public void setCameraInfo(
+    int previewWidth_, int previewHeight_, int facing_) {
+    synchronized (lock) {
+      this.previewWidth = previewWidth_;
+      this.previewHeight = previewHeight_;
+      facing = facing_;
     }
     postInvalidate();
   }
@@ -140,15 +141,15 @@ public class GraphicOverlay<T extends GraphicOverlay.Graphic> extends View {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
-    synchronized (mLock) {
-      if ((mPreviewWidth != 0) && (mPreviewHeight != 0)) {
-        mWidthScaleFactor =
-          (float) canvas.getWidth() / (float) mPreviewWidth;
-        mHeightScaleFactor =
-          (float) canvas.getHeight() / (float) mPreviewHeight;
+    synchronized (lock) {
+      if ((previewWidth != 0) && (previewHeight != 0)) {
+        widthScaleFactor =
+          (float) canvas.getWidth() / (float) previewWidth;
+        heightScaleFactor =
+          (float) canvas.getHeight() / (float) previewHeight;
       }
 
-      for (Graphic graphic : mGraphics) {
+      for (Graphic graphic : graphics) {
         graphic.draw(canvas);
       }
     }

@@ -33,9 +33,7 @@ import org.oddb.generika.R;
 
 public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   implements ListAdapter {
-
-    // TODO
-    private DeleteListener mListener;
+    private DeleteListener listener;
 
     private static class ViewHolder {
       TextView name;
@@ -55,7 +53,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     }
 
     public void setCallback(DeleteListener callback) {
-      mListener = callback;
+      listener = callback;
     }
 
     public interface DeleteListener {
@@ -107,7 +105,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
         deleteButton.setOnClickListener(new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            mListener.delete((long) view.getTag());
+            listener.delete((long) view.getTag());
           }
         });
         viewHolder.deleteButton = deleteButton;

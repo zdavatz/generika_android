@@ -42,18 +42,18 @@ import org.oddb.generika.ui.reader.GraphicOverlay;
 
 
 class BarcodeTrackerFactory implements MultiProcessor.Factory<Barcode> {
-  private GraphicOverlay<BarcodeGraphic> mGraphicOverlay;
-  private Context mContext;
+  private GraphicOverlay<BarcodeGraphic> graphicOverlay;
+  private Context context;
 
   public BarcodeTrackerFactory(
-    GraphicOverlay<BarcodeGraphic> mGraphicOverlay, Context mContext) {
-    this.mGraphicOverlay = mGraphicOverlay;
-    this.mContext = mContext;
+    GraphicOverlay<BarcodeGraphic> graphicOverlay_, Context context_) {
+    this.graphicOverlay = graphicOverlay_;
+    this.context = context_;
   }
 
   @Override
   public Tracker<Barcode> create(Barcode barcode) {
-    BarcodeGraphic graphic = new BarcodeGraphic(mGraphicOverlay);
-    return new BarcodeGraphicTracker(mGraphicOverlay, graphic, mContext);
+    BarcodeGraphic graphic = new BarcodeGraphic(graphicOverlay);
+    return new BarcodeGraphicTracker(graphicOverlay, graphic, context);
   }
 }

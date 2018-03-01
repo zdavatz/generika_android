@@ -43,67 +43,65 @@ import org.oddb.generika.ui.reader.GraphicOverlay;
 
 
 public class BarcodeGraphic extends GraphicOverlay.Graphic {
-  private int mId;
+  private int id;
 
   private static final int COLOR_CHOICES[] = {
     // Generika uses only green (primary dark color) ;)
     Color.GREEN
   };
 
-  private static int mCurrentColorIndex = 0;
+  private static int currentColorIndex = 0;
 
-  private Paint mRectPaint;
-  private Paint mTextPaint;
-  private volatile Barcode mBarcode;
+  private Paint rectPaint;
+  private Paint textPaint;
+  private volatile Barcode barcode;
 
   BarcodeGraphic(GraphicOverlay overlay) {
     super(overlay);
 
     // TODO: Change color for barcode type (barcode, qrcode etc.)
-    mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
-    final int selectedColor = COLOR_CHOICES[mCurrentColorIndex];
+    this.currentColorIndex = (currentColorIndex + 1) % COLOR_CHOICES.length;
+    final int selectedColor = COLOR_CHOICES[currentColorIndex];
 
-    mRectPaint = new Paint();
-    mRectPaint.setColor(selectedColor);
-    mRectPaint.setStyle(Paint.Style.STROKE);
-    mRectPaint.setStrokeWidth(4.0f);
+    this.rectPaint = new Paint();
+    rectPaint.setColor(selectedColor);
+    rectPaint.setStyle(Paint.Style.STROKE);
+    rectPaint.setStrokeWidth(4.0f);
 
-    mTextPaint = new Paint();
-    mTextPaint.setColor(selectedColor);
-    mTextPaint.setTextSize(36.0f);
+    this.textPaint = new Paint();
+    textPaint.setColor(selectedColor);
+    textPaint.setTextSize(36.0f);
   }
 
   public int getId() {
-    return mId;
+    return id;
   }
 
   public void setId(int id) {
-    this.mId = id;
+    this.id = id;
   }
 
   public Barcode getBarcode() {
-    return mBarcode;
+    return barcode;
   }
 
-  void updateItem(Barcode barcode) {
-    mBarcode = barcode;
+  void updateItem(Barcode barcode_) {
+    this.barcode = barcode_;
     postInvalidate();
   }
 
   @Override
   public void draw(Canvas canvas) {
-    Barcode barcode = mBarcode;
-    if (barcode == null) {
+    Barcode barcode_ = barcode;
+    if (barcode_ == null) {
       return;
     }
-
-    RectF rect = new RectF(barcode.getBoundingBox());
+    RectF rect = new RectF(barcode_.getBoundingBox());
     rect.left = translateX(rect.left);
     rect.top = translateY(rect.top);
     rect.right = translateX(rect.right);
     rect.bottom = translateY(rect.bottom);
-    canvas.drawRect(rect, mRectPaint);
-
-    canvas.drawText(barcode.rawValue, rect.left, rect.bottom, mTextPaint);
+    canvas.drawRect(rect, rectPaint);
+    canvas.drawText(barcode_.rawValue, rect.left, rect.bottom, textPaint);
   }
 }

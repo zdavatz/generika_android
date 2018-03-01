@@ -50,86 +50,86 @@ import java.io.IOException;
 public class CameraSourcePreview extends ViewGroup {
   private static final String TAG = "CameraSourcePreview";
 
-  private Context mContext;
-  private SurfaceView mSurfaceView;
-  private boolean mStartRequested;
-  private boolean mSurfaceAvailable;
-  private CameraSource mCameraSource;
+  private Context context;
+  private SurfaceView surfaceView;
+  private boolean startRequested;
+  private boolean surfaceAvailable;
+  private CameraSource cameraSource;
 
-  private GraphicOverlay mOverlay;
+  private GraphicOverlay overlay;
 
-  public CameraSourcePreview(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    mContext = context;
-    mStartRequested = false;
-    mSurfaceAvailable = false;
+  public CameraSourcePreview(Context context_, AttributeSet attrs) {
+    super(context_, attrs);
+    this.context = context_;
+    this.startRequested = false;
+    this.surfaceAvailable = false;
 
-    mSurfaceView = new SurfaceView(context);
-    mSurfaceView.getHolder().addCallback(new SurfaceCallback());
-    addView(mSurfaceView);
+    this.surfaceView = new SurfaceView(context_);
+    surfaceView.getHolder().addCallback(new SurfaceCallback());
+    addView(surfaceView);
   }
 
   @RequiresPermission(Manifest.permission.CAMERA)
-  public void start(CameraSource cameraSource) throws
+  public void start(CameraSource cameraSource_) throws
     IOException, SecurityException {
 
-    if (cameraSource == null) {
+    if (cameraSource_ == null) {
       stop();
     }
 
-    mCameraSource = cameraSource;
+    this.cameraSource = cameraSource_;
 
-    if (mCameraSource != null) {
-      mStartRequested = true;
+    if (cameraSource_ != null) {
+      this.startRequested = true;
       startIfReady();
     }
   }
 
   @RequiresPermission(Manifest.permission.CAMERA)
-  public void start(CameraSource cameraSource, GraphicOverlay overlay) throws
+  public void start(CameraSource cameraSource_, GraphicOverlay overlay_) throws
     IOException, SecurityException {
 
-    mOverlay = overlay;
-    start(cameraSource);
+    this.overlay = overlay_;
+    start(cameraSource_);
   }
 
   public void stop() {
-    if (mCameraSource != null) {
-      mCameraSource.stop();
+    if (cameraSource != null) {
+      cameraSource.stop();
     }
   }
 
   public void release() {
-    if (mCameraSource != null) {
-      mCameraSource.release();
-      mCameraSource = null;
+    if (cameraSource != null) {
+      cameraSource.release();
+      cameraSource = null;
     }
   }
 
   @RequiresPermission(Manifest.permission.CAMERA)
   private void startIfReady() throws IOException, SecurityException {
-    if (mStartRequested && mSurfaceAvailable) {
-      mCameraSource.start(mSurfaceView.getHolder());
-      if (mOverlay != null) {
-        Size size = mCameraSource.getPreviewSize();
+    if (startRequested && surfaceAvailable) {
+      cameraSource.start(surfaceView.getHolder());
+      if (overlay != null) {
+        Size size = cameraSource.getPreviewSize();
         int min = Math.min(size.getWidth(), size.getHeight());
         int max = Math.max(size.getWidth(), size.getHeight());
 
         if (isPortraitMode()) {
-          mOverlay.setCameraInfo(min, max, mCameraSource.getCameraFacing());
+          overlay.setCameraInfo(min, max, cameraSource.getCameraFacing());
         } else {
-          mOverlay.setCameraInfo(max, min, mCameraSource.getCameraFacing());
+          overlay.setCameraInfo(max, min, cameraSource.getCameraFacing());
         }
-        mOverlay.clear();
+        overlay.clear();
       }
-      mStartRequested = false;
+      this.startRequested = false;
     }
   }
 
   private class SurfaceCallback implements SurfaceHolder.Callback {
     @Override
-    public void surfaceCreated(SurfaceHolder surface) {
-      mSurfaceAvailable = true;
+    public void surfaceCreated(SurfaceHolder _surface) {
+      surfaceAvailable = true;
       try {
         startIfReady();
       } catch (SecurityException se) {
@@ -140,13 +140,14 @@ public class CameraSourcePreview extends ViewGroup {
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder surface) {
-      mSurfaceAvailable = false;
+    public void surfaceDestroyed(SurfaceHolder _surface) {
+      surfaceAvailable = false;
     }
 
     @Override
     public void surfaceChanged(
-      SurfaceHolder holder, int format, int width, int height) {
+      SurfaceHolder _holder, int _format, int _width, int _height) {
+      // pass
     }
   }
 
@@ -156,8 +157,8 @@ public class CameraSourcePreview extends ViewGroup {
 
     int width = 320;
     int height = 240;
-    if (mCameraSource != null) {
-      Size size = mCameraSource.getPreviewSize();
+    if (cameraSource != null) {
+      Size size = cameraSource.getPreviewSize();
       if (size != null) {
         width = size.getWidth();
         height = size.getHeight();
@@ -209,7 +210,7 @@ public class CameraSourcePreview extends ViewGroup {
   }
 
   private boolean isPortraitMode() {
-    int orientation = mContext.getResources().getConfiguration().orientation;
+    int orientation = context.getResources().getConfiguration().orientation;
     if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
       return false;
     }
