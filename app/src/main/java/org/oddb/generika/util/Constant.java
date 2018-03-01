@@ -44,6 +44,7 @@ public class Constant extends Object {
   public static final String kAutoFocus = "kAutoFocus";
   public static final String kUseFlash  = "kUseFlash";
   public static final String kBarcode = "kBarcode";
+  public static final String kFilepath = "kFilepath";
 
   // -- constents
   public static final int RC_BARCODE_CAPTURE = 9000;

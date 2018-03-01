@@ -63,10 +63,12 @@ public class ProductItem extends RealmObject {
 
   // scanned_at/imported_at
   private String datetime;
+  // barcode image/amk prescription
+  private String filepath;
+  // valdatum/expiration
+  private String expiresAt; // TODO
 
   // -- scanner product item (scanner medications)
-  private String barcode;
-  private String expiresAt;  // TODO: valdatum
   // (values from oddb)
   private String seq;
   private String name;
@@ -127,8 +129,8 @@ public class ProductItem extends RealmObject {
   public String getDatetime() { return datetime; }
   public void setDatetime(String datetime) { this.datetime = datetime; }
 
-  public String getBarcode() { return barcode; }
-  public void setBarcode(String barcode) { this.barcode = barcode; }
+  public String getFilepath() { return filepath; }
+  public void setFilepath(String filepath) { this.filepath = filepath; }
 
   // (values from oddb)
   public String getSeq() { return seq; }
@@ -195,13 +197,25 @@ public class ProductItem extends RealmObject {
     return String.format("%s,\n%s\n%s", name, size, priceString);
   }
 
-  // must be called in transaction
-  public static ProductItem createWithEanIntoSource(
-    Realm realm, String ean, Product product) {
+  public static class Barcode {
+    String value;
+    String filepath;
 
+    public void setValue(String value_) {
+      this.value = value_;
+    }
+    public void setFilepath(String filepath_) {
+      this.filepath = filepath_;
+    }
+  }
+
+  // must be called in transaction
+  public static ProductItem createFromBarcodeIntoSource(
+    Realm realm, ProductItem.Barcode barcode, Product product) {
     RealmList<ProductItem> items = product.getItems();
     ProductItem item = realm.createObject(ProductItem.class, increment());
-    item.setEan(ean);
+    item.setEan(barcode.value);
+    item.setFilepath(barcode.filepath);
     items.add(item);
     return item;
   }

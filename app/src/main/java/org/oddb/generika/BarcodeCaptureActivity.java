@@ -342,11 +342,12 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
           e.printStackTrace();
         }
       }
-      Log.d(TAG, "(onBarcodeDetected) filepath: " + filepath);
 
-      // just rerutrn detected barcode to activity and finish
+      Log.d(TAG, "(onBarcodeDetected) filepath: " + filepath);
+      // just rerutrn detected barcode and image path to activity, and finish
       Intent data = new Intent();
       data.putExtra(Constant.kBarcode, barcode);
+      data.putExtra(Constant.kFilepath, filepath);
       setResult(CommonStatusCodes.SUCCESS, data);
       finish();
       return;

@@ -1,17 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingTop="8dp"
-    android:paddingRight="11dp"
-    android:paddingLeft="11dp"
-    android:paddingBottom="8dp">
+    android:layout_height="80.0dp"
+    android:paddingTop="0dp"
+    android:paddingRight="9dp"
+    android:paddingLeft="0dp"
+    android:paddingBottom="0dp">
+
+    <ImageView
+        android:id="@+id/scanned_product_item_barcode_image"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_centerVertical="true"
+        android:layout_gravity="center"
+        android:scaleType="fitXY"
+        android:adjustViewBounds="true"
+        android:focusable="false"
+        android:paddingTop="0dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="0dp"
+        android:paddingLeft="0dp"/>
 
     <TextView
         android:id="@+id/scanned_product_item_name"
         android:layout_width="270.5dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="2.5dp"
+        android:layout_marginTop="1.5dp"
+        android:layout_marginBottom="2.25dp"
+        android:layout_toRightOf="@+id/scanned_product_item_barcode_image"
         android:singleLine="true"
         android:paddingTop="1.25dp"
         android:paddingRight="2.5dp"
@@ -25,6 +41,7 @@
         android:layout_width="138dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/scanned_product_item_name"
+        android:layout_toRightOf="@+id/scanned_product_item_barcode_image"
         android:layout_marginRight="1.25dp"
         android:layout_marginBottom="2.5dp"
         android:singleLine="true"
@@ -56,6 +73,7 @@
         android:layout_width="68dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/scanned_product_item_size"
+        android:layout_toRightOf="@+id/scanned_product_item_barcode_image"
         android:layout_marginRight="1.25dp"
         android:layout_marginBottom="2.5dp"
         android:singleLine="true"
@@ -104,8 +122,9 @@
         android:layout_width="138dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/scanned_product_item_price"
+        android:layout_toRightOf="@+id/scanned_product_item_barcode_image"
         android:layout_marginRight="2.5dp"
-        android:layout_marginBottom="2.5dp"
+        android:layout_marginBottom="1.5dp"
         android:singleLine="true"
         android:paddingTop="1.25dp"
         android:paddingRight="2.5dp"
@@ -124,5 +143,5 @@
         android:adjustViewBounds="false"
         android:focusable="false"
         android:padding="16dp"
-        android:src="@android:drawable/ic_menu_delete" />
+        android:src="@android:drawable/ic_menu_delete"/>
 </RelativeLayout>

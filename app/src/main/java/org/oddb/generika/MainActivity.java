@@ -40,6 +40,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -124,8 +125,11 @@ public class MainActivity extends BaseActivity implements
     }
     if (product.getItems().size() == 0) {
       realm.beginTransaction();
-      ProductItem item = ProductItem.createWithEanIntoSource(
-        realm, Constant.initData.get("ean"), product);
+      // placeholder
+      ProductItem.Barcode barcode = new ProductItem.Barcode();
+      barcode.setValue(Constant.initData.get("ean"));
+      ProductItem item = ProductItem.createFromBarcodeIntoSource(
+        realm, barcode, product);
       item.setName(Constant.initData.get("name"));
       item.setSize(Constant.initData.get("size"));
       item.setDatetime(Constant.initData.get("datetime"));
@@ -145,18 +149,21 @@ public class MainActivity extends BaseActivity implements
       public void onChange(
         RealmList<ProductItem> items,
         OrderedCollectionChangeSet changeSet) {
-        Log.d(TAG, "(onActivityResult) items.size: " + items.size());
+        Log.d(TAG, "(addChangeListener) items.size: " + items.size());
 
-        int i[] = changeSet.getInsertions();
-        if (i != null && i.length == 1) {  // new scan
-          Log.d(TAG, "(onActivityResult) inserttions: " + i[0]);
-          // get via location index
-          ProductItem productItem = items.get(i[0]);
+        int insertions[] = changeSet.getInsertions();
+        if (insertions != null && insertions.length == 1) {  // new scan
+          int i = insertions[0];
+          Log.d(TAG, "(addChangeListener) inserttion: " + i);
+          ProductItem productItem = items.get(i);
           // pass dummy object as container for id and ean
           ProductItem item = new ProductItem();
           item.setId(productItem.getId());
           item.setEan(productItem.getEan());
+          // invoke async api call
           startFetching(item);
+          // redraw this row (mainly image)
+          productItemListAdapter.refresh(item, listView);
         }
       }
     });
@@ -270,9 +277,16 @@ public class MainActivity extends BaseActivity implements
       if (resultCode == CommonStatusCodes.SUCCESS) {
         if (data != null) {
           Barcode barcode = data.getParcelableExtra(Constant.kBarcode);
+          String filepath = data.getStringExtra(Constant.kFilepath);
+          Log.d(TAG, "(onActivityResult) filepath: " + filepath);
+
           if (barcode.displayValue.length() == 13) {
+            // ProductItem's Barcode
+            ProductItem.Barcode barcode_ = new ProductItem.Barcode();
+            barcode_.setValue(barcode.displayValue);
+            barcode_.setFilepath(filepath);
             // save record into realm (next: changeset listener)
-            addProduct(barcode.displayValue);
+            addProduct(barcode_);
           }
         } else {
           Log.d(TAG, "(onActivityResult) Barcode not found");
@@ -290,12 +304,13 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
-  private void addProduct(final String ean) {
+  private void addProduct(final ProductItem.Barcode barcode) {
     realm.executeTransaction(new Realm.Transaction() {
 
       @Override
       public void execute(Realm realm_) {
-        ProductItem.createWithEanIntoSource(realm_, ean, product);
+        ProductItem.createFromBarcodeIntoSource(
+          realm_, barcode, product);
       }
     });
   }
@@ -347,7 +362,8 @@ public class MainActivity extends BaseActivity implements
         }
       }
     });
-    //mListView.invalidateViews();
+    // TODO: is it necessary?
+    // listView.invalidateViews();
   }
 
   private void startFetching(ProductItem productItem) {

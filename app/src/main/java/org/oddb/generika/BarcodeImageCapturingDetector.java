@@ -20,6 +20,7 @@ package org.oddb.generika;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.support.annotation.UiThread;
 import android.util.Log;
 import android.util.SparseArray;
@@ -83,7 +84,6 @@ public class BarcodeImageCapturingDetector extends Detector<Barcode> {
             metadata.getWidth(), metadata.getHeight());
 
         Barcode barcode = barcodes.valueAt(i);
-
         if (barcodeImageCaptureListener != null) { // barcode + captured bitmap
           barcodeImageCaptureListener.onBarcodeImageCaptured(
             barcode.displayValue, bitmap);
@@ -128,6 +128,12 @@ public class BarcodeImageCapturingDetector extends Detector<Barcode> {
       bitmap = Bitmap.createBitmap(
         width, height, Bitmap.Config.ARGB_8888);
       out.copyTo(bitmap);
+      // rotate
+      Matrix matrix = new Matrix();
+      matrix.postRotate(90);
+      Bitmap s = Bitmap.createScaledBitmap(bitmap, width, height, true);
+      bitmap = Bitmap.createBitmap(
+        s, 0, 0, s.getWidth(), s.getHeight(), matrix, true);
     } catch (Exception e) {
       e.printStackTrace();
       Log.d(TAG, "(buildBitmap) error: " + e.getMessage());
