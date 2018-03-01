@@ -17,6 +17,9 @@
  */
 package org.oddb.generika.model;
 
+import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
+import android.icu.util.TimeZone;
 import android.util.Log;
 
 import io.realm.annotations.PrimaryKey;
@@ -26,6 +29,7 @@ import io.realm.RealmObject;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
+import java.io.File;
 import java.lang.String;
 import java.lang.IllegalAccessException;
 import java.lang.IllegalArgumentException;
@@ -40,6 +44,8 @@ import java.util.regex.Matcher;
 
 
 public class ProductItem extends RealmObject {
+  private final static String TAG = "ProductItem";
+
   public static final String FIELD_ID = "id";
 
   private static AtomicInteger INTEGER_COUNTER = new AtomicInteger(0);
@@ -127,6 +133,31 @@ public class ProductItem extends RealmObject {
   }
 
   public String getDatetime() { return datetime; }
+
+  // return formatted local datetime string
+  public String getLocalDatetimeAs(String formatString) {
+    String datetimeString = null;
+    try {
+      // TODO:
+      // TimeZote.getDefaultZone() and Calendar.getInstance().getTimeZone()
+      // both will return wrong timezone in Android 6.1 (>= 7.0 OK) :'(
+
+      // from UTC
+      SimpleDateFormat inFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
+      inFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+      // localtime
+      SimpleDateFormat outFormatter = new SimpleDateFormat(formatString);
+      outFormatter.setTimeZone(Calendar.getInstance().getTimeZone());
+
+      datetimeString = outFormatter.format(inFormatter.parse(datetime));
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      return datetimeString;
+    }
+  }
+
   public void setDatetime(String datetime) { this.datetime = datetime; }
 
   public String getFilepath() { return filepath; }
@@ -209,13 +240,39 @@ public class ProductItem extends RealmObject {
     }
   }
 
+  // e.g. 20180223210923 in UTC
+  public static String makeScannedAt(String filepath_) {
+      String scannedAt = "";
+      if (filepath_ != null) {
+        // extract timestapm part from path
+        File file = new File(filepath_);
+        String filename = file.getName().toString();
+        Log.d(TAG, "(makeScannedAt) filename: " + filename);
+        if (filename.length() == 32) {
+          // EAN:13 + -:1 + TIMESTAMP:14 + .:1 + EXT:3 = 32 (jpg)
+          scannedAt = filename.substring(14, 28);
+        }
+      }
+      // normally datetime_ is set from filename
+      if (scannedAt.equals("")) {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        scannedAt = formatter.format(calendar.getTime());
+      }
+      return scannedAt;
+  }
+
   // must be called in transaction
   public static ProductItem createFromBarcodeIntoSource(
     Realm realm, ProductItem.Barcode barcode, Product product) {
     RealmList<ProductItem> items = product.getItems();
+
     ProductItem item = realm.createObject(ProductItem.class, increment());
     item.setEan(barcode.value);
     item.setFilepath(barcode.filepath);
+    item.setDatetime(makeScannedAt(barcode.filepath));
+
     items.add(item);
     return item;
   }

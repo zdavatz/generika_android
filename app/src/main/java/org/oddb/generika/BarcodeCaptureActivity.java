@@ -43,9 +43,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.icu.text.SimpleDateFormat;
-import android.icu.util.Calendar;
-import android.icu.util.TimeZone;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -80,6 +77,8 @@ import org.oddb.generika.util.Constant;
 import org.oddb.generika.ui.reader.CameraSource;
 import org.oddb.generika.ui.reader.CameraSourcePreview;
 import org.oddb.generika.ui.reader.GraphicOverlay;
+
+import org.oddb.generika.model.ProductItem;
 
 
 public final class BarcodeCaptureActivity extends BaseActivity implements
@@ -370,12 +369,8 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       CapturedData data = (CapturedData)params[0];
       File barcodes = new File(data.files, "barcodes");
 
-      // e.g. 20180223210923 in UTC
-      Calendar calendar = Calendar.getInstance();
-      SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-      String dateString = formatter.format(calendar.getTime());
-
+      // e.g. 7680529860526-20180223210923.jpg
+      String dateString = ProductItem.makeScannedAt(null);
       String filename = String.format(
         "%s-%s.jpg", data.barcodeValue, dateString);
       Log.d(TAG, "(doInBackground) filename: " + filename);

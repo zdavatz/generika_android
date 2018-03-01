@@ -139,7 +139,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     // texts
     viewHolder.name.setText(item.getName());
     viewHolder.size.setText(item.getSize());
-    viewHolder.datetime.setText(item.getDatetime());
+    viewHolder.datetime.setText(item.getLocalDatetimeAs("HH:mm dd.MM.YYYY"));
     viewHolder.price.setText(item.getPrice());
     viewHolder.deduction.setText(item.getDeduction());
     viewHolder.category.setText(item.getCategory());

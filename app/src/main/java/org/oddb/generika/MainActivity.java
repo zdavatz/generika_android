@@ -286,7 +286,7 @@ public class MainActivity extends BaseActivity implements
             barcode_.setValue(barcode.displayValue);
             barcode_.setFilepath(filepath);
             // save record into realm (next: changeset listener)
-            addProduct(barcode_);
+            addProductItem(barcode_);
           }
         } else {
           Log.d(TAG, "(onActivityResult) Barcode not found");
@@ -304,7 +304,7 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
-  private void addProduct(final ProductItem.Barcode barcode) {
+  private void addProductItem(final ProductItem.Barcode barcode) {
     realm.executeTransaction(new Realm.Transaction() {
 
       @Override
