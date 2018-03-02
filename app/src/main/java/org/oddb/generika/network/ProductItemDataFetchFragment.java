@@ -36,7 +36,7 @@ public class ProductItemDataFetchFragment extends Fragment {
   private String baseUrl;
 
   // ProductItem
-  private long itemId;
+  private String itemId;
   private String itemEan;
 
 
@@ -59,7 +59,7 @@ public class ProductItemDataFetchFragment extends Fragment {
   }
 
   public class FetchResult {
-    public long itemId;
+    public String itemId;
     public HashMap<String, String> itemMap;
     public String errorMessage;
 
@@ -103,7 +103,7 @@ public class ProductItemDataFetchFragment extends Fragment {
 
     // inner result object
     private class Result {
-      public long itemId;
+      public String itemId;
       public JSONObject itemObj;
       public Exception exception;
 

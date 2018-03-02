@@ -57,8 +57,8 @@ public class GenerikaApplication extends Application {
       })
       .build();
 
-    // TODO: remove (delete all at restart)
-    Realm.deleteRealm(realmConfig);
+    // enable this, if delete all product items at boot
+    //Realm.deleteRealm(realmConfig);
 
     Realm.setDefaultConfiguration(realmConfig);
   }

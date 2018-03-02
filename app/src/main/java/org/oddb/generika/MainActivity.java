@@ -118,24 +118,34 @@ public class MainActivity extends BaseActivity implements
     realm.close();
   }
 
+  private void insertPlaceholder(boolean withUniqueCheck) {
+    realm.beginTransaction();
+    // placeholder
+    ProductItem.Barcode barcode = new ProductItem.Barcode();
+    barcode.setValue(Constant.initData.get("ean"));
+
+    ProductItem item = ProductItem.createFromBarcodeIntoSource(
+      realm, barcode, product, withUniqueCheck);
+    item.setName(Constant.initData.get("name"));
+    item.setSize(Constant.initData.get("size"));
+    item.setDatetime(Constant.initData.get("datetime"));
+    item.setPrice(Constant.initData.get("price"));
+    item.setDeduction(Constant.initData.get("deduction"));
+    item.setCategory(Constant.initData.get("category"));
+    realm.commitTransaction();
+  }
+
   private void initProductItems() {
     if (product == null) {
       return;
     }
     if (product.getItems().size() == 0) {
-      realm.beginTransaction();
-      // placeholder
-      ProductItem.Barcode barcode = new ProductItem.Barcode();
-      barcode.setValue(Constant.initData.get("ean"));
-      ProductItem item = ProductItem.createFromBarcodeIntoSource(
-        realm, barcode, product);
-      item.setName(Constant.initData.get("name"));
-      item.setSize(Constant.initData.get("size"));
-      item.setDatetime(Constant.initData.get("datetime"));
-      item.setPrice(Constant.initData.get("price"));
-      item.setDeduction(Constant.initData.get("deduction"));
-      item.setCategory(Constant.initData.get("category"));
-      realm.commitTransaction();
+      ProductItem.withRetry(2, new ProductItem.WithRetry() {
+        @Override
+        public void execute(final int currentCount) {
+          insertPlaceholder(currentCount == 1);
+        }
+      });
     }
 
     // Check new product item insertion via barcode reader
@@ -305,12 +315,17 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void addProductItem(final ProductItem.Barcode barcode) {
-    realm.executeTransaction(new Realm.Transaction() {
-
+    ProductItem.withRetry(2, new ProductItem.WithRetry() {
       @Override
-      public void execute(Realm realm_) {
-        ProductItem.createFromBarcodeIntoSource(
-          realm_, barcode, product);
+      public void execute(final int currentCount) {
+        final Product product_ = product;
+        realm.executeTransaction(new Realm.Transaction() {
+          @Override
+          public void execute(Realm realm_) {
+            ProductItem.createFromBarcodeIntoSource(
+              realm_, barcode, product_, (currentCount == 1));
+          }
+        });
       }
     });
   }
@@ -321,8 +336,7 @@ public class MainActivity extends BaseActivity implements
   public void onItemClick(
     AdapterView<?> parent, View view, int position, long id) {
 
-    ProductItem productItem = realm.where(ProductItem.class)
-      .equalTo("id", id).findFirst();
+    ProductItem productItem = productItemListAdapter.getItem(position);
     if (productItem == null || productItem.getEan() == null) {  // unexpected
       return;
     }
@@ -335,21 +349,22 @@ public class MainActivity extends BaseActivity implements
   // -- ProductItemListAdapter.DeleteListener
 
   @Override
-  public void delete(long itemId) {
+  public void delete(String itemTag) {
     // should check sourceType of Product?
-    deleteProductItem(itemId);
+    
+    deleteProductItem(itemTag); // itemTag is productItem's primary key
   }
 
-  private void deleteProductItem(long productItemId) {
-    final long id = productItemId;
+  private void deleteProductItem(String productItemId) {
+    final String id = productItemId;
     realm.executeTransaction(new Realm.Transaction() {
-
       @Override
       public void execute(Realm realm_) {
         ProductItem productItem = realm_.where(ProductItem.class)
           .equalTo("id", id).findFirst();
         if (productItem != null) {
-          productItem.deleteFromRealm();
+          // TODO: create alert dialog for failure?
+          productItem.delete();
         }
       }
     });
@@ -375,7 +390,7 @@ public class MainActivity extends BaseActivity implements
     if (result.errorMessage != null) {
       alertDialog("", result.errorMessage);
     } else if (result.itemMap != null) {
-      final long id = result.itemId;
+      final String id = result.itemId;
       Log.d(TAG, "(updateFromFetch) resut.itemId: " + id);
 
       final HashMap<String, String> properties = result.itemMap;
@@ -384,7 +399,7 @@ public class MainActivity extends BaseActivity implements
       Realm realm_ = Realm.getDefaultInstance();
       try {
         final ProductItem productItem = realm_.where(ProductItem.class)
-          .equalTo("id", id).findFirst();
+          .equalTo(ProductItem.FIELD_ID, id).findFirst();
 
         if (productItem == null) {
           return;
