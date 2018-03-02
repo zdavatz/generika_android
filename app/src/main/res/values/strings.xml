@@ -12,9 +12,6 @@
     <string name="settings">Settings</string>
 
     <!-- [drawer] -->
-    <string name="drawer_close">Close</string>
-    <string name="drawer_open">Open</string>
-
     <string name="medications">Medications</string>
     <!--
     <string name="prescriptions">Prescriptions</string>
@@ -50,7 +47,9 @@
     -->
 
     <!-- [general] -->
-    <string name="ok">OK</string>
+    <string name="close">Close</string>
+    <string name="ok">Ok</string>
+    <string name="open">Open</string>
 
     <!-- [languages] -->
     <string name="lang_de_name">Deutsch</string>

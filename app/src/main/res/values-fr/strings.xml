@@ -2,7 +2,7 @@
 <resources>
     <!-- [application] -->
     <string name="app_name">Generika</string>
-    <string name="oddb_org">ODDB.org</string>
+    <string name="oddb_org">ODDB.org - Open Drug Database</string>
 
     <string name="pv_fullname">Comparatif des prix de la préparation originale et du médicament générique</string>
     <string name="pi_fullname">Information des patients</string>
@@ -12,9 +12,6 @@
     <string name="settings">Ajustages</string>
 
     <!-- [drawer] -->
-    <string name="drawer_close">Fermer</string>
-    <string name="drawer_open">Ouvrir</string>
-
     <string name="medications">Médicaments</string>
     <!--
     <string name="prescriptions">Ordonnance Médicale</string>
@@ -50,7 +47,10 @@
     -->
 
     <!-- [general] -->
-    <string name="ok">OK</string>
+    <string name="close">Fermer</string>
+    <string name="ok">Ok</string>
+    <string name="open">Ouvrir</string>
+
 
     <!-- [languages] -->
     <string name="lang_de_name">Deutsch</string>

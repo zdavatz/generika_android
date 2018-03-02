@@ -102,7 +102,6 @@ public class MainActivity extends BaseActivity implements
     Fragment fragment = fragmentManager.findFragmentByTag(
       ProductItemDataFetchFragment.TAG);
     if (fragment == null) {
-      // TODO: use constant utility
       fragment = ProductItemDataFetchFragment.getInstance(
         fragmentManager, Constant.API_URL_BASE);
     }
@@ -184,7 +183,8 @@ public class MainActivity extends BaseActivity implements
 
     this.drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
     this.drawerToggle = new ActionBarDrawerToggle(
-      this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {
+      this, drawerLayout,
+      R.string.open, R.string.close) {
 
       public void onDrawerOpened(View view) {
         super.onDrawerOpened(view);
@@ -281,7 +281,7 @@ public class MainActivity extends BaseActivity implements
           Log.d(TAG, "(onActivityResult) filepath: " + filepath);
 
           if (barcode.displayValue.length() == 13) {
-            // ProductItem's Barcode
+            // use ProductItem's Barcode
             ProductItem.Barcode barcode_ = new ProductItem.Barcode();
             barcode_.setValue(barcode.displayValue);
             barcode_.setFilepath(filepath);
@@ -329,16 +329,7 @@ public class MainActivity extends BaseActivity implements
     if (productItem.getEan().equals("EAN 13")) {  // place holder cell
       return;
     }
-    // WebView reads type and lang from shared preferences
-    // So, just puts arguments here.
-    Intent intent = new Intent(this, WebViewActivity.class);
-    intent.putExtra(Constant.kEan, productItem.getEan());
-    intent.putExtra(Constant.kReg, productItem.getReg());
-    intent.putExtra(Constant.kSeq, productItem.getSeq());
-    startActivity(intent);
-
-    overridePendingTransition(R.anim.slide_leave,
-                              R.anim.slide_enter);
+    openWebView(productItem);
   }
 
   // -- ProductItemListAdapter.DeleteListener
@@ -410,11 +401,12 @@ public class MainActivity extends BaseActivity implements
                 productItem_.getSize() != null) {
               Log.d(TAG,
                 "(updateFromFetch) productItem.name: " + productItem_.getName());
+
               // notify result to user
               // TODO: replace with translated string
               String title = "Generika.cc sagt";
               String message = productItem_.toMessage();
-              alertDialog(title, message);
+              alertDialog(title, message, productItem_);
             }
           }
         });
@@ -439,7 +431,7 @@ public class MainActivity extends BaseActivity implements
 
   @Override
   public NetworkInfo getActiveNetworkInfo() {
-    // It seems that this cast is not redundant :'(
+    // it seems that this cast is not redundant :'(
     ConnectivityManager connectivityManager =
       (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
     NetworkInfo networkinfo = connectivityManager.getActiveNetworkInfo();
@@ -465,12 +457,55 @@ public class MainActivity extends BaseActivity implements
     builder.setTitle(title);
     builder.setMessage(message);
     builder.setCancelable(true);
-    builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+
+    builder.setPositiveButton(
+      context.getString(R.string.ok),
+      new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int _id) {
         dialog.cancel();
       }
     });
     AlertDialog alert = builder.create();
     alert.show();
+  }
+
+  private void alertDialog(
+    String title, String message, final ProductItem productItem_) {
+    Context context = (Context)this;
+    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    builder.setTitle(title);
+    builder.setMessage(message);
+    builder.setCancelable(true);
+
+    builder.setPositiveButton(
+      context.getString(R.string.open),
+      new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int _id) {
+        openWebView(productItem_);
+        dialog.cancel();
+      }
+    });
+    builder.setNegativeButton(
+      context.getString(R.string.close),
+      new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int _id) {
+        dialog.cancel();
+      }
+    });
+    AlertDialog alert = builder.create();
+    alert.show();
+  }
+
+  private void openWebView(ProductItem productItem) {
+    // WebView reads type and lang from shared preferences
+    // So, just puts arguments here.
+    Intent intent = new Intent(this, WebViewActivity.class);
+    intent.putExtra(Constant.kEan, productItem.getEan());
+    intent.putExtra(Constant.kReg, productItem.getReg());
+    intent.putExtra(Constant.kSeq, productItem.getSeq());
+    startActivity(intent);
+
+    overridePendingTransition(R.anim.slide_leave,
+                              R.anim.slide_enter);
   }
 }

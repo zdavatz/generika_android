@@ -145,7 +145,6 @@ public class ProductItem extends RealmObject {
       // from UTC
       SimpleDateFormat inFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
       inFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-
       // localtime
       SimpleDateFormat outFormatter = new SimpleDateFormat(formatString);
       outFormatter.setTimeZone(Calendar.getInstance().getTimeZone());
