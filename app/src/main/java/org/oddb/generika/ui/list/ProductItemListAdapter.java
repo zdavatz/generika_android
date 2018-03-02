@@ -65,7 +65,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   }
 
   public interface DeleteListener {
-    void delete(long productId);
+    void delete(String productId);
   }
 
   public ProductItemListAdapter(
@@ -74,8 +74,20 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   }
 
   @Override
+  public boolean hasStableIds() { // default: false
+    return false;
+  }
+
+  @Override
   public long getItemId(int position) {
-    return getItem(position).getId();
+    // NOTE:
+    // this is same the getItemId() of current RealmBaseAdapter class.
+    // Our primary key is String UUID. It's guranteed uniqueness in DB through
+    // use of retry block, but `hashCode` is not enough to provide uniqueness
+    // here :'(
+    //return getItem(position).getId().hashCode();
+    // TODO: think another good way
+    return position;
   }
 
   @Override
@@ -83,7 +95,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     final int position, View convertView, ViewGroup parent) {
 
     final ProductItem item = (ProductItem)getItem(position);
-    final long itemId = item.getId();
+    final String itemId = item.getId();
 
     ViewHolder viewHolder;
     if (convertView == null) {
@@ -114,7 +126,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       deleteButton.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          listener.delete((long) view.getTag());
+          listener.delete((String)view.getTag());
         }
       });
       viewHolder.deleteButton = deleteButton;
