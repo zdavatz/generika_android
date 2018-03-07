@@ -13,7 +13,6 @@ android {
         applicationId "org.oddb.generika"
         minSdkVersion 14
         targetSdkVersion 26
-      <br/2
         versionCode 10
         versionName "1.0.10"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
