@@ -4,5 +4,10 @@
     <color name="colorPrimaryDark">#1e5b3d</color>
     <color name="colorAccent">#ef5350</color>
     <color name="windowBackground">#e8f5e9</color>
+    <!-- general color namess -->
+    <color name="white">#ffffff</color>
+    <color name="lightGray">#e6e5e5</color>
+    <color name="gray">#b4b2b2</color>
+    <color name="darkGray">#504c4c</color>
     <color name="black">#1d1919</color>
 </resources>
