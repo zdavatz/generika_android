@@ -144,11 +144,11 @@ public class ProductItem extends RealmObject {
 
 
   // NOTE: it must be called in realm transaction & try/catch block
-  public static ProductItem createFromBarcodeIntoSource(
+  public static ProductItem insertNewBarcodeItemIntoSource(
     Realm realm,
     ProductItem.Barcode barcode, Product product, boolean withUniqueCheck) {
     RealmList<ProductItem> items = product.getItems();
-    
+
     String id;
     if (withUniqueCheck) {
       id = generateId(realm);
@@ -161,7 +161,8 @@ public class ProductItem extends RealmObject {
     item.setFilepath(barcode.filepath);
     item.setDatetime(makeScannedAt(barcode.filepath));
 
-    items.add(item);
+    // insert item to first on list
+    items.add(0, item);
     return item;
   }
 

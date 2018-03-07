@@ -124,7 +124,7 @@ public class MainActivity extends BaseActivity implements
     ProductItem.Barcode barcode = new ProductItem.Barcode();
     barcode.setValue(Constant.initData.get("ean"));
 
-    ProductItem item = ProductItem.createFromBarcodeIntoSource(
+    ProductItem item = ProductItem.insertNewBarcodeItemIntoSource(
       realm, barcode, product, withUniqueCheck);
     item.setName(Constant.initData.get("name"));
     item.setSize(Constant.initData.get("size"));
@@ -322,7 +322,7 @@ public class MainActivity extends BaseActivity implements
         realm.executeTransaction(new Realm.Transaction() {
           @Override
           public void execute(Realm realm_) {
-            ProductItem.createFromBarcodeIntoSource(
+            ProductItem.insertNewBarcodeItemIntoSource(
               realm_, barcode, product_, (currentCount == 1));
           }
         });
@@ -351,7 +351,6 @@ public class MainActivity extends BaseActivity implements
   @Override
   public void delete(String itemTag) {
     // should check sourceType of Product?
-    
     deleteProductItem(itemTag); // itemTag is productItem's primary key
   }
 
