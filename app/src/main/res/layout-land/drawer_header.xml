@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+NOTE:
+changes from layout/drawer_header.xml (portrait)
+
+- android:layout_height
+-->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="80.2dp"
+    android:layout_height="71.4dp"
     android:background="?attr/colorPrimary"
     android:padding="6dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark"
