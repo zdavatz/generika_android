@@ -130,12 +130,12 @@ public class WebViewActivity extends BaseActivity {
       R.id.web_view_progress_bar);
     webView.setWebChromeClient(new WebChromeClient() {
       public void onProgressChanged(WebView view, int progress) {
-        progressBar.setProgress(progress);
         if (progress < 100 &&
             progressBar.getVisibility() == ProgressBar.GONE) {
           progressBar.setVisibility(ProgressBar.VISIBLE);
-
         }
+        // max: 100 (see `activity_web_view.xml`)
+        progressBar.setProgress(progress, true);
         if (progress == 100) {
           progressBar.setVisibility(ProgressBar.GONE);
         }

@@ -27,10 +27,13 @@
             android:layout_width="fill_parent"
             android:layout_marginTop="-3dp"
             android:layout_height="3dp"
-            android:visibility="visible"
-            android:indeterminate="true"
-            android:indeterminateTintMode="src_atop"
-            android:indeterminateTint="@color/colorAccent" />
+            android:visibility="gone"
+            android:min="0"
+            android:max="100"
+            android:progress="0"
+            android:progressTintMode="src_in"
+            android:progressTint="@color/colorAccent"
+            android:progressBackgroundTint="@color/black" />
 
     </android.support.design.widget.AppBarLayout>
 
