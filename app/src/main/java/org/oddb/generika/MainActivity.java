@@ -265,12 +265,17 @@ public class MainActivity extends BaseActivity implements
   public boolean onOptionsItemSelected(MenuItem item) {
     int id = item.getItemId();
 
+    Intent intent;
     switch (id) {
       case android.R.id.home:
         drawerLayout.openDrawer(GravityCompat.START);
         return true;
       case R.id.settings:
-        Intent intent = new Intent(this, SettingsActivity.class);
+        intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+        return true;
+      case R.id.information:
+        intent = new Intent(this, InformationActivity.class);
         startActivity(intent);
         return true;
     }

@@ -10,6 +10,7 @@
 
     <!-- [menu] -->
     <string name="settings">Einstellungen</string>
+    <string name="information">Information</string>
 
     <!-- [drawer] -->
     <string name="medications">Medikamente</string>
@@ -40,7 +41,24 @@
     <string name="settings_app_locale_dialog_title">Gebietsschema wählen</string>
     <string name="settings_app_locale_dialog_description">Gebietsschema für das App UI.</string>
 
-    <!-- record_sync -->
+    <!-- [information] -->
+    <string name="information_text">
+      <![CDATA[
+      <h1>Generika Android</h1>
+      <br/>
+      <p>Das ist ...</p>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <p>Source code ist möglich auf <a href="https://github.com/zdavatz/generika_android">zdavatz/generika_android</a>.</p>
+      <br/>
+      <br/>
+      <p><a href="http://www.ywesee.com/Ywesee/About">ywesee GmbH</a></p>
+      ]]>
+    </string>
+
+    <!-- [sync] -->
     <!--
     <string name="settings_record_sync_name">Snchronisieren</string>
     <string name="settings_record_sync_summary"></string>
