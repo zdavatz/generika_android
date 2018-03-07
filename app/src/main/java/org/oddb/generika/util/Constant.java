@@ -61,8 +61,8 @@ public class Constant extends Object {
   public final static String API_URL_BASE =
     "https://ch.oddb.org/de/mobile/api_search/ean/";
 
-  public static int HUC_READ_TIMEOUT = 3000;
-  public static int HUC_CONNECT_TIMEOUT = 3000;
+  public static int HUC_READ_TIMEOUT = 9000;
+  public static int HUC_CONNECT_TIMEOUT = 6000;
 
 
   // [WebView]
