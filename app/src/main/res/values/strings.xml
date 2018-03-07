@@ -10,7 +10,7 @@
 
     <!-- [menu] -->
     <string name="settings">Settings</string>
-    <string name="information">Information</string>
+    <string name="information">About</string>
 
     <!-- [drawer] -->
     <string name="medications">Medications</string>
