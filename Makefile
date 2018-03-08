@@ -16,7 +16,8 @@ run-emulator:
 	./bin/emulator $(ARGS)
 .PHONY: run-emulator
 
-run: | run-emulator
+run:
+	adb install -r -t app/build/outputs/apk/debug/app-debug.apk
 .PHONY: run
 
 stop:
