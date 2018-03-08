@@ -9,12 +9,14 @@
     tools:showIn="@layout/activity_main">
 
     <ListView
-				android:id="@+id/list_view"
+        android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fastScrollEnabled="true"
         android:persistentDrawingCache="scrolling"
         android:scrollingCache="false"
+        android:divider="@color/lightGray"
+        android:dividerHeight="1px"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

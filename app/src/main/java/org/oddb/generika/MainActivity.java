@@ -46,7 +46,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
-
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
@@ -72,6 +71,8 @@ public class MainActivity extends BaseActivity implements
   ProductItemDataFetchFragment.FetchCallback<
     ProductItemDataFetchFragment.FetchResult> {
   private static final String TAG = "Main";
+
+  private Context context;
 
   // view
   private DrawerLayout drawerLayout;
@@ -106,6 +107,8 @@ public class MainActivity extends BaseActivity implements
         fragmentManager, Constant.API_URL_BASE);
     }
     this.productItemDataFetcher = (ProductItemDataFetchFragment)fragment;
+
+    this.context = (Context)this;
 
     initProductItems();
     initViews();
@@ -183,7 +186,6 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void initViews() {
-    Context context = (Context)this;
     // default: medications
     this.title = context.getString(R.string.medications);
 
@@ -471,7 +473,6 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void alertDialog(String title, String message) {
-    Context context = (Context)this;
     AlertDialog.Builder builder = new AlertDialog.Builder(context);
     builder.setTitle(title);
     builder.setMessage(message);
@@ -490,7 +491,6 @@ public class MainActivity extends BaseActivity implements
 
   private void alertDialog(
     String title, String message, final ProductItem productItem_) {
-    Context context = (Context)this;
     AlertDialog.Builder builder = new AlertDialog.Builder(context);
     builder.setTitle(title);
     builder.setMessage(message);
