@@ -25,7 +25,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.text.method.ScrollingMovementMethod;
 import android.widget.TextView;
 
 import org.oddb.generika.app.BaseActivity;
@@ -54,12 +53,12 @@ public class InformationActivity extends BaseActivity {
     actionBar.setDisplayShowHomeEnabled(true);
 
     TextView text = (TextView)findViewById(R.id.information_text);
-    text.setMovementMethod(LinkMovementMethod.getInstance());
-    text.setMovementMethod(new ScrollingMovementMethod());
     text.setText(Html.fromHtml(
       context.getString(R.string.information_text),
       Html.FROM_HTML_MODE_COMPACT
     ));
+    text.setMovementMethod(LinkMovementMethod.getInstance());
+    text.setLinksClickable(true);
   }
 
   @Override

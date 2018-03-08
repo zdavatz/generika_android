@@ -5,20 +5,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="18dp"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="org.oddb.generika.InformationActivity"
     tools:showIn="@layout/activity_information">
 
-    <TextView
-        android:id="@+id/information_text"
+    <android.widget.ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="0dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginBottom="0dp"
-        android:layout_marginLeft="8dp"
-        android:gravity="left|top"
-        android:textSize="14sp" />
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <android.widget.LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="18dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="0dp"
+            android:paddingLeft="19dp">
+
+            <android.widget.TextView
+                android:id="@+id/information_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="left|top"
+                android:editable="false"
+                android:textSize="14sp" />
+
+        </android.widget.LinearLayout>
+
+    </android.widget.ScrollView>
 
 </android.support.constraint.ConstraintLayout>

@@ -10,7 +10,7 @@
 
     <!-- [menu] -->
     <string name="settings">Einstellungen</string>
-    <string name="information">Information</string>
+    <string name="information">About</string>
 
     <!-- [drawer] -->
     <string name="medications">Medikamente</string>
@@ -44,17 +44,14 @@
     <!-- [information] -->
     <string name="information_text">
       <![CDATA[
-      <h1>Generika Android</h1>
+      <h1>Generika App für Android</h1>
       <br/>
-      <p>Das ist ...</p>
+      <p>Preisvergleich zwischen Original und Generikum, Patienteninformation, Fachinformation, Verfalldatum hinterlegen, Rezept-Import via AmiKo Desitin (todo).</p>
       <br/>
-      <br/>
-      <br/>
-      <br/>
-      <p>Source code ist möglich auf <a href="https://github.com/zdavatz/generika_android">zdavatz/generika_android</a>.</p>
+      <p>Source Code ist erhältlich unter <a href="https://github.com/zdavatz/generika_android">https://github.com/zdavatz/generika_android</a>.</p>
       <br/>
       <br/>
-      <p><a href="http://www.ywesee.com/Ywesee/About">ywesee GmbH</a></p>
+      <p><a href="http://www.ywesee.com/Ywesee/About">© ywesee GmbH, GPLv3.0.</a></p>
       ]]>
     </string>
 

@@ -44,17 +44,17 @@
     <!-- [information] -->
     <string name="information_text">
       <![CDATA[
-      <h1>Generika Android</h1>
+      <h1>Generika App pour Android</h1>
       <br/>
-      <p>This is ...</p>
-      <br/>
-      <br/>
+      <p>Comparaison des prix de la préparation originale par rapport au générique, l‘information des patients, l`information professionelle, Déposer la date d‘échéance, Importer la préscription par l‘app AmiKo Desitin (en travail).</p>
       <br/>
       <br/>
-      <p>Source code is available on <a href="https://github.com/zdavatz/generika_android">zdavatz/generika_android</a>.</p>
       <br/>
       <br/>
-      <p><a href="http://www.ywesee.com/Ywesee/About">ywesee GmbH</a></p>
+      <p>Le code source est disponible à l’adresse suivante <a href="https://github.com/zdavatz/generika_android">https://github.com/zdavatz/generika_android</a>.</p>
+      <br/>
+      <br/>
+      <p><a href="http://www.ywesee.com/Ywesee/About">© ywesee GmbH, GPLv3.0.</a></p>
       ]]>
     </string>
 
