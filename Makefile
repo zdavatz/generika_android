@@ -1,3 +1,5 @@
+identifier="org.oddb.generika"
+
 build:
 	./bin/gradlew build $(ARGS)
 .PHONY: build
@@ -18,6 +20,10 @@ run-emulator:
 
 run:
 	adb install -r -t app/build/outputs/apk/debug/app-debug.apk
+.PHONY: run
+
+log:
+	adb logcat | grep `adb shell ps | grep ${identifier} | cut -c10-15`
 .PHONY: run
 
 stop:
