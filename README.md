@@ -66,11 +66,11 @@ or
 
 ### Run
 
-See targets `run` or `run-emulator`.
+See targets `run` (connected real device) or `run-emulator`.
 
 ```zsh
 # list your virtual devices
-% make run ARGS="-list-avds"
+% make run-emulator ARGS="-list-avds"
 ./bin/emulator -list-avds
 Nexus_5X_API_25
 Nexus_5X_API_26
@@ -81,7 +81,7 @@ Pixel_2_XL_API_26
 ...
 
 # run emulator
-% make run ARGS="-avd Nexus_5_API_27"
+% make run-emulator ARGS="-avd Nexus_5_API_27"
 ```
 
 For example, build-run-stop (cycle) will be like this:  
@@ -92,7 +92,27 @@ For example, build-run-stop (cycle) will be like this:
 % make build ARGS="-x lint"
 
 # run on your X11 DISPLAY ;)
-% DISPLAY=":0" make run ARGS="-avd Nexus_5_API_27"
+% DISPLAY=":0" make run-emulator ARGS="-avd Nexus_5_API_27"
+
+% make stop
+```
+
+#### Debugging Steps
+
+Run the app on your device (connected via usb/wifi)
+
+```zsh
+# kill/start server
+% make serve
+
+# check with `adb devices -l`
+% make list
+
+% make build
+% make run
+
+# tail only application logs
+% make log
 
 % make stop
 ```
