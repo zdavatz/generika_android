@@ -29,17 +29,27 @@ import android.widget.TextView;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmBaseAdapter;
+import com.daimajia.swipe.SwipeLayout;
+import com.daimajia.swipe.implments.SwipeItemAdapterMangerImpl;
+import com.daimajia.swipe.interfaces.SwipeAdapterInterface;
+import com.daimajia.swipe.interfaces.SwipeItemMangerInterface;
+import com.daimajia.swipe.util.Attributes;
 
 import java.io.File;
+import java.util.List;
 
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.R;
 
 
 public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
-  implements ListAdapter {
+  implements
+    ListAdapter,
+    SwipeItemMangerInterface, SwipeAdapterInterface {
   private static final String TAG = "ProductItemList";
   private DeleteListener listener;
+
+  private SwipeItemAdapterMangerImpl itemManager;
 
   private static class ViewHolder {
     ImageView barcodeImage;
@@ -71,6 +81,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   public ProductItemListAdapter(
     OrderedRealmCollection<ProductItem> realmResults) {
     super(realmResults);
+
+    this.itemManager = new SwipeItemAdapterMangerImpl(this);
   }
 
   @Override
@@ -94,70 +106,158 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   public View getView(
     final int position, View convertView, ViewGroup parent) {
 
+    View view = convertView;
+    if (view == null) {
+      view = generateView(position, parent);
+      itemManager.initialize(view, position);
+    } else {
+      itemManager.updateConvertView(view, position);
+    }
+
+    SwipeLayout swipeLayout = (SwipeLayout)view.findViewById(
+      R.id.scanned_product_item_row);
+    swipeLayout.close();
+    swipeLayout.setShowMode(SwipeLayout.ShowMode.LayDown);
+
+    fillValues(position, view);
+
+    return view;
+  }
+
+
+  public View generateView(int position, ViewGroup parent) {
+    return LayoutInflater.from(parent.getContext()).inflate(
+        R.layout.activity_main_row, parent, false);
+  }
+
+  public void fillValues(int position, View convertView) {
+    View view = convertView;
+
     final ProductItem item = (ProductItem)getItem(position);
     final String itemId = item.getId();
 
-    ViewHolder viewHolder;
-    if (convertView == null) {
-      convertView = LayoutInflater.from(parent.getContext()).inflate(
-        R.layout.activity_main_row, parent, false);
-      // row for scanned product item
-      viewHolder = new ViewHolder();
-      viewHolder.barcodeImage = (ImageView)convertView.findViewById(
-        R.id.scanned_product_item_barcode_image);
-      viewHolder.name = (TextView)convertView.findViewById(
-        R.id.scanned_product_item_name);
-      viewHolder.size = (TextView)convertView.findViewById(
-        R.id.scanned_product_item_size);
-      viewHolder.datetime = (TextView)convertView.findViewById(
-        R.id.scanned_product_item_datetime);
-      viewHolder.price = (TextView)convertView.findViewById(
-        R.id.scanned_product_item_price);
-      viewHolder.deduction = (TextView)convertView.findViewById(
-        R.id.scanned_product_item_deduction);
-      viewHolder.category = (TextView)convertView.findViewById(
-        R.id.scanned_product_item_category);
-      viewHolder.ean = (TextView)convertView.findViewById(
-        R.id.scanned_product_item_ean);
-      // temporary delete button
-      ImageView deleteButton = (ImageView)convertView.findViewById(
-        R.id.scanned_product_item_delete_button);
-      deleteButton.setTag(itemId);
-      deleteButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-          listener.delete((String)view.getTag());
-        }
-      });
-      viewHolder.deleteButton = deleteButton;
-
-      convertView.setTag(viewHolder);
-    } else {
-      viewHolder = (ViewHolder)convertView.getTag();
-      // NOTE: ViewHolder will be in re-use, so image must be clear at here
-      viewHolder.barcodeImage.setImageResource(0);
-      viewHolder.deleteButton.setTag(itemId);
-    }
+    // row for scanned product item
+    ViewHolder viewHolder = new ViewHolder();
 
     // barcode image
+    viewHolder.barcodeImage = (ImageView)view.findViewById(
+      R.id.scanned_product_item_barcode_image);
     String filepath = item.getFilepath();
     if (filepath != null) {
       File imageFile = new File(filepath);
       if (imageFile.exists()) {
         Log.d(TAG, "(getView) filepath: " + filepath);
+        viewHolder.barcodeImage.setImageResource(0);
         viewHolder.barcodeImage.setImageURI(Uri.fromFile(imageFile));
       }
     }
-    // texts
+
+    // name
+    viewHolder.name = (TextView)view.findViewById(
+      R.id.scanned_product_item_name);
     viewHolder.name.setText(item.getName());
+
+    // size
+    viewHolder.size = (TextView)view.findViewById(
+      R.id.scanned_product_item_size);
     viewHolder.size.setText(item.getSize());
+    // datetime
+    viewHolder.datetime = (TextView)view.findViewById(
+      R.id.scanned_product_item_datetime);
     viewHolder.datetime.setText(item.getLocalDatetimeAs("HH:mm dd.MM.YYYY"));
+
+    // price
+    viewHolder.price = (TextView)view.findViewById(
+      R.id.scanned_product_item_price);
     viewHolder.price.setText(item.getPrice());
+    // deduction
+    viewHolder.deduction = (TextView)view.findViewById(
+      R.id.scanned_product_item_deduction);
     viewHolder.deduction.setText(item.getDeduction());
+    // category
+    viewHolder.category = (TextView)view.findViewById(
+      R.id.scanned_product_item_category);
     viewHolder.category.setText(item.getCategory());
+
+    // ean
+    viewHolder.ean = (TextView)view.findViewById(
+      R.id.scanned_product_item_ean);
     viewHolder.ean.setText(item.getEan());
-    return convertView;
+
+    // temporary delete button
+    ImageView deleteButton = (ImageView)view.findViewById(
+      R.id.scanned_product_item_delete_button);
+    deleteButton.setTag(itemId);
+    deleteButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        listener.delete((String)view.getTag());
+      }
+    });
+    viewHolder.deleteButton = deleteButton;
+    viewHolder.deleteButton.setTag(itemId);
+
+    view.setTag(viewHolder);
   }
+
+  // -- SwipeLayout
+
+  @Override
+  public int getSwipeLayoutResourceId(int _position) {
+    return R.id.scanned_product_item_row;
+  }
+
+  @Override
+  public void openItem(int position) {
+    itemManager.openItem(position);
+  }
+
+  @Override
+  public void closeItem(int position) {
+    itemManager.closeItem(position);
+  }
+
+  @Override
+  public void closeAllExcept(SwipeLayout layout) {
+    itemManager.closeAllExcept(layout);
+  }
+
+  @Override
+  public void closeAllItems() {
+    itemManager.closeAllItems();
+  }
+
+  @Override
+  public List<Integer> getOpenItems() {
+    return itemManager.getOpenItems();
+  }
+
+  @Override
+  public List<SwipeLayout> getOpenLayouts() {
+    return itemManager.getOpenLayouts();
+  }
+
+  @Override
+  public void removeShownLayouts(SwipeLayout layout) {
+    itemManager.removeShownLayouts(layout);
+  }
+
+  @Override
+  public boolean isOpen(int position) {
+    return itemManager.isOpen(position);
+  }
+
+  @Override
+  public Attributes.Mode getMode() {
+    return itemManager.getMode();
+  }
+
+  @Override
+  public void setMode(Attributes.Mode mode) {
+    itemManager.setMode(mode);
+  }
+
+  // -- utils
 
   public void refresh(ProductItem productItem, ListView listView) {
     // refresh only row for target item
