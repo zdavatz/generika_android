@@ -1,5 +1,14 @@
 identifier="org.oddb.generika"
 
+serve:
+	adb kill-server
+	adb start-server
+.PHONY: serve
+
+list:
+	adb devices -l
+.PHONY: list
+
 build:
 	./bin/gradlew build $(ARGS)
 .PHONY: build
