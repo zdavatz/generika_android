@@ -55,7 +55,7 @@
     </string>
 
     <!-- [search box] -->
-    <string name="search_box_hint">Search by name, EAN-13...</string>
+    <string name="search_box_hint">Search by name, GTIN (EAN-13), etc.</string>
 
     <!-- [sync] -->
     <!--
