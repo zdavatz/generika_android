@@ -27,3 +27,14 @@ signing.properties
 
 # release or maintenance scripts etc.
 /*.local.sh
+
+PlayStore.store
+app/debug/
+deployment_cert.der
+play.store
+privateKeyGenerika.store
+run_emulator
+server.p12
+upload_cert.der
+upload_certificate.pem
+upload_certificate_1.pem
