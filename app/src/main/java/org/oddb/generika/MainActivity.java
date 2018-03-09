@@ -88,6 +88,7 @@ public class MainActivity extends BaseActivity implements
   private ActionBarDrawerToggle drawerToggle;
   private CharSequence title;
   private ListView listView;
+  private FloatingActionButton fab;
 
   // database
   private Realm realm;
@@ -249,7 +250,7 @@ public class MainActivity extends BaseActivity implements
         }
     });
 
-    FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
+    this.fab = (FloatingActionButton)findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
 
       @Override
@@ -324,6 +325,7 @@ public class MainActivity extends BaseActivity implements
             (actionId == EditorInfo.IME_ACTION_DONE)) { // 6
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
+          fab.setVisibility(View.VISIBLE);
           return true;
         }
         return false;
@@ -337,6 +339,7 @@ public class MainActivity extends BaseActivity implements
         InputMethodManager keyboard = (InputMethodManager)(context)
           .getSystemService(Context.INPUT_METHOD_SERVICE);
         if (focused) {
+          fab.setVisibility(View.GONE);
           searchBox.setCursorVisible(true);
           keyboard.showSoftInput(searchBox, 0);
         } else {
