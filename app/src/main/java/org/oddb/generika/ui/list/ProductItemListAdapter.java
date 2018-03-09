@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.MotionEvent;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -41,6 +42,7 @@ import java.util.List;
 
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.MainActivity;
 import org.oddb.generika.R;
 
 
@@ -51,6 +53,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   private static final String TAG = "ProductItemList";
   private DeleteListener listener;
   private SwipeItemAdapterMangerImpl itemManager;
+
+  private int touchAction = 0;
 
   private static class ViewHolder {
     ImageView barcodeImage;
@@ -115,13 +119,58 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       itemManager.updateConvertView(view, position);
     }
 
-    SwipeLayout swipeLayout = (SwipeLayout)view.findViewById(
-      R.id.scanned_product_item_row);
-    swipeLayout.close();
-    swipeLayout.setShowMode(SwipeLayout.ShowMode.LayDown);
+    final SwipeLayout row = (SwipeLayout)view.findViewById(
+      getSwipeLayoutResourceId(position));
+    row.close();
+    row.setShowMode(SwipeLayout.ShowMode.LayDown);
+
+    final ViewGroup parentView = parent;
+    row.setOnTouchListener(new View.OnTouchListener() {
+      /**
+       * Check `touchAction` while moving (down -> move -> up)
+       */
+      @Override
+      public boolean onTouch(View view, MotionEvent event) {
+        switch (event.getActionMasked()) {
+          case MotionEvent.ACTION_UP:
+            if ((((SwipeLayout) view).getOpenStatus() ==
+                 SwipeLayout.Status.Close)) {
+
+              if (touchAction == 1) {
+                touchAction = 0;
+                // up/down both must be fire in close
+                ProductItem productItem = getItem(position);
+                if ((productItem == null || productItem.getEan() == null) ||
+                    (productItem.getEan().equals("EAN 13"))) { // placeholder
+                  return false;  // unexpected
+                }
+                // TODO: re-consider it might be not good (usage: MainActivity)
+                ((MainActivity)parentView.getContext()).openWebView(
+                  productItem);
+              } else {
+                touchAction = 0;
+              }
+            }
+            return true;
+          case MotionEvent.ACTION_DOWN:
+            if ((((SwipeLayout) view).getOpenStatus() ==
+                 SwipeLayout.Status.Close)) {
+              touchAction = 1;
+            } else {
+              touchAction = 0;
+            }
+            return true;
+          case MotionEvent.ACTION_MOVE:
+            return false;
+          default:
+            // Log.d(TAG, "action: " + event.getActionMasked());
+            touchAction = 0;
+            return true;
+        }
+      }
+    });
 
     fillValues(position, view);
-
     return view;
   }
 

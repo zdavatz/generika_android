@@ -75,7 +75,6 @@ import org.oddb.generika.util.Constant;
 
 
 public class MainActivity extends BaseActivity implements
-  AdapterView.OnItemClickListener,
   ProductItemListAdapter.DeleteListener,
   ProductItemDataFetchFragment.FetchCallback<
     ProductItemDataFetchFragment.FetchResult> {
@@ -233,7 +232,8 @@ public class MainActivity extends BaseActivity implements
 
     this.listView = (ListView)findViewById(R.id.list_view);
     listView.setAdapter(productItemListAdapter);
-    listView.setOnItemClickListener(this);
+    // see adapter (OnTouchListener)
+    // listView.setOnItemClickListener(this);
 
     NavigationView navigationView = (NavigationView)findViewById(
       R.id.navigation_view);
@@ -435,22 +435,6 @@ public class MainActivity extends BaseActivity implements
     });
   }
 
-  // -- AdapterView.OnItemClickListener
-
-  @Override
-  public void onItemClick(
-    AdapterView<?> parent, View view, int position, long id) {
-
-    ProductItem productItem = productItemListAdapter.getItem(position);
-    if (productItem == null || productItem.getEan() == null) {  // unexpected
-      return;
-    }
-    if (productItem.getEan().equals("EAN 13")) {  // place holder cell
-      return;
-    }
-    openWebView(productItem);
-  }
-
   // -- ProductItemListAdapter.DeleteListener
 
   @Override
@@ -613,7 +597,7 @@ public class MainActivity extends BaseActivity implements
     alert.show();
   }
 
-  private void openWebView(ProductItem productItem) {
+  public void openWebView(ProductItem productItem) {
     // WebView reads type and lang from shared preferences
     // So, just puts arguments here.
     Intent intent = new Intent(this, WebViewActivity.class);
