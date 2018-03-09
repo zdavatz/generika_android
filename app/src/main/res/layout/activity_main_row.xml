@@ -62,7 +62,7 @@
                 android:paddingRight="1.75dp"
                 android:paddingLeft="1.75dp"
                 android:paddingBottom="1.05dp"
-                android:textColor="#222222"
+                android:textColor="@color/titleColor"
                 android:textSize="13.5sp"/>
 
             <TextView
@@ -78,7 +78,7 @@
                 android:paddingRight="1.75dp"
                 android:paddingLeft="1.75dp"
                 android:paddingBottom="0.75dp"
-                android:textColor="#444444"
+                android:textColor="@color/subtitleColor"
                 android:textSize="11sp"/>
 
             <TextView
@@ -94,7 +94,7 @@
                 android:paddingRight="1.75dp"
                 android:paddingLeft="1.75dp"
                 android:paddingBottom="0.75dp"
-                android:textColor="#acacac"
+                android:textColor="@color/textColor"
                 android:textSize="12sp"/>
 
             <TextView
@@ -110,7 +110,7 @@
                 android:paddingRight="1.75dp"
                 android:paddingLeft="1.75dp"
                 android:paddingBottom="0.75dp"
-                android:textColor="#acacac"
+                android:textColor="@color/textColor"
                 android:textSize="10sp"/>
 
             <TextView
@@ -127,7 +127,7 @@
                 android:paddingRight="1.75dp"
                 android:paddingLeft="1.75dp"
                 android:paddingBottom="0.75dp"
-                android:textColor="#acacac"
+                android:textColor="@color/textColor"
                 android:textSize="10sp"/>
 
             <TextView
@@ -143,7 +143,7 @@
                 android:paddingRight="1.75dp"
                 android:paddingLeft="1.75dp"
                 android:paddingBottom="0.75dp"
-                android:textColor="#acacac"
+                android:textColor="@color/textColor"
                 android:textSize="10.5sp"/>
 
             <TextView
@@ -159,7 +159,7 @@
                 android:paddingRight="1.75dp"
                 android:paddingLeft="1.75dp"
                 android:paddingBottom="0.75dp"
-                android:textColor="#acacac"
+                android:textColor="@color/textColor"
                 android:textSize="11.5sp"/>
 
         </RelativeLayout>

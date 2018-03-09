@@ -17,7 +17,10 @@
  */
 package org.oddb.generika.ui.list;
 
+import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
+import android.support.v4.content.ContextCompat ;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,6 +42,8 @@ import com.daimajia.swipe.util.Attributes;
 
 import java.io.File;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
@@ -53,6 +58,9 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   private static final String TAG = "ProductItemList";
   private DeleteListener listener;
   private SwipeItemAdapterMangerImpl itemManager;
+
+  Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
+  Pattern deduction20 = Pattern.compile("\\A\\s*20\\s*%\\z");
 
   private int touchAction = 0;
 
@@ -170,7 +178,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       }
     });
 
-    fillValues(position, view);
+    fillValues(position, view, parent);
     return view;
   }
 
@@ -179,8 +187,9 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
         R.layout.activity_main_row, parent, false);
   }
 
-  public void fillValues(int position, View convertView) {
+  public void fillValues(int position, View convertView, ViewGroup parent) {
     View view = convertView;
+    Context context = (Context)parent.getContext();
 
     final ProductItem item = (ProductItem)getItem(position);
     final String itemId = item.getId();
@@ -222,7 +231,23 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     // deduction
     viewHolder.deduction = (TextView)view.findViewById(
       R.id.scanned_product_item_deduction);
-    viewHolder.deduction.setText(item.getDeduction());
+    String deductionValue = item.getDeduction();
+    viewHolder.deduction.setText(deductionValue);
+    int deductionColor = ContextCompat.getColor(context, R.color.textColor);
+    if (deductionValue != null && !deductionValue.equals("")) {
+      Matcher m10 = deduction10.matcher(deductionValue);
+      if (m10.find()) {
+        deductionColor = ContextCompat.getColor(context, R.color.colorPrimary);
+      } else {
+        Matcher m20 = deduction20.matcher(deductionValue);
+        if (m20.find()) {
+          deductionColor = ContextCompat.getColor(
+            context, R.color.colorAccent);
+        } else {
+        }
+      }
+    }
+    viewHolder.deduction.setTextColor(deductionColor);
     // category
     viewHolder.category = (TextView)view.findViewById(
       R.id.scanned_product_item_category);
