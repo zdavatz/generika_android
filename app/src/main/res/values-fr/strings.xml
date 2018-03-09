@@ -58,6 +58,9 @@
       ]]>
     </string>
 
+    <!-- [search box] -->
+    <string name="search_box_hint">Recherche par nom et EAN-13</string>
+
     <!-- [sync] -->
     <!--
     <string name="settings_record_sync_name">Sync</string>

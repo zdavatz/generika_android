@@ -28,6 +28,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import io.realm.OrderedRealmCollection;
+import io.realm.RealmList;
 import io.realm.RealmBaseAdapter;
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.implments.SwipeItemAdapterMangerImpl;
@@ -38,6 +39,7 @@ import com.daimajia.swipe.util.Attributes;
 import java.io.File;
 import java.util.List;
 
+import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.R;
 
@@ -48,7 +50,6 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     SwipeItemMangerInterface, SwipeAdapterInterface {
   private static final String TAG = "ProductItemList";
   private DeleteListener listener;
-
   private SwipeItemAdapterMangerImpl itemManager;
 
   private static class ViewHolder {
@@ -78,10 +79,10 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     void delete(String productId);
   }
 
-  public ProductItemListAdapter(
-    OrderedRealmCollection<ProductItem> realmResults) {
-    super(realmResults);
+  public ProductItemListAdapter(RealmList<ProductItem> realmList) {
+    super((OrderedRealmCollection<ProductItem>)realmList);
 
+    // swipe
     this.itemManager = new SwipeItemAdapterMangerImpl(this);
   }
 
@@ -123,7 +124,6 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
 
     return view;
   }
-
 
   public View generateView(int position, ViewGroup parent) {
     return LayoutInflater.from(parent.getContext()).inflate(
