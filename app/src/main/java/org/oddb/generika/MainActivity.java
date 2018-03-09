@@ -34,21 +34,30 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
+import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
+import io.realm.RealmResults;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.OrderedCollectionChangeSet;
 
@@ -218,6 +227,9 @@ public class MainActivity extends BaseActivity implements
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
 
+    final EditText searchBox = (EditText)findViewById(R.id.search_box);
+    setupSearchBox(searchBox);
+
     this.listView = (ListView)findViewById(R.id.list_view);
     listView.setAdapter(productItemListAdapter);
     listView.setOnItemClickListener(this);
@@ -247,6 +259,89 @@ public class MainActivity extends BaseActivity implements
         intent.putExtra(Constant.kAutoFocus, true);
         intent.putExtra(Constant.kUseFlash, true);
         startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
+      }
+    });
+  }
+
+  private void setupSearchBox(final EditText searchBox) {
+    // filter
+    searchBox.addTextChangedListener(new TextWatcher() {
+      @Override
+      public void beforeTextChanged(
+        CharSequence s, int start, int count, int after) {
+        // pass
+      }
+
+      @Override
+      public void onTextChanged(
+        CharSequence s, int start, int before, int count) {
+        String filterString = s.toString().toLowerCase();
+        Log.d(TAG, "(onTextChanged) filterString: " + filterString);
+        // minimum 3 chars
+        if (filterString.length() < 3) {
+          if (filterString.length() == 0) {  // back to all items
+            productItemListAdapter.updateData(product.getItems());
+          }
+          return;
+        }
+
+        RealmResults<ProductItem> data;
+
+        realm.beginTransaction();
+        // insensitive wors only for latin-1 chars
+        data = product.getItems()
+          .where()
+          .contains("name", filterString, Case.INSENSITIVE)
+          .or()
+          .contains("ean", filterString)
+          .findAll();
+        realm.commitTransaction();
+
+        // NOTE:
+        // This `updateData()` method invokes `notifyDataSetChanged()`, after
+        // data set. See also below.
+        //
+        // https://github.com/realm/realm-android-adapters/blob/\
+        //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
+        //   /io/realm/RealmBaseAdapter.java#L135
+        productItemListAdapter.updateData(data);
+      }
+
+      @Override
+      public void afterTextChanged(Editable s) {
+        // pass
+      }
+    });
+
+    // hide cursor/clear focus on press enter or done
+    searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+      @Override
+      public boolean onEditorAction(
+        TextView view, int actionId, KeyEvent event) {
+        if ((event != null &&
+             (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) && // 66
+             (event.getAction() == KeyEvent.ACTION_DOWN)) || // 0
+            (actionId == EditorInfo.IME_ACTION_DONE)) { // 6
+          searchBox.setCursorVisible(false);
+          searchBox.clearFocus();
+          return true;
+        }
+        return false;
+      }
+    });
+
+    // show/hide software keyboard
+    searchBox.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View view, boolean focused) {
+        InputMethodManager keyboard = (InputMethodManager)(context)
+          .getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (focused) {
+          searchBox.setCursorVisible(true);
+          keyboard.showSoftInput(searchBox, 0);
+        } else {
+          keyboard.hideSoftInputFromWindow(searchBox.getWindowToken(), 0);
+        }
       }
     });
   }
