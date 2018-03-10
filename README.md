@@ -124,6 +124,8 @@ Run JUnit Tests.
 ```zsh
 # via gradlew
 % make test
+% make test ARGS="--debug"
+% make test ARGS="--stacktrace"
 ```
 
 
