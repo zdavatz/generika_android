@@ -35,7 +35,17 @@ public class GenerikaApplication extends Application {
     super.onCreate();
 
     setLocale();
+    initRealm();
+  }
 
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+
+    setLocale();
+  }
+
+  protected void initRealm() {
     Realm.init(this);
     RealmConfiguration realmConfig = new RealmConfiguration.Builder()
       .name("generika.realm")
@@ -63,14 +73,7 @@ public class GenerikaApplication extends Application {
     Realm.setDefaultConfiguration(realmConfig);
   }
 
-  @Override
-  public void onConfigurationChanged(Configuration newConfig) {
-    super.onConfigurationChanged(newConfig);
-
-    setLocale();
-  }
-
-  private void setLocale() {
+  protected void setLocale() {
     AppLocale.setLocale(this);
   }
 }

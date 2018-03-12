@@ -65,11 +65,11 @@ public class AppLocale extends Object {
 
   // for Activity
   public static void setLocale(Context context, Locale newLocale) {
-    final Resources resources = context.getResources(); 
-    final DisplayMetrics metrics = resources.getDisplayMetrics(); 
-    final Configuration configuration = resources.getConfiguration(); 
+    final Resources resources = context.getResources();
+    final DisplayMetrics metrics = resources.getDisplayMetrics();
+    final Configuration configuration = resources.getConfiguration();
 
-    configuration.locale = newLocale; 
-    resources.updateConfiguration(configuration, metrics); 
+    configuration.locale = newLocale;
+    resources.updateConfiguration(configuration, metrics);
   }
 }
