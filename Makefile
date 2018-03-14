@@ -1,16 +1,9 @@
 identifier="org.oddb.generika"
 
-serve:
-	adb kill-server
-	adb start-server
-.PHONY: serve
-
-list:
-	adb devices -l
-.PHONY: list
+# -- build targes
 
 build:
-	./bin/gradlew build $(ARGS)
+	./bin/gradlew build -x test $(ARGS)
 .PHONY: build
 
 archive:
@@ -22,6 +15,18 @@ release:
 	# generate apk with buildType:release
 	./bin/gradlew assembleRelease $(ARGS)
 .PHONY: release
+
+
+# -- development targets
+
+serve:
+	adb kill-server
+	adb start-server
+.PHONY: serve
+
+list:
+	adb devices -l
+.PHONY: list
 
 run:
 	./bin/emulator $(ARGS)
@@ -41,9 +46,15 @@ stop:
 		done
 .PHONY: stop
 
+
+# -- testing targets
+
 test:
-	./bin/gradlew test
+	./bin/gradlew test -PisTest=true $(ARGS)
 .PHONY: test
+
+
+# -- other targets
 
 clean:
 	./bin/gradlew clean
