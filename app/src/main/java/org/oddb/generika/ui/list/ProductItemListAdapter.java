@@ -62,8 +62,6 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
   Pattern deduction20 = Pattern.compile("\\A\\s*20\\s*%\\z");
 
-  private int touchAction = 0;
-
   private static class ViewHolder {
     ImageView barcodeImage;
 
@@ -115,6 +113,47 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     return position;
   }
 
+  // swipe layout wrapper holds custom touch status fields
+  private class SwipeRow {
+    // touch directions
+    public final static int kRighttoLeft = -1;
+    public final static int kNone= 0;
+    public final static int kLefttoRight = 1;
+
+    // custom fields
+    private int touchDown = 0;
+    private int touchDirection = kNone;
+    private int touchLength = 0;
+    private int touchLengthThreshold = 6;
+
+    public SwipeLayout layout;
+
+    SwipeRow(SwipeLayout layout) {
+      this.layout = layout;
+    }
+
+    public SwipeLayout getLayout() {
+      return this.layout;
+    }
+
+    public void incrementTouchLength() {
+      touchLength += 1;
+    }
+
+    public int getTouchLengthThreshold() {
+      return this.touchLengthThreshold;
+    }
+
+    public void setTouchDown(int v) { this.touchDown = v; }
+    public int getTouchDown() { return this.touchDown; }
+
+    public void setTouchDirection(int v) { this.touchDirection = v; }
+    public int getTouchDirection() { return this.touchDirection; }
+
+    public void setTouchLength(int v) { this.touchLength = v; }
+    public int getTouchLength() { return this.touchLength; }
+  }
+
   @Override
   public View getView(
     final int position, View convertView, ViewGroup parent) {
@@ -127,53 +166,71 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       itemManager.updateConvertView(view, position);
     }
 
-    final SwipeLayout row = (SwipeLayout)view.findViewById(
+    final SwipeLayout layout = (SwipeLayout)view.findViewById(
       getSwipeLayoutResourceId(position));
-    row.close();
-    row.setShowMode(SwipeLayout.ShowMode.LayDown);
+    layout.close();
+    layout.setShowMode(SwipeLayout.ShowMode.LayDown);
 
     final ViewGroup parentView = parent;
-    row.setOnTouchListener(new View.OnTouchListener() {
-      /**
-       * Check `touchAction` while moving (down -> move -> up)
-       */
+
+    final SwipeRow row = new SwipeRow(layout);
+    row.getLayout().setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View view, MotionEvent event) {
+        // check `touch{Down,Direction,Length}` while moving
         switch (event.getActionMasked()) {
           case MotionEvent.ACTION_UP:
-            if ((((SwipeLayout) view).getOpenStatus() ==
-                 SwipeLayout.Status.Close)) {
-
-              if (touchAction == 1) {
-                touchAction = 0;
-                // up/down both must be fire in close
-                ProductItem productItem = getItem(position);
-                if ((productItem == null || productItem.getEan() == null) ||
-                    (productItem.getEan().equals("EAN 13"))) { // placeholder
-                  return false;  // unexpected
+            Log.d(TAG, "(onTouch) touchLength: " + row.getTouchLength());
+            if (row.getTouchDown() != 1) { return false; }
+            if (row.getLayout().getOpenStatus() == SwipeLayout.Status.Close) {
+              // it's tap. up/down event must be fire both in closed row
+              // (not swipe)
+              row.setTouchDown(0);
+              ProductItem productItem = (ProductItem)getItem(position);
+              if ((productItem == null || productItem.getEan() == null) ||
+                  (productItem.getEan().equals("EAN 13"))) { // placeholder
+                return false;  // unexpected
+              }
+              // TODO: re-consider it might be not good (usage: MainActivity)
+              ((MainActivity)parentView.getContext()).openWebView(
+                productItem);
+              return true;
+            } else {
+              // for smooth swipe assist, use this instead of swipelistener
+              if (row.getTouchLength() >= row.getTouchLengthThreshold()) {
+                int direction = row.getTouchDirection();
+                if (direction == SwipeRow.kRighttoLeft) {
+                  row.getLayout().open(true);
+                } else if (direction == SwipeRow.kLefttoRight) {
+                  row.getLayout().close(true);
                 }
-                // TODO: re-consider it might be not good (usage: MainActivity)
-                ((MainActivity)parentView.getContext()).openWebView(
-                  productItem);
-              } else {
-                touchAction = 0;
+                return true;
               }
             }
-            return true;
+            row.setTouchDown(0);
+            row.setTouchLength(0);
+            row.setTouchDirection(SwipeRow.kNone);
+            return false;
           case MotionEvent.ACTION_DOWN:
-            if ((((SwipeLayout) view).getOpenStatus() ==
-                 SwipeLayout.Status.Close)) {
-              touchAction = 1;
+            if (row.getLayout().getOpenStatus() == SwipeLayout.Status.Close) {
+              row.setTouchDown(1); // swipe/click start on closed row
+              row.setTouchDirection(SwipeRow.kRighttoLeft);
             } else {
-              touchAction = 0;
+              row.setTouchDown(0);
+              row.setTouchDirection(SwipeRow.kLefttoRight);
             }
-            return true;
+            return false;
           case MotionEvent.ACTION_MOVE:
+            if (row.getLayout().getDragEdge().toString().equals("Right")) {
+              row.incrementTouchLength();
+            }
             return false;
           default:
             // Log.d(TAG, "action: " + event.getActionMasked());
-            touchAction = 0;
-            return true;
+            row.setTouchDown(0);
+            row.setTouchLength(0);
+            row.setTouchDirection(SwipeRow.kNone);
+            return false;
         }
       }
     });
