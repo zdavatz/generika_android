@@ -23,17 +23,17 @@ release:
 	./bin/gradlew assembleRelease $(ARGS)
 .PHONY: release
 
-run-emulator:
-	./bin/emulator $(ARGS)
-.PHONY: run-emulator
-
 run:
-	adb install -r -t app/build/outputs/apk/debug/app-debug.apk
+	./bin/emulator $(ARGS)
 .PHONY: run
+
+install:
+	adb install -r -t app/build/outputs/apk/debug/app-debug.apk
+.PHONY: install
 
 log:
 	adb logcat | grep `adb shell ps | grep ${identifier} | cut -c10-15`
-.PHONY: run
+.PHONY: log
 
 stop:
 	adb devices | grep '^emulator' | cut -f1 | \
