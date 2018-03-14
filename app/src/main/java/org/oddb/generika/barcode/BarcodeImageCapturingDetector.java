@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.oddb.generika;
+package org.oddb.generika.barcode;
 
 import android.app.Activity;
 import android.content.Context;
@@ -73,7 +73,9 @@ public class BarcodeImageCapturingDetector extends Detector<Barcode> {
     SparseArray<Barcode> barcodes = detector.detect(frame);
 
     if (barcodes != null && barcodes.size() > 0) {
-      for (int i = 0; i < barcodes.size(); i++) {
+      // get only first one
+      Barcode barcode = barcodes.valueAt(0);
+      if (barcode != null) {
         Frame.Metadata metadata = frame.getMetadata();
         Log.d(TAG, "(detect) duration: " +
           Long.toString(metadata.getTimestampMillis()));
@@ -83,7 +85,6 @@ public class BarcodeImageCapturingDetector extends Detector<Barcode> {
         Bitmap bitmap = buildBitmap(byteBuffer,
             metadata.getWidth(), metadata.getHeight());
 
-        Barcode barcode = barcodes.valueAt(i);
         if (barcodeImageCaptureListener != null) { // barcode + captured bitmap
           barcodeImageCaptureListener.onBarcodeImageCaptured(
             barcode.displayValue, bitmap);

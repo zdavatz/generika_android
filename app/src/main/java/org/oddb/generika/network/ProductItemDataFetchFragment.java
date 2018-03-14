@@ -176,13 +176,12 @@ public class ProductItemDataFetchFragment extends Fragment {
       // main ui thread
       if (fetchCallback != null) {
         try {
-          if (result != null) {
-            if (result.itemObj != null || result.exception != null) {
-              // inner result to final result (FetchResult)
-              FetchResult fetchResult = new FetchResult(result);
-              fetchResult.itemId = itemId;
-              fetchCallback.updateFromFetch(fetchResult);
-            }
+          if (result != null &&
+              (result.itemObj != null || result.exception != null)) {
+            // inner result to final result (FetchResult)
+            FetchResult fetchResult = new FetchResult(result);
+            fetchResult.itemId = itemId;
+            fetchCallback.updateFromFetch(fetchResult);
           }
         } catch (JSONException e) {
           // TODO: parse error

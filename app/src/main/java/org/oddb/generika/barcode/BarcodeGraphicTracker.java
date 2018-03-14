@@ -30,30 +30,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.oddb.generika;
+package org.oddb.generika.barcode;
 
 import android.content.Context;
+import android.support.annotation.UiThread;
 
-import com.google.android.gms.vision.MultiProcessor;
+import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.barcode.Barcode;
 
 import org.oddb.generika.ui.reader.GraphicOverlay;
 
 
-class BarcodeTrackerFactory implements MultiProcessor.Factory<Barcode> {
-  private GraphicOverlay<BarcodeGraphic> graphicOverlay;
-  private Context context;
+public class BarcodeGraphicTracker extends Tracker<Barcode> {
+  private GraphicOverlay<BarcodeGraphic> overlay;
+  private BarcodeGraphic graphic;
 
-  public BarcodeTrackerFactory(
-    GraphicOverlay<BarcodeGraphic> graphicOverlay_, Context context_) {
-    this.graphicOverlay = graphicOverlay_;
-    this.context = context_;
+  private BarcodeUpdateListener barcodeUpdateListener;
+
+  public interface BarcodeUpdateListener {
+    @UiThread
+    void onBarcodeDetected(Barcode barcode);
+  }
+
+  BarcodeGraphicTracker(GraphicOverlay<BarcodeGraphic> overlay_,
+    BarcodeGraphic graphic_, Context context) {
+    this.overlay = overlay_;
+    this.graphic = graphic_;
+    if (context instanceof BarcodeUpdateListener) {
+      this.barcodeUpdateListener = (BarcodeUpdateListener) context;
+    } else {
+      throw new RuntimeException(
+        "Hosting activity must implement BarcodeUpdateListener");
+    }
   }
 
   @Override
-  public Tracker<Barcode> create(Barcode barcode) {
-    BarcodeGraphic graphic = new BarcodeGraphic(graphicOverlay);
-    return new BarcodeGraphicTracker(graphicOverlay, graphic, context);
+  public void onNewItem(int id, Barcode item) {
+    graphic.setId(id);
+    barcodeUpdateListener.onBarcodeDetected(item);
+  }
+
+  @Override
+  public void onUpdate(Detector.Detections<Barcode> detectionResults,
+                       Barcode item) {
+    overlay.add(graphic);
+    graphic.updateItem(item);
+  }
+
+  @Override
+  public void onMissing(Detector.Detections<Barcode> detectionResults) {
+    overlay.remove(graphic);
+  }
+
+  @Override
+  public void onDone() {
+    overlay.remove(graphic);
   }
 }

@@ -148,9 +148,7 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void initProductItems() {
-    if (product == null) {
-      return;
-    }
+    if (product == null) { return; }
     if (product.getItems().size() == 0) {
       ProductItem.withRetry(2, new ProductItem.WithRetry() {
         @Override
@@ -165,7 +163,6 @@ public class MainActivity extends BaseActivity implements
     productItems.removeAllChangeListeners();
     productItems.addChangeListener(
       new OrderedRealmCollectionChangeListener<RealmList<ProductItem>>() {
-
       @Override
       public void onChange(
         RealmList<ProductItem> items,
@@ -239,7 +236,6 @@ public class MainActivity extends BaseActivity implements
       R.id.navigation_view);
     navigationView.setNavigationItemSelectedListener(
       new NavigationView.OnNavigationItemSelectedListener() {
-
         @Override
         public boolean onNavigationItemSelected(MenuItem menuItem) {
           menuItem.setChecked(true);
@@ -252,7 +248,6 @@ public class MainActivity extends BaseActivity implements
 
     this.fab = (FloatingActionButton)findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
-
       @Override
       public void onClick(View view) {
         Intent intent = new Intent(
@@ -423,6 +418,7 @@ public class MainActivity extends BaseActivity implements
     ProductItem.withRetry(2, new ProductItem.WithRetry() {
       @Override
       public void execute(final int currentCount) {
+        Log.d(TAG, "(addProductItem/execute) currentCount: " + currentCount);
         final Product product_ = product;
         realm.executeTransaction(new Realm.Transaction() {
           @Override
@@ -472,9 +468,8 @@ public class MainActivity extends BaseActivity implements
   @Override
   public void updateFromFetch(
     ProductItemDataFetchFragment.FetchResult result) {
-    if (result == null) {
-      return;
-    }
+    Log.d(TAG, "(updateFromFetch) result: " + result);
+    if (result == null) { return; }
     if (result.errorMessage != null) {
       alertDialog("", result.errorMessage);
     } else if (result.itemMap != null) {
@@ -489,22 +484,22 @@ public class MainActivity extends BaseActivity implements
         final ProductItem productItem = realm_.where(ProductItem.class)
           .equalTo(ProductItem.FIELD_ID, id).findFirst();
 
-        if (productItem == null) {
-          return;
-        }
+        if (productItem == null) { return; }
+        // NOTE:
+        // try to remove at first (Fix remaining callback issue on Android 8.0)
+        // but not sure yet :/
+        productItem.removeAllChangeListeners();
+        // this listener is invoked after update transaction below
         productItem.addChangeListener(new RealmChangeListener<ProductItem>() {
           @Override
           public void onChange(ProductItem productItem_) {
-            if (productItem_ == null || !productItem_.isValid()) {
-              return;
-            }
+            if (productItem_ == null || !productItem_.isValid()) { return; }
             // only once (remove self)
             productItem_.removeAllChangeListeners();
             if (productItem_.getName() != null &&
                 productItem_.getSize() != null) {
-              Log.d(TAG,
-                "(updateFromFetch) productItem.name: " + productItem_.getName());
-
+              Log.d(TAG, "(updateFromFetch/onChange) productItem.name: " +
+                    productItem_.getName());
               // notify result to user
               // TODO: replace with translated string
               String title = "Generika.cc sagt";
@@ -514,7 +509,6 @@ public class MainActivity extends BaseActivity implements
           }
         });
         realm_.executeTransaction(new Realm.Transaction() {
-
           @Override
           public void execute(Realm realm_) {
             try { // update properties (map) from api fetch result
@@ -522,7 +516,8 @@ public class MainActivity extends BaseActivity implements
                 productItem.updateProperties(properties);
               }
             } catch (Exception e) {
-              Log.d(TAG, "(updateFromFetch) Update error: " + e.getMessage());
+              Log.d(TAG, "(updateFromFetch/execute) Update error: " +
+                    e.getMessage());
             }
           }
         });

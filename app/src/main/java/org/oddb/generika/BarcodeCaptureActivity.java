@@ -72,13 +72,15 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.oddb.generika.app.BaseActivity;
-import org.oddb.generika.BarcodeImageCapturingDetector;
-import org.oddb.generika.util.Constant;
+import org.oddb.generika.barcode.BarcodeGraphic;
+import org.oddb.generika.barcode.BarcodeGraphicTracker;
+import org.oddb.generika.barcode.BarcodeImageCapturingDetector;
+import org.oddb.generika.barcode.BarcodeTrackerFactory;
+import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.ui.reader.CameraSource;
 import org.oddb.generika.ui.reader.CameraSourcePreview;
 import org.oddb.generika.ui.reader.GraphicOverlay;
-
-import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.util.Constant;
 
 
 public final class BarcodeCaptureActivity extends BaseActivity implements
@@ -341,7 +343,6 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
           e.printStackTrace();
         }
       }
-
       Log.d(TAG, "(onBarcodeDetected) filepath: " + filepath);
       // just rerutrn detected barcode and image path to activity, and finish
       Intent data = new Intent();
@@ -413,9 +414,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
   @Override
   public void onBarcodeImageCaptured(String barcodeValue, Bitmap bitmap) {
-    if (bitmap == null) {
-      return;
-    }
+    if (bitmap == null) { return; }
     // build parameter
     CapturedData capturedData = new CapturedData();
     Context context = getApplicationContext();
