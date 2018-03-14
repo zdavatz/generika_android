@@ -59,7 +59,7 @@
     </string>
 
     <!-- [search box] -->
-    <string name="search_box_hint">Recherche par nom et EAN-13</string>
+    <string name="search_box_hint">Recherche par nom, GTIN (EAN-13), etc.</string>
 
     <!-- [sync] -->
     <!--
