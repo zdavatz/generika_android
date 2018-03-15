@@ -17,28 +17,31 @@
  */
 package org.oddb.generika.ui.list;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat ;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.MotionEvent;
+import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import io.realm.OrderedRealmCollection;
-import io.realm.RealmList;
-import io.realm.RealmBaseAdapter;
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.implments.SwipeItemAdapterMangerImpl;
 import com.daimajia.swipe.interfaces.SwipeAdapterInterface;
 import com.daimajia.swipe.interfaces.SwipeItemMangerInterface;
 import com.daimajia.swipe.util.Attributes;
+
+import io.realm.OrderedRealmCollection;
+import io.realm.RealmBaseAdapter;
+import io.realm.RealmList;
 
 import java.io.File;
 import java.util.HashMap;
@@ -46,16 +49,18 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.oddb.generika.model.Product;
-import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.MainActivity;
 import org.oddb.generika.R;
+import org.oddb.generika.model.Product;
+import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.ui.MonthYearPickerDialogFragment;
 
 
 public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   implements
     ListAdapter,
-    SwipeItemMangerInterface, SwipeAdapterInterface {
+    SwipeItemMangerInterface,
+    SwipeAdapterInterface {
   private static final String TAG = "ProductItemList";
   private DeleteListener listener;
   private SwipeItemAdapterMangerImpl itemManager;
@@ -124,14 +129,14 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     public final HashMap<String, Integer> kTouchLengthThreshold =
       new HashMap<String, Integer>() {{
         put("min", 6);
-        put("max", 24);
+        put("max", 32);
       }};
 
     // custom fields
     private int touchDown = 0;
     private int touchDirection = kNone;
     private int touchLength = 0;  // 0 - 999
-
+    private boolean hasDialog = false;
 
     public SwipeLayout layout;
 
@@ -165,6 +170,9 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
 
     public void setTouchLength(int v) { this.touchLength = v; }
     public int getTouchLength() { return this.touchLength; }
+
+    public void setHasDialog(boolean v) { this.hasDialog = v; }
+    public boolean hasDialog() { return this.hasDialog; }
   }
 
   @Override
@@ -179,33 +187,26 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       itemManager.updateConvertView(view, position);
     }
 
+    final ViewGroup parentView = parent;
+    final ProductItemListAdapter adapter = this;
+
     final SwipeLayout layout = (SwipeLayout)view.findViewById(
       getSwipeLayoutResourceId(position));
     layout.close();
     layout.setShowMode(SwipeLayout.ShowMode.LayDown);
-    layout.setOnLongClickListener(new View.OnLongClickListener() {
-      @Override
-      public boolean onLongClick(View view) {
-        Log.d(TAG, "(onLongClick) view: " + view);
-        return false;
-      }
-    });
 
-    final ViewGroup parentView = parent;
     final SwipeRow row = new SwipeRow(layout);
     // handle other touch events
     row.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View view, MotionEvent event) {
         // check `touch{Down,Direction,Length}` while moving
+        int length = row.getTouchLength();
+        int direction = row.getTouchDirection();
         switch (event.getActionMasked()) {
           case MotionEvent.ACTION_UP:
-            int length = row.getTouchLength();
-            int direction = row.getTouchDirection();
-
             Log.d(TAG, "(onTouch) touchLength: " + length);
             Log.d(TAG, "(onTouch) touchDirection: " + direction);
-
             row.setTouchLength(0);
             row.setTouchDirection(SwipeRow.kNone);
             if (row.getTouchDown() != 1) { return false; }
@@ -214,11 +215,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
               // it's tap (not swipe). up/down event must be fire both in
               // closed row
               if (length > row.kTouchLengthThreshold.get("max")) {
-                Log.d(TAG, "(onTouch) long press, length: " + length);
-                // (for onLongClickListener)
-                // In most situations, `onLongClick` is already invoked,
-                // so just do nothing here.
-                return false;
+                // just do nothing here. See ACTION_MOVE
+                return true;
               }
               ProductItem productItem = (ProductItem)getItem(position);
               if ((productItem == null || productItem.getEan() == null) ||
@@ -243,6 +241,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
             }
             return false;
           case MotionEvent.ACTION_DOWN:
+            Log.d(TAG, "(onTouch) touchLength: " + length);
+            Log.d(TAG, "(onTouch) touchDirection: " + direction);
             String state = row.getState();
             if (state.equals("Close")) {
               row.setTouchDown(1); // swipe/click start on closed row
@@ -253,7 +253,34 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
             }
             return false;
           case MotionEvent.ACTION_MOVE:
-            if (row.getEdge().equals("Right")) {
+            if (row.getEdge().equals("Right") &&
+                row.getState().equals("Close")) {
+              // onLongClickListener responds, too quickly.
+              // so let's just do it here.
+              if (length > row.kTouchLengthThreshold.get("max") &&
+                  !row.hasDialog()) {
+                Log.d(TAG, "(onTouch) long press, length: " + length);
+                row.setHasDialog(true);
+                MonthYearPickerDialogFragment d =
+                  new MonthYearPickerDialogFragment();
+                d.setListener(
+                  new MonthYearPickerDialogFragment.OnChangeListener() {
+                  @Override
+                  public void onDateSet(
+                    DatePicker view, int year, int month, int _dayOfMonth) {
+                    row.setHasDialog(false);
+                    // TODO
+                  }
+                  @Override
+                  public void onCancel(DatePicker view) {
+                    row.setHasDialog(false);
+                  }
+                });
+                d.show(((MainActivity)parentView.getContext())
+                       .getSupportFragmentManager(),
+                       "MonthYearPickerDialogFragment");
+                return true;
+              }
               row.incrementTouchLength();
             }
             return false;
