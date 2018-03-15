@@ -261,9 +261,11 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
                   !row.hasDialog()) {
                 Log.d(TAG, "(onTouch) long press, length: " + length);
                 row.setHasDialog(true);
-                MonthYearPickerDialogFragment d =
-                  new MonthYearPickerDialogFragment();
-                d.setListener(
+                Context context = parentView.getContext();
+                MonthYearPickerDialogFragment fragment =
+                  new MonthYearPickerDialogFragment(
+                    context.getString(R.string.expiry_date));
+                fragment.setListener(
                   new MonthYearPickerDialogFragment.OnChangeListener() {
                   @Override
                   public void onDateSet(
@@ -276,9 +278,9 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
                     row.setHasDialog(false);
                   }
                 });
-                d.show(((MainActivity)parentView.getContext())
-                       .getSupportFragmentManager(),
-                       "MonthYearPickerDialogFragment");
+                fragment.show(((MainActivity)context)
+                  .getSupportFragmentManager(),
+                  "MonthYearPickerDialogFragment");
                 return true;
               }
               row.incrementTouchLength();

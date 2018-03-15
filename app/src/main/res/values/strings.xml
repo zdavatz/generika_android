@@ -65,8 +65,10 @@
 
     <!-- [general] -->
     <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
     <string name="ok">Ok</string>
     <string name="open">Open</string>
+    <string name="save">Save</string>
 
     <!-- [languages] -->
     <string name="lang_de_name">Deutsch</string>
@@ -95,4 +97,7 @@
     <string name="barcode_success">Barcode read successfully</string>
     <string name="barcode_failure">No barcode captured</string>
     <string name="barcode_error">"Error reading barcode: %1$s"</string>
+
+    <!-- [product item] -->
+    <string name="expiry_date">Expiry Date</string>
 </resources>

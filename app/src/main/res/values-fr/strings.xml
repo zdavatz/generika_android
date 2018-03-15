@@ -69,8 +69,10 @@
 
     <!-- [general] -->
     <string name="close">Fermer</string>
+    <string name="cancel">Annuler</string>
     <string name="ok">Ok</string>
     <string name="open">Ouvrir</string>
+    <string name="save">Enregistrer</string>
 
 
     <!-- [languages] -->
@@ -96,4 +98,7 @@
     <string name="barcode_success">Barre-codes reconnu</string>
     <string name="barcode_failure">Pas de barre-codes reconnu</string>
     <string name="barcode_error">"Erreur en lisant barre-codes: %1$s"</string>
+
+    <!-- [product item] -->
+    <string name="expiry_date">Date d‘échéance</string>
 </resources>

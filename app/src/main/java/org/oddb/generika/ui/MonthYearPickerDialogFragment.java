@@ -26,6 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.NumberPicker;
+import android.widget.TextView;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
@@ -39,7 +40,15 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
     abstract void onCancel(DatePicker view);
   }
 
+  private int kYEAR_MIN = 2017;
+  private int kYEAR_ADDITION = 20;
+
   private OnChangeListener listener;
+  private String dialogTitleText;
+
+  public MonthYearPickerDialogFragment(String text) {
+    this.dialogTitleText = text;
+  }
 
   public void setListener(OnChangeListener listener) {
     this.listener = listener;
@@ -50,40 +59,55 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     LayoutInflater inflater = getActivity().getLayoutInflater();
     final Calendar cal = Calendar.getInstance();
+    View view = inflater.inflate(R.layout.month_year_picker_dialog, null);
 
-    View dialog = inflater.inflate(R.layout.month_year_picker_dialog, null);
-    final NumberPicker monthPicker = (NumberPicker)dialog.findViewById(
+    final NumberPicker monthPicker = (NumberPicker)view.findViewById(
       R.id.month_picker);
     monthPicker.setMinValue(1);
     monthPicker.setMaxValue(12);
     monthPicker.setValue(cal.get(Calendar.MONTH));
 
-    final NumberPicker yearPicker = (NumberPicker)dialog.findViewById(
+    final NumberPicker yearPicker = (NumberPicker)view.findViewById(
       R.id.year_picker);
     int year = cal.get(Calendar.YEAR);
     // same with iOS (01.2017 as minimum date)
-    yearPicker.setMinValue(2017);
-    yearPicker.setMaxValue(year + 20);
+    yearPicker.setMinValue(kYEAR_MIN);
+    yearPicker.setMaxValue(year + kYEAR_ADDITION);
     yearPicker.setValue(year);
 
-    builder.setView(dialog)
-      .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+    builder.setView(view)
+      .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int id) {
-          listener.onDateSet(
-            null, yearPicker.getValue(), monthPicker.getValue(), 0);
+          if (listener != null) {
+            listener.onDateSet(
+              null, yearPicker.getValue(), monthPicker.getValue(), 0);
+          }
         }
       })
       .setNegativeButton(
-        R.string.close, new DialogInterface.OnClickListener() {
+        R.string.cancel, new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int id) {
-          listener.onCancel(null);
-
+          if (listener != null) {
+            listener.onCancel(null);
+          }
           MonthYearPickerDialogFragment.this.getDialog().cancel();
         }
       });
-    return builder.create();
+
+    View titleView = inflater.inflate(
+      R.layout.month_year_picker_dialog_title, null);
+    TextView title = (TextView)titleView.findViewById(
+      R.id.month_year_picker_dialog_title);
+    title.setText(this.dialogTitleText);
+    builder.setCustomTitle(titleView);
+    Dialog dialog = builder.create();
+    dialog.setCancelable(false);
+    // https://developer.android.com/reference/android/app/DialogFragment.html#setCancelable(boolean)
+    setCancelable(false);  // fix to disallow cancel by device back button tap
+    dialog.setCanceledOnTouchOutside(false);
+    return dialog;
   }
 
   public void onDateSet(DatePicker view, int year, int month) {
