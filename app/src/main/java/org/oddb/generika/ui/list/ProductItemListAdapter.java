@@ -41,6 +41,7 @@ import com.daimajia.swipe.interfaces.SwipeItemMangerInterface;
 import com.daimajia.swipe.util.Attributes;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -120,11 +121,17 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     public final static int kNone= 0;
     public final static int kLefttoRight = 1;
 
+    public final HashMap<String, Integer> kTouchLengthThreshold =
+      new HashMap<String, Integer>() {{
+        put("min", 6);
+        put("max", 24);
+      }};
+
     // custom fields
     private int touchDown = 0;
     private int touchDirection = kNone;
-    private int touchLength = 0;
-    private int touchLengthThreshold = 6;
+    private int touchLength = 0;  // 0 - 999
+
 
     public SwipeLayout layout;
 
@@ -132,18 +139,24 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       this.layout = layout;
     }
 
-    public SwipeLayout getLayout() {
-      return this.layout;
-    }
-
     public void incrementTouchLength() {
-      touchLength += 1;
+      if (touchLength >= 999) {
+        setTouchLength(kTouchLengthThreshold.get("max") + 1);
+      } else {
+        touchLength += 1;
+      }
     }
 
-    public int getTouchLengthThreshold() {
-      return this.touchLengthThreshold;
+    // delegate to layout
+    public void setOnTouchListener(View.OnTouchListener listener) {
+      this.layout.setOnTouchListener(listener);
     }
+    public String getState() { return this.layout.getOpenStatus().toString(); }
+    public String getEdge() { return this.layout.getDragEdge().toString(); }
+    public void open(boolean smooth) { this.layout.open(smooth);}
+    public void close(boolean smooth) { this.layout.close(smooth); }
 
+    // accessor methods
     public void setTouchDown(int v) { this.touchDown = v; }
     public int getTouchDown() { return this.touchDown; }
 
@@ -170,22 +183,43 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       getSwipeLayoutResourceId(position));
     layout.close();
     layout.setShowMode(SwipeLayout.ShowMode.LayDown);
+    layout.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Log.d(TAG, "(onLongClick) view: " + view);
+        return false;
+      }
+    });
 
     final ViewGroup parentView = parent;
-
     final SwipeRow row = new SwipeRow(layout);
-    row.getLayout().setOnTouchListener(new View.OnTouchListener() {
+    // handle other touch events
+    row.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View view, MotionEvent event) {
         // check `touch{Down,Direction,Length}` while moving
         switch (event.getActionMasked()) {
           case MotionEvent.ACTION_UP:
-            Log.d(TAG, "(onTouch) touchLength: " + row.getTouchLength());
+            int length = row.getTouchLength();
+            int direction = row.getTouchDirection();
+
+            Log.d(TAG, "(onTouch) touchLength: " + length);
+            Log.d(TAG, "(onTouch) touchDirection: " + direction);
+
+            row.setTouchLength(0);
+            row.setTouchDirection(SwipeRow.kNone);
             if (row.getTouchDown() != 1) { return false; }
-            if (row.getLayout().getOpenStatus() == SwipeLayout.Status.Close) {
-              // it's tap. up/down event must be fire both in closed row
-              // (not swipe)
-              row.setTouchDown(0);
+            row.setTouchDown(0);
+            if (row.getState().equals("Close")) {
+              // it's tap (not swipe). up/down event must be fire both in
+              // closed row
+              if (length > row.kTouchLengthThreshold.get("max")) {
+                Log.d(TAG, "(onTouch) long press, length: " + length);
+                // (for onLongClickListener)
+                // In most situations, `onLongClick` is already invoked,
+                // so just do nothing here.
+                return false;
+              }
               ProductItem productItem = (ProductItem)getItem(position);
               if ((productItem == null || productItem.getEan() == null) ||
                   (productItem.getEan().equals("EAN 13"))) { // placeholder
@@ -197,31 +231,29 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
               return true;
             } else {
               // for smooth swipe assist, use this instead of swipelistener
-              if (row.getTouchLength() >= row.getTouchLengthThreshold()) {
-                int direction = row.getTouchDirection();
+              if (length >= row.kTouchLengthThreshold.get("min") &&
+                  length <= row.kTouchLengthThreshold.get("max")) {
                 if (direction == SwipeRow.kRighttoLeft) {
-                  row.getLayout().open(true);
+                  row.open(true);
                 } else if (direction == SwipeRow.kLefttoRight) {
-                  row.getLayout().close(true);
+                  row.close(true);
                 }
                 return true;
               }
             }
-            row.setTouchDown(0);
-            row.setTouchLength(0);
-            row.setTouchDirection(SwipeRow.kNone);
             return false;
           case MotionEvent.ACTION_DOWN:
-            if (row.getLayout().getOpenStatus() == SwipeLayout.Status.Close) {
+            String state = row.getState();
+            if (state.equals("Close")) {
               row.setTouchDown(1); // swipe/click start on closed row
               row.setTouchDirection(SwipeRow.kRighttoLeft);
-            } else {
+            } else if (state.equals("Open")) {
               row.setTouchDown(0);
               row.setTouchDirection(SwipeRow.kLefttoRight);
             }
             return false;
           case MotionEvent.ACTION_MOVE:
-            if (row.getLayout().getDragEdge().toString().equals("Right")) {
+            if (row.getEdge().equals("Right")) {
               row.incrementTouchLength();
             }
             return false;
