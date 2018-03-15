@@ -454,15 +454,26 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   public void refresh(ProductItem productItem, ListView listView) {
     // refresh only row for target item
     int startPosition = listView.getFirstVisiblePosition();
+    ProductItem item;
     for (int i = startPosition,
              j = listView.getLastVisiblePosition(); i <= j; i++) {
-      if (productItem == listView.getItemAtPosition(i)) {
-        Log.d(TAG, "(refresh) item.ean: " + productItem.getEan());
-        View view = listView.getChildAt(i - startPosition);
-        // `getView()` is `listView.getAdapter().getView()`
-        View row = getView(i, view, listView);
-        row.setVisibility(View.VISIBLE);
-        break;
+      if (i < listView.getCount()) {
+        try {
+          item = (ProductItem)listView.getItemAtPosition(i);
+        } catch (ArrayIndexOutOfBoundsException ignore) {
+          Log.d(TAG, "(refresh) startPosition: " + startPosition);
+          Log.d(TAG, "(refresh) i: " + i);
+          Log.d(TAG, "(refresh) j: " + j);
+          break;  // listView has already changed?
+        }
+        if (productItem.equals(item)) {
+          Log.d(TAG, "(refresh) item.ean: " + productItem.getEan());
+          View view = listView.getChildAt(i - startPosition);
+          // `getView()` is `listView.getAdapter().getView()`
+          View row = getView(i, view, listView);
+          row.setVisibility(View.VISIBLE);
+          break;
+        }
       }
     }
   }

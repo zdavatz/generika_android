@@ -343,4 +343,14 @@ public class ProductItem extends RealmObject {
     if (size == null) { size = ""; }
     return String.format("%s,\n%s\n%s", name, size, priceString);
   }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == this) { return true; }
+    if (!(other instanceof ProductItem)) { return false; }
+
+    ProductItem item = (ProductItem)other;
+    return ean.equals(item.ean) &&
+           datetime.toString().equals(item.datetime.toString());
+  }
 }

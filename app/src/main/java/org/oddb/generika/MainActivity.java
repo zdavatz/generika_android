@@ -180,8 +180,6 @@ public class MainActivity extends BaseActivity implements
           item.setEan(productItem.getEan());
           // invoke async api call
           startFetching(item);
-          // redraw this row (mainly image)
-          productItemListAdapter.refresh(item, listView);
         }
       }
     });
@@ -498,6 +496,10 @@ public class MainActivity extends BaseActivity implements
             productItem_.removeAllChangeListeners();
             if (productItem_.getName() != null &&
                 productItem_.getSize() != null) {
+              // TODO: stop redraw all items on listview
+              // redraw this row
+              productItemListAdapter.refresh(productItem_, listView);
+
               Log.d(TAG, "(updateFromFetch/onChange) productItem.name: " +
                     productItem_.getName());
               // notify result to user
