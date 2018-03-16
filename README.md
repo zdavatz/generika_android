@@ -104,22 +104,30 @@ Run the app on your device (connected via usb/wifi)
 ```zsh
 # kill/start server
 % make serve
+...
+* daemon not runnig; starting now at tcp:5037
+* daemon started successfully
 
-% make build
+% make attach ARGS="<DEVICE_IP_ADDRESS>:5037"
+% make list
+
+% make archive
 
 # [emulator]
-# check with `adb devices -l`
-% make list
-% make run
-
+% make run ARGS="..."
 # [real device]
-% make install
+% make install ARGS="..."
 
-# tail only application logs
+# start application
+
+# tail only application logs from attached process
 % make log
-
-% make stop
 ```
+
+See also:
+
+* `make stop`
+* `make detach`
 
 ### Test
 

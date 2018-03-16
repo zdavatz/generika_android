@@ -28,6 +28,14 @@ list:
 	adb devices -l
 .PHONY: list
 
+attach:
+	adb connect $(ARGS)
+.PHONY: attach
+
+detach:
+	adb disconnect $(ARGS)
+.PHONY: detach
+
 run:
 	./bin/emulator $(ARGS)
 .PHONY: run
