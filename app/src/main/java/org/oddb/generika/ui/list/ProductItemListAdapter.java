@@ -44,6 +44,8 @@ import io.realm.RealmList;
 import io.realm.RealmBaseAdapter;
 
 import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -62,8 +64,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     SwipeItemMangerInterface,
     SwipeAdapterInterface {
   private static final String TAG = "ProductItemList";
-  private DeleteListener listener;
   private SwipeItemAdapterMangerImpl itemManager;
+  private ItemListener itemListener;
 
   Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
   Pattern deduction20 = Pattern.compile("\\A\\s*20\\s*%\\z");
@@ -81,18 +83,18 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     TextView category;
 
     TextView ean;
-    // TODO: valdatum
-    //TextView expiresAt;
+    TextView expiresAt;
 
     ImageView deleteButton;
   }
 
-  public void setCallback(DeleteListener callback) {
-    listener = callback;
+  public void setCallback(ItemListener callback) {
+    this.itemListener = callback;
   }
 
-  public interface DeleteListener {
-    void delete(String productId);
+  public interface ItemListener {
+    abstract void onDelete(String productId);
+    abstract void onExpiresAtChange(String productId, Date newDate);
   }
 
   public ProductItemListAdapter(RealmList<ProductItem> realmList) {
@@ -139,6 +141,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     private long touchStartedAt = 0;
     private boolean hasDialog = false;
 
+    private ProductItem item;
+
     public SwipeLayout layout;
 
     SwipeRow(SwipeLayout layout) {
@@ -166,6 +170,9 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
 
     public void setHasDialog(boolean v) { this.hasDialog = v; }
     public boolean hasDialog() { return this.hasDialog; }
+
+    public void setProductItem(ProductItem item) { this.item = item; }
+    public ProductItem getProductItem() { return this.item; }
   }
 
   @Override
@@ -188,7 +195,10 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     layout.close();
     layout.setShowMode(SwipeLayout.ShowMode.LayDown);
 
+    ProductItem productItem = (ProductItem)getItem(position);
     final SwipeRow row = new SwipeRow(layout);
+    row.setProductItem(productItem);
+
     // handle other touch events
     row.setOnTouchListener(new View.OnTouchListener() {
       @Override
@@ -220,14 +230,13 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
               }
               Log.d(TAG, "(onTouch/up) short tap, duration: " + duration);
               // short (single) tap
-              ProductItem productItem = (ProductItem)getItem(position);
-              if ((productItem == null || productItem.getEan() == null) ||
-                  (productItem.getEan().equals("EAN 13"))) { // placeholder
+              ProductItem item = row.getProductItem();
+              if ((item == null || item.getEan() == null) ||
+                  (item.getEan().equals("EAN 13"))) { // placeholder
                 return false;  // unexpected
               }
               // TODO: re-consider it might be not good (usage: MainActivity)
-              ((MainActivity)parentView.getContext()).openWebView(
-                productItem);
+              ((MainActivity)parentView.getContext()).openWebView(item);
               return true;
             } else { // swipe state "middle"
               // smooth swipe assistance, use this instead of swipelistener
@@ -296,16 +305,38 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   }
 
   private void showMonthYearPickerDialog(SwipeRow row, Context context) {
-    MonthYearPickerDialogFragment fragment =
-      new MonthYearPickerDialogFragment(
-        context.getString(R.string.expiry_date));
+    // extract month and year
+    String expiresAt = ProductItem.getLocalDateAs(
+      row.item.getExpiresAt(), "MM.YYYY");
+    String[] dateFields = {"", ""};
+    if (expiresAt.contains(".")) {
+      dateFields = expiresAt.split("\\.", 2);
+    }
+    if (dateFields.length != 2) { return; }
+    int month, year;
+    MonthYearPickerDialogFragment fragment;
+    try {
+      month = Integer.parseInt(dateFields[0]);
+      year = Integer.parseInt(dateFields[1]);
+      fragment = MonthYearPickerDialogFragment.newInstance(month, year);
+    } catch (NumberFormatException e) {
+      fragment = MonthYearPickerDialogFragment.newInstance();
+    }
+    fragment.setTitle(context.getString(R.string.expiry_date));
     fragment.setListener(
       new MonthYearPickerDialogFragment.OnChangeListener() {
       @Override
       public void onDateSet(
         DatePicker view, int year, int month, int _dayOfMonth) {
         row.setHasDialog(false);
-        // TODO
+        ProductItem item = row.getProductItem();
+        if (itemListener != null && item != null) {
+          Calendar cal = Calendar.getInstance();  // local time zone
+          cal.set(Calendar.YEAR, year);
+          cal.set(Calendar.MONTH, month - 1);
+          cal.set(Calendar.DAY_OF_MONTH, 1);
+          itemListener.onExpiresAtChange(item.getId(), cal.getTime());
+        }
       }
       @Override
       public void onCancel(DatePicker view) {
@@ -357,7 +388,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     // datetime
     viewHolder.datetime = (TextView)view.findViewById(
       R.id.scanned_product_item_datetime);
-    viewHolder.datetime.setText(item.getLocalDatetimeAs("HH:mm dd.MM.YYYY"));
+    viewHolder.datetime.setText(
+      ProductItem.getLocalDateAs(item.getDatetime(), "HH:mm dd.MM.YYYY"));
 
     // price
     viewHolder.price = (TextView)view.findViewById(
@@ -392,15 +424,22 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     viewHolder.ean = (TextView)view.findViewById(
       R.id.scanned_product_item_ean);
     viewHolder.ean.setText(item.getEan());
+    // expiresAt
+    viewHolder.expiresAt = (TextView)view.findViewById(
+      R.id.scanned_product_item_expires_at);
+    viewHolder.expiresAt.setText(
+      ProductItem.getLocalDateAs(item.getExpiresAt(), "MM.YYYY"));
 
-    // temporary delete button
+    // delete button
     ImageView deleteButton = (ImageView)view.findViewById(
       R.id.scanned_product_item_delete_button);
     deleteButton.setTag(itemId);
     deleteButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        listener.delete((String)view.getTag());
+        if (itemListener != null) {
+          itemListener.onDelete((String)view.getTag());
+        }
       }
     });
     viewHolder.deleteButton = deleteButton;

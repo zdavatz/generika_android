@@ -62,6 +62,7 @@ import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.OrderedCollectionChangeSet;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -75,7 +76,7 @@ import org.oddb.generika.util.Constant;
 
 
 public class MainActivity extends BaseActivity implements
-  ProductItemListAdapter.DeleteListener,
+  ProductItemListAdapter.ItemListener,
   ProductItemDataFetchFragment.FetchCallback<
     ProductItemDataFetchFragment.FetchResult> {
   private static final String TAG = "Main";
@@ -144,6 +145,7 @@ public class MainActivity extends BaseActivity implements
     item.setPrice(Constant.initData.get("price"));
     item.setDeduction(Constant.initData.get("deduction"));
     item.setCategory(Constant.initData.get("category"));
+    item.setExpiresAt(Constant.initData.get("expiresAt"));
     realm.commitTransaction();
   }
 
@@ -412,6 +414,7 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
+  // TODO: Consider to create item manager
   private void addProductItem(final ProductItem.Barcode barcode) {
     ProductItem.withRetry(2, new ProductItem.WithRetry() {
       @Override
@@ -429,16 +432,60 @@ public class MainActivity extends BaseActivity implements
     });
   }
 
-  // -- ProductItemListAdapter.DeleteListener
+  // -- ProductItemListAdapter.ItemListener
 
   @Override
-  public void delete(String itemTag) {
+  public void onDelete(String productItemId) {
     // should check sourceType of Product?
-    deleteProductItem(itemTag); // itemTag is productItem's primary key
+    deleteProductItem(productItemId); // productItem is primary key (itemTag)
   }
 
+  @Override
+  public void onExpiresAtChange(String productItemId, Date newDate) {
+    Log.d(TAG, "(onExpiresAtChange) date: " + newDate);  // local time
+
+    HashMap<String, String> properties = new HashMap<String, String>();
+    properties.put("expiresAt", ProductItem.makeExpiresAt(newDate));
+    Log.d(TAG, "(onExpiresAtChange) expiresAt: " +
+               ProductItem.makeExpiresAt(newDate));
+    updateProductItem(productItemId, properties, null);
+  }
+
+  // TODO: Consider to create item manager
+  // `realm_` parameter might be little bit ugly.
+  private void updateProductItem(
+    String productItemId, final HashMap properties, Realm realm_) {
+    final String id = productItemId;
+
+    Realm m = realm_; // not main ui thread
+    if (m == null) {
+      m = realm;
+    }
+
+    m.executeTransaction(new Realm.Transaction() {
+      @Override
+      public void execute(Realm realm_) {
+        ProductItem productItem = realm_.where(ProductItem.class)
+          .equalTo("id", id).findFirst();
+        if (productItem != null) {
+          try {
+            if (productItem.isValid()) {
+              // TODO: create alert dialog for failure?
+              productItem.updateProperties(properties);
+            }
+          } catch (Exception e) {
+            Log.d(TAG, "(updateProductITem) Update error: " +
+                  e.getMessage());
+          }
+        }
+      }
+    });
+  }
+
+  // TODO: Consider to create item manager
   private void deleteProductItem(String productItemId) {
     final String id = productItemId;
+
     realm.executeTransaction(new Realm.Transaction() {
       @Override
       public void execute(Realm realm_) {
@@ -450,8 +497,6 @@ public class MainActivity extends BaseActivity implements
         }
       }
     });
-    // TODO: is it necessary?
-    // listView.invalidateViews();
   }
 
   private void startFetching(ProductItem productItem) {
@@ -510,21 +555,11 @@ public class MainActivity extends BaseActivity implements
             }
           }
         });
-        realm_.executeTransaction(new Realm.Transaction() {
-          @Override
-          public void execute(Realm realm_) {
-            try { // update properties (map) from api fetch result
-              if (productItem.isValid()) {
-                productItem.updateProperties(properties);
-              }
-            } catch (Exception e) {
-              Log.d(TAG, "(updateFromFetch/execute) Update error: " +
-                    e.getMessage());
-            }
-          }
-        });
+        updateProductItem(productItem.getId(), properties, realm_);
       } finally {
-        realm_.close();
+        if (realm_ != null) {
+          realm_.close();
+        }
       }
     }
   }

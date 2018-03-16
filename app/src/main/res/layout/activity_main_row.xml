@@ -162,6 +162,22 @@
                 android:textColor="@color/textColor"
                 android:textSize="11.5sp"/>
 
+            <TextView
+                android:id="@+id/scanned_product_item_expires_at"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/scanned_product_item_category"
+                android:layout_toRightOf="@+id/scanned_product_item_ean"
+                android:layout_marginLeft="1.25dp"
+                android:layout_marginBottom="1.5dp"
+                android:singleLine="true"
+                android:paddingTop="0.75dp"
+                android:paddingRight="1.75dp"
+                android:paddingLeft="1.75dp"
+                android:paddingBottom="0.75dp"
+                android:textColor="@color/textColor"
+                android:textSize="11.5sp"/>
+
         </RelativeLayout>
 
     </com.daimajia.swipe.SwipeLayout>

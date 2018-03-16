@@ -17,9 +17,6 @@
  */
 package org.oddb.generika.model;
 
-import android.icu.text.SimpleDateFormat;
-import android.icu.util.Calendar;
-import android.icu.util.TimeZone;
 import android.util.Log;
 
 import io.realm.annotations.PrimaryKey;
@@ -37,9 +34,13 @@ import java.lang.NoSuchMethodException;
 import java.lang.SecurityException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.TimeZone;
 import java.util.UUID;
 
 
@@ -65,12 +66,13 @@ public class ProductItem extends RealmObject {
   private String reg;
   private String pack;
 
-  // scanned_at/imported_at
+  // scannedAt/importedAt
   private String datetime;
   // barcode image/amk prescription
   private String filepath;
-  // valdatum/expiration
-  private String expiresAt; // TODO
+
+  // expiry date (verfalldatum)
+  private String expiresAt;
 
   // -- scanner product item (scanner medications)
   // (values from oddb)
@@ -102,7 +104,7 @@ public class ProductItem extends RealmObject {
     }
   }
 
-  // e.g. 20180223210923 in UTC
+  // e.g. 20180223210923 in UTC (for saved value)
   public static String makeScannedAt(String filepath_) {
       String scannedAt = "";
       if (filepath_ != null) {
@@ -125,6 +127,45 @@ public class ProductItem extends RealmObject {
       return scannedAt;
   }
 
+  // e.g. 20180223210923 in UTC (for saved value)
+  public static String makeExpiresAt(Date date) {
+    String expiresAt = "";
+    if (date != null) {
+      SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+      expiresAt = formatter.format(date);
+    }
+    return expiresAt;
+  }
+
+  // utility to return formatted local date string fields for display
+  // (scannedAt/importedAt, and expiresAt)
+  public static String getLocalDateAs(String date, String formatString) {
+    String datetimeString = "";
+    if (date == null || date.length() == 0 ||
+        formatString == null || formatString.length() == 0) {
+      return datetimeString;
+    }
+    try {
+      // NOTE:
+      // TimeZote.getDefaultZone() and Calendar.getInstance().getTimeZone()
+      // both will return wrong timezone in Android 6.1 (>= 7.0 OK) :'(
+
+      // from UTC
+      SimpleDateFormat inFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
+      inFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+      // to local time
+      SimpleDateFormat outFormatter = new SimpleDateFormat(formatString);
+      outFormatter.setTimeZone(Calendar.getInstance().getTimeZone());
+
+      datetimeString = outFormatter.format(inFormatter.parse(date));
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      return datetimeString;
+    }
+  }
+
   private static String generateId() {
     return UUID.randomUUID().toString();
   }
@@ -141,7 +182,6 @@ public class ProductItem extends RealmObject {
     }
     return id;
   }
-
 
   // NOTE: it must be called in realm transaction & try/catch block
   public static ProductItem insertNewBarcodeItemIntoSource(
@@ -234,34 +274,13 @@ public class ProductItem extends RealmObject {
   }
 
   public String getDatetime() { return datetime; }
-
-  // return formatted local datetime string
-  public String getLocalDatetimeAs(String formatString) {
-    String datetimeString = null;
-    try {
-      // TODO:
-      // TimeZote.getDefaultZone() and Calendar.getInstance().getTimeZone()
-      // both will return wrong timezone in Android 6.1 (>= 7.0 OK) :'(
-
-      // from UTC
-      SimpleDateFormat inFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
-      inFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-      // localtime
-      SimpleDateFormat outFormatter = new SimpleDateFormat(formatString);
-      outFormatter.setTimeZone(Calendar.getInstance().getTimeZone());
-
-      datetimeString = outFormatter.format(inFormatter.parse(datetime));
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      return datetimeString;
-    }
-  }
-
   public void setDatetime(String datetime) { this.datetime = datetime; }
 
   public String getFilepath() { return filepath; }
   public void setFilepath(String filepath) { this.filepath = filepath; }
+
+  public String getExpiresAt() { return expiresAt; }
+  public void setExpiresAt(String expiresAt) { this.expiresAt = expiresAt; }
 
   // (values from oddb)
   public String getSeq() { return seq; }
@@ -293,7 +312,8 @@ public class ProductItem extends RealmObject {
     SecurityException, NoSuchMethodException, IllegalArgumentException,
     IllegalAccessException, InvocationTargetException {
     // TODO: validate format etc.
-    String[] keys = {"seq", "name", "size", "deduction", "price", "category"};
+    String[] keys = {"seq", "name", "size", "deduction", "price", "category",
+                     "expiresAt"};
     // this.getClass() fails :'(
     Class c = ProductItem.class;
     Class[] parameterTypes = new Class[]{String.class};

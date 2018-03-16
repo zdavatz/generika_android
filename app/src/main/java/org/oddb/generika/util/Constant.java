@@ -101,6 +101,7 @@ public class Constant extends Object {
 
   // [Product Item ListView]
   // -- place holder values
+  // TODO: use translation file
   public final static HashMap<String, String> initData =
     new HashMap<String, String>() {{
       put("ean", "EAN 13");
@@ -110,5 +111,6 @@ public class Constant extends Object {
       put("price", "Price (CHF)");
       put("deduction", "Deduction (%)");
       put("category", "Category");
+      put("expiresAt", "Expires At");
     }};
 }

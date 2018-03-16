@@ -20,8 +20,8 @@ package org.oddb.generika.ui;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.icu.util.Calendar;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
@@ -31,23 +31,70 @@ import android.widget.TextView;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 
+import java.util.Calendar;
+
 import org.oddb.generika.R;
 
 
 public class MonthYearPickerDialogFragment extends DialogFragment {
+  private final static String TAG = "MonthYearPickerDialogFragment";
+
+  private final static int M_MIN = 1;
+  private final static int M_MAX = 12;
+
+  // NOTE: same with iOS (01.2017 as minimum date)
+  private final static int Y_MIN = 2017;
+  private final static int Y_MAX_ADDITION = 20;
+
+  private OnChangeListener listener;
+  private String title;
+
+  private Calendar cal;
+
+  public static MonthYearPickerDialogFragment newInstance() {
+    Calendar cal = Calendar.getInstance();
+
+    return MonthYearPickerDialogFragment.newInstance(
+      cal.get(Calendar.MONTH), cal.get(Calendar.YEAR));
+  }
+
+  public static MonthYearPickerDialogFragment newInstance(int m, int y) {
+    Log.d(TAG, "(newInstance) month: " + m);
+    Log.d(TAG, "(newInstance) year: " + y);
+
+    MonthYearPickerDialogFragment f = new MonthYearPickerDialogFragment();
+
+    int month;
+    int year;
+    if ((M_MIN <= m && m <= M_MAX) &&
+        (Y_MIN <= y && y <= getMaxYear())) {
+      month = m;
+      year = y;
+    } else {
+      month = M_MIN;
+      year = Y_MIN;
+    }
+
+    Bundle args = new Bundle();
+    args.putInt("month", month);
+    args.putInt("year", year);
+    f.setArguments(args);
+
+    return f;
+  }
+
+  public static int getMaxYear() {
+    Calendar cal = Calendar.getInstance();
+    return cal.get(Calendar.YEAR) + Y_MAX_ADDITION;
+  }
+
   public interface OnChangeListener extends
     DatePickerDialog.OnDateSetListener {
     abstract void onCancel(DatePicker view);
   }
 
-  private int kYEAR_MIN = 2017;
-  private int kYEAR_ADDITION = 20;
-
-  private OnChangeListener listener;
-  private String dialogTitleText;
-
-  public MonthYearPickerDialogFragment(String text) {
-    this.dialogTitleText = text;
+  public void setTitle(String text) {
+    this.title = text;
   }
 
   public void setListener(OnChangeListener listener) {
@@ -58,21 +105,23 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     LayoutInflater inflater = getActivity().getLayoutInflater();
-    final Calendar cal = Calendar.getInstance();
     View view = inflater.inflate(R.layout.month_year_picker_dialog, null);
+
+    int month = getArguments().getInt("month", M_MIN);
+    int year = getArguments().getInt("year", Y_MIN);
+
+    Calendar cal = Calendar.getInstance();
 
     final NumberPicker monthPicker = (NumberPicker)view.findViewById(
       R.id.month_picker);
-    monthPicker.setMinValue(1);
-    monthPicker.setMaxValue(12);
-    monthPicker.setValue(cal.get(Calendar.MONTH));
+    monthPicker.setMinValue(M_MIN);
+    monthPicker.setMaxValue(M_MAX);
+    monthPicker.setValue(month);
 
     final NumberPicker yearPicker = (NumberPicker)view.findViewById(
       R.id.year_picker);
-    int year = cal.get(Calendar.YEAR);
-    // same with iOS (01.2017 as minimum date)
-    yearPicker.setMinValue(kYEAR_MIN);
-    yearPicker.setMaxValue(year + kYEAR_ADDITION);
+    yearPicker.setMinValue(Y_MIN);
+    yearPicker.setMaxValue(getMaxYear());
     yearPicker.setValue(year);
 
     builder.setView(view)
@@ -98,9 +147,9 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
 
     View titleView = inflater.inflate(
       R.layout.month_year_picker_dialog_title, null);
-    TextView title = (TextView)titleView.findViewById(
+    TextView titleText = (TextView)titleView.findViewById(
       R.id.month_year_picker_dialog_title);
-    title.setText(this.dialogTitleText);
+    titleText.setText(title);
     builder.setCustomTitle(titleView);
     Dialog dialog = builder.create();
     dialog.setCancelable(false);
@@ -108,9 +157,5 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
     setCancelable(false);  // fix to disallow cancel by device back button tap
     dialog.setCanceledOnTouchOutside(false);
     return dialog;
-  }
-
-  public void onDateSet(DatePicker view, int year, int month) {
-
   }
 }
