@@ -55,12 +55,12 @@ https://play.google.com/store/apps/details?id=com.google.android.gms&hl=en
 
 # create apk (debug)
 % make archive
-or
+# or
 % gradle assemble
 
 # create apk (release)
 % make release
-or
+# or
 % gradle assembleRelease
 ```
 
@@ -108,26 +108,20 @@ Run the app on your device (connected via usb/wifi)
 * daemon not runnig; starting now at tcp:5037
 * daemon started successfully
 
-% make attach ARGS="<DEVICE_IP_ADDRESS>:5037"
+% make start ARGS="5555"
+% make attach ARGS="<DEVICE_IP_ADDRESS>:5555"
 % make list
 
 % make archive
-
-# [emulator]
-% make run ARGS="..."
-# [real device]
 % make install ARGS="..."
 
 # start application
 
 # tail only application logs from attached process
 % make log
+
+% make detach
 ```
-
-See also:
-
-* `make stop`
-* `make detach`
 
 ### Test
 

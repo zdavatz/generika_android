@@ -18,6 +18,7 @@ release:
 
 
 # -- development targets
+# https://developer.android.com/studio/command-line/adb.html
 
 serve:
 	adb kill-server
@@ -27,6 +28,10 @@ serve:
 list:
 	adb devices -l
 .PHONY: list
+
+start:
+	adb tcpip $(ARGS)
+.PHONY: start
 
 attach:
 	adb connect $(ARGS)
