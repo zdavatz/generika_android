@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
@@ -135,7 +136,11 @@ public class WebViewActivity extends BaseActivity {
           progressBar.setVisibility(ProgressBar.VISIBLE);
         }
         // max: 100 (see `activity_web_view.xml`)
-        progressBar.setProgress(progress, true);
+        if (Build.VERSION.SDK_INT >= Constant.VERSION_24__7_0) {
+          progressBar.setProgress(progress, true);
+        } else {
+          progressBar.setProgress(progress);
+        }
         if (progress == 100) {
           progressBar.setVisibility(ProgressBar.GONE);
         }

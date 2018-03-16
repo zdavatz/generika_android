@@ -17,10 +17,26 @@
  */
 package org.oddb.generika.util;
 
+import android.os.Build;
+
 import java.util.HashMap;
 
 
 public class Constant extends Object {
+  // [android]
+  // https://developer.android.com/guide/topics/manifest/uses-sdk-element.html#ApiLevels
+  public final static int VERSION_27__8_1 = Build.VERSION_CODES.O_MR1;
+  public final static int VERSION_26__8_0 = Build.VERSION_CODES.O;
+  public final static int VERSION_25__7_1 = Build.VERSION_CODES.N_MR1;  // 7.1, 7.1.1
+  public final static int VERSION_24__7_0 = Build.VERSION_CODES.N;
+  public final static int VERSION_23__6_0 = Build.VERSION_CODES.M;
+  public final static int VERSION_22__5_1 = Build.VERSION_CODES.LOLLIPOP_MR1;
+  public final static int VERSION_21__5_0 = Build.VERSION_CODES.LOLLIPOP;
+  public final static int VERSION_19__4_4 = Build.VERSION_CODES.KITKAT;
+  public final static int VERSION_18__4_3 = Build.VERSION_CODES.JELLY_BEAN_MR2;
+  public final static int VERSION_17__4_2 = Build.VERSION_CODES.JELLY_BEAN_MR1; // 4.2, 4.2.2
+  public final static int VERSION_16__4_1 = Build.VERSION_CODES.JELLY_BEAN; // 4.1, 4.1.1
+
   // [Settings]
   // -- preference keys
   public final static String kSearchType = "kSearchType";
@@ -41,35 +57,35 @@ public class Constant extends Object {
 
   // [BarcodeCapture]
   // -- intent keys
-  public static final String kAutoFocus = "kAutoFocus";
-  public static final String kUseFlash  = "kUseFlash";
-  public static final String kBarcode = "kBarcode";
-  public static final String kFilepath = "kFilepath";
+  public final static String kAutoFocus = "kAutoFocus";
+  public final static String kUseFlash  = "kUseFlash";
+  public final static String kBarcode = "kBarcode";
+  public final static String kFilepath = "kFilepath";
 
   // -- constents
-  public static final int RC_BARCODE_CAPTURE = 9000;
-  public static final int RC_HANDLE_GMS = 9001;
-  public static final int RC_HANDLE_CAMERA_PERM = 2;
+  public final static int RC_BARCODE_CAPTURE = 9000;
+  public final static int RC_HANDLE_GMS = 9001;
+  public final static int RC_HANDLE_CAMERA_PERM = 2;
 
 
   // [DataFetch]
   // -- intent keys
-  public static final String kApiKey = "kApiKey";
-  public static final String kBaseUrl = "kBaseUrl";
+  public final static String kApiKey = "kApiKey";
+  public final static String kBaseUrl = "kBaseUrl";
 
   // -- http client (HttpsURLConnection)
   public final static String API_URL_BASE =
     "https://ch.oddb.org/de/mobile/api_search/ean/";
 
-  public static int HUC_READ_TIMEOUT = 9000;
-  public static int HUC_CONNECT_TIMEOUT = 6000;
+  public final static int HUC_READ_TIMEOUT = 9000;
+  public final static int HUC_CONNECT_TIMEOUT = 6000;
 
 
   // [WebView]
   // -- intent keys
-  public static final String kEan = "kEan";
-  public static final String kReg = "kReg";
-  public static final String kSeq = "kSeq";
+  public final static String kEan = "kEan";
+  public final static String kReg = "kReg";
+  public final static String kSeq = "kSeq";
 
   // -- web view client (WebViewClient)
   public final static String WEB_USER_AGENT = "org.oddb.generikacc";
@@ -85,7 +101,7 @@ public class Constant extends Object {
 
   // [Product Item ListView]
   // -- place holder values
-  public static final HashMap<String, String> initData =
+  public final static HashMap<String, String> initData =
     new HashMap<String, String>() {{
       put("ean", "EAN 13");
       put("name", "Name");
