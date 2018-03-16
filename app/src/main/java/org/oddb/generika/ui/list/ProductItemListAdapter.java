@@ -21,7 +21,7 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
-import android.support.v4.content.ContextCompat ;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -40,8 +40,8 @@ import com.daimajia.swipe.interfaces.SwipeItemMangerInterface;
 import com.daimajia.swipe.util.Attributes;
 
 import io.realm.OrderedRealmCollection;
-import io.realm.RealmBaseAdapter;
 import io.realm.RealmList;
+import io.realm.RealmBaseAdapter;
 
 import java.io.File;
 import java.util.HashMap;
@@ -126,30 +126,23 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     public final static int kNone= 0;
     public final static int kLefttoRight = 1;
 
-    public final HashMap<String, Integer> kTouchLengthThreshold =
-      new HashMap<String, Integer>() {{
-        put("min", 6);
-        put("max", 32);
+    // duration as range of touch event for swipe action
+    public final HashMap<String, Integer> kSwipeDurationThreshold =
+      new HashMap<String, Integer>() {{ // will be checked with uptimeMillis
+        put("min", 600);
+        put("max", 1024);
       }};
 
     // custom fields
     private int touchDown = 0;
     private int touchDirection = kNone;
-    private int touchLength = 0;  // 0 - 999
+    private long touchStartedAt = 0;
     private boolean hasDialog = false;
 
     public SwipeLayout layout;
 
     SwipeRow(SwipeLayout layout) {
       this.layout = layout;
-    }
-
-    public void incrementTouchLength() {
-      if (touchLength >= 999) {
-        setTouchLength(kTouchLengthThreshold.get("max") + 1);
-      } else {
-        touchLength += 1;
-      }
     }
 
     // delegate to layout
@@ -168,8 +161,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     public void setTouchDirection(int v) { this.touchDirection = v; }
     public int getTouchDirection() { return this.touchDirection; }
 
-    public void setTouchLength(int v) { this.touchLength = v; }
-    public int getTouchLength() { return this.touchLength; }
+    public void setTouchStartedAt(long v) { this.touchStartedAt = v; }
+    public long getTouchStartedAt() { return this.touchStartedAt; }
 
     public void setHasDialog(boolean v) { this.hasDialog = v; }
     public boolean hasDialog() { return this.hasDialog; }
@@ -200,24 +193,33 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     row.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View view, MotionEvent event) {
-        // check `touch{Down,Direction,Length}` while moving
-        int length = row.getTouchLength();
+        long startedAt = row.getTouchStartedAt();
+        long duration = event.getEventTime() - startedAt;
         int direction = row.getTouchDirection();
+
         switch (event.getActionMasked()) {
           case MotionEvent.ACTION_UP:
-            Log.d(TAG, "(onTouch) touchLength: " + length);
-            Log.d(TAG, "(onTouch) touchDirection: " + direction);
-            row.setTouchLength(0);
+            Log.d(TAG, "(onTouch/up) startedAt: " + startedAt);
+            Log.d(TAG, "(onTouch/up) direction: " + direction);
             row.setTouchDirection(SwipeRow.kNone);
+            // fix consistency. This means down has been started when swipe
+            // layout state is fixed as "close", not "open".
             if (row.getTouchDown() != 1) { return false; }
             row.setTouchDown(0);
             if (row.getState().equals("Close")) {
               // it's tap (not swipe). up/down event must be fire both in
               // closed row
-              if (length > row.kTouchLengthThreshold.get("max")) {
-                // just do nothing here. See ACTION_MOVE
+              if (duration > row.kSwipeDurationThreshold.get("max")) {
+                if (row.hasDialog()) { return false; }
+                Log.d(TAG, "(onTouch/up) long press, duration: " + duration);
+                row.setHasDialog(true);
+                // dialog does not exist yet on ACTION_MOVE
+                Context context = parentView.getContext();
+                showMonthYearPickerDialog(row ,context);
                 return true;
               }
+              Log.d(TAG, "(onTouch/up) short tap, duration: " + duration);
+              // short (single) tap
               ProductItem productItem = (ProductItem)getItem(position);
               if ((productItem == null || productItem.getEan() == null) ||
                   (productItem.getEan().equals("EAN 13"))) { // placeholder
@@ -227,10 +229,12 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
               ((MainActivity)parentView.getContext()).openWebView(
                 productItem);
               return true;
-            } else {
-              // for smooth swipe assist, use this instead of swipelistener
-              if (length >= row.kTouchLengthThreshold.get("min") &&
-                  length <= row.kTouchLengthThreshold.get("max")) {
+            } else { // swipe state "middle"
+              // smooth swipe assistance, use this instead of swipelistener
+              if (duration >= row.kSwipeDurationThreshold.get("min") &&
+                  duration <= row.kSwipeDurationThreshold.get("max")) {
+                // don't use `toggle`, because it works oppositely here.
+                // just support user's intention.
                 if (direction == SwipeRow.kRighttoLeft) {
                   row.open(true);
                 } else if (direction == SwipeRow.kLefttoRight) {
@@ -241,55 +245,46 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
             }
             return false;
           case MotionEvent.ACTION_DOWN:
-            Log.d(TAG, "(onTouch) touchLength: " + length);
-            Log.d(TAG, "(onTouch) touchDirection: " + direction);
             String state = row.getState();
             if (state.equals("Close")) {
               row.setTouchDown(1); // swipe/click start on closed row
+              row.setTouchStartedAt(event.getEventTime());
               row.setTouchDirection(SwipeRow.kRighttoLeft);
             } else if (state.equals("Open")) {
               row.setTouchDown(0);
+              row.setTouchStartedAt(event.getEventTime());
               row.setTouchDirection(SwipeRow.kLefttoRight);
             }
+            Log.d(TAG, "(onTouch/down) startedAt: " + row.getTouchStartedAt());
+            Log.d(TAG, "(onTouch/down) direction: " + row.getTouchDirection());
             return false;
           case MotionEvent.ACTION_MOVE:
+            // NOTE:
+            // `ACTION_MOVE` is invoked often while keeping touch, because it
+            // is not possible to keep touching same place by finger. But on
+            // some devices this event is invoked very often or not invoked at
+            // all. See below:
+            //
+            // - https://developer.android.com/reference/android/view/\
+            //     MotionEvent.html
             if (row.getEdge().equals("Right") &&
                 row.getState().equals("Close")) {
-              // onLongClickListener responds, too quickly.
-              // so let's just do it here.
-              if (length > row.kTouchLengthThreshold.get("max") &&
+              // onLongClickListener responds, too quickly. So just
+              // do it here or action up (depends on the type of device).
+              if (duration > row.kSwipeDurationThreshold.get("max") &&
                   !row.hasDialog()) {
-                Log.d(TAG, "(onTouch) long press, length: " + length);
+                Log.d(TAG, "(onTouch/move) long press, duration: " + duration);
                 row.setHasDialog(true);
                 Context context = parentView.getContext();
-                MonthYearPickerDialogFragment fragment =
-                  new MonthYearPickerDialogFragment(
-                    context.getString(R.string.expiry_date));
-                fragment.setListener(
-                  new MonthYearPickerDialogFragment.OnChangeListener() {
-                  @Override
-                  public void onDateSet(
-                    DatePicker view, int year, int month, int _dayOfMonth) {
-                    row.setHasDialog(false);
-                    // TODO
-                  }
-                  @Override
-                  public void onCancel(DatePicker view) {
-                    row.setHasDialog(false);
-                  }
-                });
-                fragment.show(((MainActivity)context)
-                  .getSupportFragmentManager(),
-                  "MonthYearPickerDialogFragment");
+                showMonthYearPickerDialog(row ,context);
                 return true;
               }
-              row.incrementTouchLength();
             }
             return false;
           default:
-            // Log.d(TAG, "action: " + event.getActionMasked());
+            Log.d(TAG, "action: " + event.getActionMasked());
             row.setTouchDown(0);
-            row.setTouchLength(0);
+            row.setTouchStartedAt(0);
             row.setTouchDirection(SwipeRow.kNone);
             return false;
         }
@@ -298,6 +293,28 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
 
     fillValues(position, view, parent);
     return view;
+  }
+
+  private void showMonthYearPickerDialog(SwipeRow row, Context context) {
+    MonthYearPickerDialogFragment fragment =
+      new MonthYearPickerDialogFragment(
+        context.getString(R.string.expiry_date));
+    fragment.setListener(
+      new MonthYearPickerDialogFragment.OnChangeListener() {
+      @Override
+      public void onDateSet(
+        DatePicker view, int year, int month, int _dayOfMonth) {
+        row.setHasDialog(false);
+        // TODO
+      }
+      @Override
+      public void onCancel(DatePicker view) {
+        row.setHasDialog(false);
+      }
+    });
+    fragment.show(((MainActivity)context)
+      .getSupportFragmentManager(),
+      "MonthYearPickerDialogFragment");
   }
 
   public View generateView(int position, ViewGroup parent) {
