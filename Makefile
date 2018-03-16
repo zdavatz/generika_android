@@ -33,7 +33,7 @@ run:
 .PHONY: run
 
 install:
-	adb install -r -t app/build/outputs/apk/debug/app-debug.apk
+	adb $(ARGS) install -r -t app/build/outputs/apk/debug/app-debug.apk
 .PHONY: install
 
 log:
