@@ -100,5 +100,5 @@
     <string name="barcode_error">"Erreur en lisant barre-codes: %1$s"</string>
 
     <!-- [product item] -->
-    <string name="expiry_date">Date d‘échéance</string>
+    <string name="expiry_date">Date de péremption</string>
 </resources>
