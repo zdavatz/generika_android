@@ -100,17 +100,21 @@ public class Constant extends Object {
 
 
   // [Product Item ListView]
+  // -- swipe on row
+  public final static int SWIPE_DURATION_MIN = 600;
+  public final static int SWIPE_DURATION_MAX = 1024;
+
   // -- place holder values
   // TODO: use translation file
-  public final static HashMap<String, String> initData =
+  public final static HashMap<String, String> INIT_DATA =
     new HashMap<String, String>() {{
-      put("ean", "EAN 13");
-      put("name", "Name");
-      put("size", "Size");
-      put("datetime", "Scanned At");
-      put("price", "Price (CHF)");
-      put("deduction", "Deduction (%)");
-      put("category", "Category");
-      put("expiresAt", "Expires At");
+      put("ean", "GTIN (EAN-13)");
+      put("name", "NAME");
+      put("size", "SIZE");
+      put("datetime", "SCANNED AT");
+      put("price", "PRICE (CHF)");
+      put("deduction", "DEDUCTION");
+      put("category", "CATEGORY");
+      put("expiresAt", "EXPIRES AT");
     }};
 }

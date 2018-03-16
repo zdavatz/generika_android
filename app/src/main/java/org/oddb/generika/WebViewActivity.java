@@ -236,24 +236,27 @@ public class WebViewActivity extends BaseActivity {
     Log.d(TAG, "(buildUrl) searchLang: " + searchLang);
 
     String urlString = String.format("https://%s/", Constant.WEB_URL_HOST);
-    if (searchType.equals(Constant.TYPE_PV)) {  // preisvergleich
-      String ean = getIntent().getStringExtra(Constant.kEan);
 
+    String ean = getIntent().getStringExtra(Constant.kEan);
+    if (ean == null || ean.equals("") ||
+        ean.equals(Constant.INIT_DATA.get("ean"))) {  // placeholder
+      return urlString;
+    }
+    String reg = getIntent().getStringExtra(Constant.kReg);
+    String seq = getIntent().getStringExtra(Constant.kSeq);
+
+    if (searchType.equals(Constant.TYPE_PV)) {  // preisvergleich
       if (ean != null && !ean.equals("")) {
         urlString += String.format(
           Constant.WEB_URL_PATH_COMPARE, searchLang, ean);
       }
     } else if (searchType.equals(Constant.TYPE_PI)) {  // patinfo
-      String reg = getIntent().getStringExtra(Constant.kReg);
-      String seq = getIntent().getStringExtra(Constant.kSeq);
 
       if (reg != null && !reg.equals("") && seq != null && !seq.equals("")) {
         urlString += String.format(
           Constant.WEB_URL_PATH_PATINFO, searchLang, reg, seq);
       }
     } else if (searchType.equals(Constant.TYPE_FI)) {  // fachinfo
-      String reg = getIntent().getStringExtra(Constant.kReg);
-
       if (reg != null && !reg.equals("")) {
         urlString += String.format(
           Constant.WEB_URL_PATH_FACHINFO, searchLang, reg);

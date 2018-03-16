@@ -56,6 +56,7 @@ import org.oddb.generika.R;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.ui.MonthYearPickerDialogFragment;
+import org.oddb.generika.util.Constant;
 
 
 public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
@@ -131,8 +132,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     // duration as range of touch event for swipe action
     public final HashMap<String, Integer> kSwipeDurationThreshold =
       new HashMap<String, Integer>() {{ // will be checked with uptimeMillis
-        put("min", 600);
-        put("max", 1024);
+        put("min", Constant.SWIPE_DURATION_MIN);
+        put("max", Constant.SWIPE_DURATION_MAX);
       }};
 
     // custom fields
@@ -230,13 +231,15 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
               }
               Log.d(TAG, "(onTouch/up) short tap, duration: " + duration);
               // short (single) tap
+              // TODO: re-consider it might be not good (usage: MainActivity)
               ProductItem item = row.getProductItem();
               if ((item == null || item.getEan() == null) ||
-                  (item.getEan().equals("EAN 13"))) { // placeholder
-                return false;  // unexpected
+                  (item.getEan().equals(Constant.INIT_DATA.get("ean")))) {
+                // placeholder row
+                ((MainActivity)parentView.getContext()).openWebView(null);
+              } else {
+                ((MainActivity)parentView.getContext()).openWebView(item);
               }
-              // TODO: re-consider it might be not good (usage: MainActivity)
-              ((MainActivity)parentView.getContext()).openWebView(item);
               return true;
             } else { // swipe state "middle"
               // smooth swipe assistance, use this instead of swipelistener

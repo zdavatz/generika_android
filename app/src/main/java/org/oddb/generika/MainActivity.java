@@ -135,17 +135,18 @@ public class MainActivity extends BaseActivity implements
     realm.beginTransaction();
     // placeholder
     ProductItem.Barcode barcode = new ProductItem.Barcode();
-    barcode.setValue(Constant.initData.get("ean"));
+    barcode.setValue(Constant.INIT_DATA.get("ean"));
 
+    // TODO: translation
     ProductItem item = ProductItem.insertNewBarcodeItemIntoSource(
       realm, barcode, product, withUniqueCheck);
-    item.setName(Constant.initData.get("name"));
-    item.setSize(Constant.initData.get("size"));
-    item.setDatetime(Constant.initData.get("datetime"));
-    item.setPrice(Constant.initData.get("price"));
-    item.setDeduction(Constant.initData.get("deduction"));
-    item.setCategory(Constant.initData.get("category"));
-    item.setExpiresAt(Constant.initData.get("expiresAt"));
+    item.setName(Constant.INIT_DATA.get("name"));
+    item.setSize(Constant.INIT_DATA.get("size"));
+    item.setDatetime(Constant.INIT_DATA.get("datetime"));
+    item.setPrice(Constant.INIT_DATA.get("price"));
+    item.setDeduction(Constant.INIT_DATA.get("deduction"));
+    item.setCategory(Constant.INIT_DATA.get("category"));
+    item.setExpiresAt(Constant.INIT_DATA.get("expiresAt"));
     realm.commitTransaction();
   }
 
@@ -633,9 +634,11 @@ public class MainActivity extends BaseActivity implements
     // WebView reads type and lang from shared preferences
     // So, just puts arguments here.
     Intent intent = new Intent(this, WebViewActivity.class);
-    intent.putExtra(Constant.kEan, productItem.getEan());
-    intent.putExtra(Constant.kReg, productItem.getReg());
-    intent.putExtra(Constant.kSeq, productItem.getSeq());
+    if (productItem != null) {
+      intent.putExtra(Constant.kEan, productItem.getEan());
+      intent.putExtra(Constant.kReg, productItem.getReg());
+      intent.putExtra(Constant.kSeq, productItem.getSeq());
+    }
     startActivity(intent);
 
     overridePendingTransition(R.anim.slide_leave,
