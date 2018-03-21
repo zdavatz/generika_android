@@ -44,6 +44,8 @@ import io.realm.RealmList;
 import io.realm.RealmBaseAdapter;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -68,8 +70,10 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   private SwipeItemAdapterMangerImpl itemManager;
   private ItemListener itemListener;
 
-  Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
-  Pattern deduction20 = Pattern.compile("\\A\\s*20\\s*%\\z");
+  private final Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
+  private final Pattern deduction20 = Pattern.compile("\\A\\s*20\\s*%\\z");
+
+  private final String expiresAtFormat = "MM.yyyy";
 
   private static class ViewHolder {
     ImageView barcodeImage;
@@ -310,7 +314,7 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
   private void showMonthYearPickerDialog(SwipeRow row, Context context) {
     // extract month and year
     String expiresAt = ProductItem.getLocalDateAs(
-      row.item.getExpiresAt(), "MM.YYYY");
+      row.item.getExpiresAt(), expiresAtFormat);
     String[] dateFields = {"", ""};
     if (expiresAt.contains(".")) {
       dateFields = expiresAt.split("\\.", 2);
@@ -403,21 +407,8 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       R.id.scanned_product_item_deduction);
     String deductionValue = item.getDeduction();
     viewHolder.deduction.setText(deductionValue);
-    int deductionColor = ContextCompat.getColor(context, R.color.textColor);
-    if (deductionValue != null && !deductionValue.equals("")) {
-      Matcher m10 = deduction10.matcher(deductionValue);
-      if (m10.find()) {
-        deductionColor = ContextCompat.getColor(context, R.color.colorPrimary);
-      } else {
-        Matcher m20 = deduction20.matcher(deductionValue);
-        if (m20.find()) {
-          deductionColor = ContextCompat.getColor(
-            context, R.color.colorAccent);
-        } else {
-        }
-      }
-    }
-    viewHolder.deduction.setTextColor(deductionColor);
+    viewHolder.deduction.setTextColor(
+      composeDeductionTextColor(deductionValue, context));
     // category
     viewHolder.category = (TextView)view.findViewById(
       R.id.scanned_product_item_category);
@@ -428,10 +419,13 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
       R.id.scanned_product_item_ean);
     viewHolder.ean.setText(item.getEan());
     // expiresAt
+    String expiresAtValue = ProductItem.getLocalDateAs(
+      item.getExpiresAt(), expiresAtFormat);
     viewHolder.expiresAt = (TextView)view.findViewById(
       R.id.scanned_product_item_expires_at);
-    viewHolder.expiresAt.setText(
-      ProductItem.getLocalDateAs(item.getExpiresAt(), "MM.YYYY"));
+    viewHolder.expiresAt.setText(expiresAtValue);
+    viewHolder.expiresAt.setTextColor(
+      composeExpiresAtTextColor(expiresAtValue, context));
 
     // delete button
     ImageView deleteButton = (ImageView)view.findViewById(
@@ -449,6 +443,51 @@ public class ProductItemListAdapter extends RealmBaseAdapter<ProductItem>
     viewHolder.deleteButton.setTag(itemId);
 
     view.setTag(viewHolder);
+  }
+
+  private int composeDeductionTextColor(String value, Context context) {
+    int color = ContextCompat.getColor(context, R.color.textColor);
+
+    if (value == null || value.equals("")) { return color; }
+    Matcher m10 = deduction10.matcher(value);
+    if (m10.find()) {
+      color = ContextCompat.getColor(context, R.color.colorPrimary);
+    } else {
+      Matcher m20 = deduction20.matcher(value);
+      if (m20.find()) {
+        color = ContextCompat.getColor(context, R.color.colorAccent);
+      }
+    }
+    return color;
+  }
+
+  private int composeExpiresAtTextColor(String value, Context context) {
+    int color = ContextCompat.getColor(context, R.color.textColor);
+
+    Calendar cal = Calendar.getInstance();  // local time zone
+    cal.set(Calendar.DAY_OF_MONTH, 1);
+    cal.set(Calendar.HOUR_OF_DAY, 0);
+    cal.set(Calendar.MINUTE, 0);
+    cal.set(Calendar.SECOND, 0);
+    Date now = cal.getTime();
+
+    if (value == null || value.equals("")) { return color; }
+    try {
+      // assumes as first day of the month
+      SimpleDateFormat formatter = new SimpleDateFormat(
+        "dd." + expiresAtFormat);
+      Date expiresAt = formatter.parse("01." + value);
+      Log.d(TAG, "(composeDeductionTextColor) now: " + now);
+      Log.d(TAG, "(composeDeductionTextColor) expiresAt: " + expiresAt);
+      if (expiresAt.before(now) || expiresAt.equals(now)) {
+        color = ContextCompat.getColor(context, R.color.colorAccent);
+      } else {
+        color = ContextCompat.getColor(context, R.color.colorPrimary);
+      }
+    } catch(ParseException e) {
+      // pass (default color)
+    }
+    return color;
   }
 
   // -- SwipeLayout
