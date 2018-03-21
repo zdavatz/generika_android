@@ -193,6 +193,9 @@ public class MainActivity extends BaseActivity implements
           int i = insertions[0];
           Log.d(TAG, "(addChangeListener) inserttion: " + i);
           ProductItem productItem = items.get(i);
+          if (productItem.getEan().equals(Constant.INIT_DATA.get("ean"))) {
+            return; // do nothing for placeholder row
+          }
           // pass dummy object as container for id and ean
           ProductItem item = new ProductItem();
           item.setId(productItem.getId());
