@@ -18,6 +18,7 @@
 package org.oddb.generika;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -109,18 +111,16 @@ public class MainActivity extends BaseActivity implements
     this.product = realm.where(Product.class)
       .equalTo("sourceType", "scanned").findFirst();
 
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    Fragment fragment = fragmentManager.findFragmentByTag(
-      ProductItemDataFetchFragment.TAG);
-    if (fragment == null) {
-      fragment = ProductItemDataFetchFragment.getInstance(
-        fragmentManager, Constant.API_URL_BASE);
-    }
-    this.productItemDataFetcher = (ProductItemDataFetchFragment)fragment;
-
     this.context = (Context)this;
 
+    this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
+
     initProductItems();
+
+    this.productItemListAdapter = new ProductItemListAdapter(
+      product.getItems());
+    productItemListAdapter.setCallback(this);
+
     initViews();
   }
 
@@ -129,6 +129,25 @@ public class MainActivity extends BaseActivity implements
     super.onDestroy();
 
     realm.close();
+  }
+
+  private ProductItemDataFetchFragment buildProductItemDataFetchFragment(
+      Context context) {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    Fragment fragment = fragmentManager.findFragmentByTag(
+      ProductItemDataFetchFragment.TAG);
+    if (fragment == null) {
+      // check search lang in preference
+      SharedPreferences sharedPreferences = PreferenceManager
+        .getDefaultSharedPreferences(context);
+      String searchLang = sharedPreferences.getString(
+        Constant.kSearchLang, Constant.LANG_DE);
+      String urlBase = String.format(
+        Constant.API_URL_PATH, searchLang);
+      fragment = ProductItemDataFetchFragment.getInstance(
+        fragmentManager, urlBase);
+    }
+    return (ProductItemDataFetchFragment)fragment;
   }
 
   private void insertPlaceholder(boolean withUniqueCheck) {
@@ -186,10 +205,6 @@ public class MainActivity extends BaseActivity implements
         }
       }
     });
-
-    this.productItemListAdapter = new ProductItemListAdapter(
-      product.getItems());
-    productItemListAdapter.setCallback(this);
   }
 
   private void initViews() {

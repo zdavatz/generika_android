@@ -67,21 +67,21 @@ public class Constant extends Object {
   public final static int RC_HANDLE_GMS = 9001;
   public final static int RC_HANDLE_CAMERA_PERM = 2;
 
+  // [Network]
+  public final static String URL_HOST = "i.ch.oddb.org";
 
-  // [DataFetch]
+  // [Network/DataFetch]
   // -- intent keys
   public final static String kApiKey = "kApiKey";
   public final static String kBaseUrl = "kBaseUrl";
 
   // -- http client (HttpsURLConnection)
-  public final static String API_URL_BASE =
-    "https://ch.oddb.org/de/mobile/api_search/ean/";
-
+  public final static String API_URL_PATH =
+    "https://" + URL_HOST + "/de/mobile/api_search/ean/";
   public final static int HUC_READ_TIMEOUT = 9000;
   public final static int HUC_CONNECT_TIMEOUT = 6000;
 
-
-  // [WebView]
+  // [Network/WebView]
   // -- intent keys
   public final static String kEan = "kEan";
   public final static String kReg = "kReg";
@@ -89,8 +89,7 @@ public class Constant extends Object {
 
   // -- web view client (WebViewClient)
   public final static String WEB_USER_AGENT = "org.oddb.generikacc";
-
-  public final static String WEB_URL_HOST = "ch.oddb.org";
+  public final static String WEB_URL_HOST = URL_HOST;
   public final static String WEB_URL_PATH_COMPARE =
     "%s/mobile/compare/ean13/%s";
   public final static String WEB_URL_PATH_PATINFO =
