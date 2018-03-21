@@ -29,8 +29,8 @@ E.g. on Gentoo Linux
 
 You may want also following packages:
 
-* [dev-util/android-studio](
-  https://packages.gentoo.org/packages/dev-util/android-studio)
+* [dev-util/android-sdk-update-manager](
+  https://packages.gentoo.org/packages/dev-util/android-sdk-update-manager)
 * [dev-util/android-tools](
   https://packages.gentoo.org/packages/dev-util/android-tools) (
   for adb or fastboot etc.)
