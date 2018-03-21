@@ -69,6 +69,7 @@ public class Constant extends Object {
 
   // [Network]
   public final static String URL_HOST = "i.ch.oddb.org";
+  public final static String URL_FLAVOR = "mobile";
 
   // [Network/DataFetch]
   // -- intent keys
@@ -77,7 +78,7 @@ public class Constant extends Object {
 
   // -- http client (HttpsURLConnection)
   public final static String API_URL_PATH =
-    "https://" + URL_HOST + "/de/mobile/api_search/ean/";
+    "https://" + URL_HOST + "/de/" + URL_FLAVOR + "/api_search/ean/";
   public final static int HUC_READ_TIMEOUT = 9000;
   public final static int HUC_CONNECT_TIMEOUT = 6000;
 
@@ -91,11 +92,11 @@ public class Constant extends Object {
   public final static String WEB_USER_AGENT = "org.oddb.generikacc";
   public final static String WEB_URL_HOST = URL_HOST;
   public final static String WEB_URL_PATH_COMPARE =
-    "%s/mobile/compare/ean13/%s";
+    "%s/" + URL_FLAVOR + "/compare/ean13/%s";
   public final static String WEB_URL_PATH_PATINFO =
-    "%s/mobile/patinfo/reg/%s/seq/%s";
+    "%s/" + URL_FLAVOR + "/patinfo/reg/%s/seq/%s";
   public final static String WEB_URL_PATH_FACHINFO =
-    "%s/mobile/fachinfo/reg/%s";
+    "%s/" + URL_FLAVOR + "/fachinfo/reg/%s";
 
 
   // [Product Item ListView]

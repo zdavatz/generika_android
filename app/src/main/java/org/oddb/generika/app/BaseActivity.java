@@ -17,7 +17,10 @@
  */
 package org.oddb.generika.app;
 
+import android.content.Context;
+import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import java.util.Locale;
 
@@ -25,8 +28,19 @@ import org.oddb.generika.util.AppLocale;
 
 
 public class BaseActivity extends AppCompatActivity {
+  private static final String TAG = "BaseActivity";
 
+  // This must be public, because it will be read via `getActivity()`
   public Locale currentLocale;
+
+  protected Context context;
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    this.context = (Context)this;
+  }
 
   @Override
   protected void onStart() {
@@ -38,11 +52,27 @@ public class BaseActivity extends AppCompatActivity {
   @Override
   protected void onRestart() {
     super.onRestart();
-    Locale locale = AppLocale.getLocale(this);
 
-    if (!locale.equals(currentLocale)) {
-      currentLocale = locale;
+    Locale oldLocale = currentLocale;
+    enforceLocale();
+    if (!currentLocale.equals(oldLocale)) {
       recreate();
     }
+  }
+
+  protected void enforceLocale() {
+    Log.d(TAG, "(enforceLocale) currentLocale: " + currentLocale);
+
+    Locale locale = AppLocale.getLocale(context);
+    if (!locale.equals(currentLocale)) {
+      forceLocale(locale);
+    }
+
+    Log.d(TAG, "(enforceLocale) currentLocale: " + currentLocale);
+  }
+
+  private void forceLocale(Locale locale) {
+    AppLocale.setLocale(context, locale);
+    currentLocale = locale;
   }
 }

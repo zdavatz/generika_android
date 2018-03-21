@@ -97,8 +97,9 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
   private String filepath;
 
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
     setContentView(R.layout.barcode_capture);
 
     this.preview = (CameraSourcePreview)findViewById(R.id.preview);
@@ -164,8 +165,6 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
   @SuppressLint("InlinedApi")
   private void createCameraSource(boolean autoFocus, boolean useFlash) {
-    Context context = getApplicationContext();
-
     // TODO: Enable support DATA_MATRIX and QR_CODE
     BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context)
       .setBarcodeFormats(Barcode.EAN_13)
@@ -194,11 +193,10 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       }
     }
 
-    CameraSource.Builder builder = new CameraSource.Builder(
-      getApplicationContext(), detector)
-        .setFacing(CameraSource.CAMERA_FACING_BACK)
-        .setRequestedPreviewSize(1600, 1024)
-        .setRequestedFps(15.0f);
+    CameraSource.Builder builder = new CameraSource.Builder(context, detector)
+      .setFacing(CameraSource.CAMERA_FACING_BACK)
+      .setRequestedPreviewSize(1600, 1024)
+      .setRequestedFps(15.0f);
 
     // auto focus
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -281,7 +279,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
   private void startCameraSource() throws SecurityException {
     int code = GoogleApiAvailability.getInstance()
-      .isGooglePlayServicesAvailable(getApplicationContext());
+      .isGooglePlayServicesAvailable(context);
     if (code != ConnectionResult.SUCCESS) {
       Dialog dlg = GoogleApiAvailability.getInstance().getErrorDialog(
         this, code, Constant.RC_HANDLE_GMS);
@@ -417,7 +415,6 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     if (bitmap == null) { return; }
     // build parameter
     CapturedData capturedData = new CapturedData();
-    Context context = getApplicationContext();
     capturedData.files = context.getFilesDir();
     capturedData.barcodeValue = barcodeValue;
     capturedData.bitmap = bitmap;

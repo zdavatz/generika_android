@@ -17,15 +17,12 @@
  */
 package org.oddb.generika;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -50,7 +47,6 @@ public class WebViewActivity extends BaseActivity {
 
   private WebView webView;
 
-  private Activity activity;
   private ProgressBar progressBar;
 
   private SharedPreferences sharedPreferences;
@@ -60,15 +56,21 @@ public class WebViewActivity extends BaseActivity {
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     // enable progress bar (see also initViews)
     getWindow().requestFeature(Window.FEATURE_PROGRESS);
 
     setContentView(R.layout.activity_web_view);
 
+    // To fix a bug (locale will be back to device default) on WebView
+    // >= Android N (7.0)
+    if (Build.VERSION.SDK_INT >= Constant.VERSION_24__7_0) {
+      enforceLocale();
+    }
+
     getWindow().setFeatureInt(
       Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
 
-    Context context = (Context)this;
     this.sharedPreferences = PreferenceManager
       .getDefaultSharedPreferences(context);
 
@@ -96,9 +98,6 @@ public class WebViewActivity extends BaseActivity {
   }
 
   private void initViews() {
-    Context context = (Context)this;
-    this.activity = this;
-
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(context.getString(R.string.oddb_org));
     toolbar.setSubtitle(String.format(
@@ -149,7 +148,7 @@ public class WebViewActivity extends BaseActivity {
     webView.setWebViewClient(new WebViewClient() {
       public void onReceivedSslError(
         WebView view, int errorCode, String description, String failingUrl) {
-        Toast.makeText(activity, description, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, description, Toast.LENGTH_SHORT).show();
       }
 
       @Override
@@ -240,6 +239,8 @@ public class WebViewActivity extends BaseActivity {
     String ean = getIntent().getStringExtra(Constant.kEan);
     if (ean == null || ean.equals("") ||
         ean.equals(Constant.INIT_DATA.get("ean"))) {  // placeholder
+      urlString += String.format("%s/%s/", searchLang, Constant.URL_FLAVOR);
+      Log.d(TAG, "(buildUrl) urlString: " + urlString);
       return urlString;
     }
     String reg = getIntent().getStringExtra(Constant.kReg);

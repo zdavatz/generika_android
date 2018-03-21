@@ -57,6 +57,7 @@ public class AppLocale extends Object {
     final Locale locale = getLocale(application);
 
     if (!configuration.locale.equals(locale)) {
+      Locale.setDefault(locale);
       configuration.setLocale(locale);
       resources.updateConfiguration(configuration, null);
     }
@@ -69,7 +70,8 @@ public class AppLocale extends Object {
     final DisplayMetrics metrics = resources.getDisplayMetrics();
     final Configuration configuration = resources.getConfiguration();
 
-    configuration.locale = newLocale;
+    Locale.setDefault(newLocale);
+    configuration.setLocale(newLocale);
     resources.updateConfiguration(configuration, metrics);
   }
 }

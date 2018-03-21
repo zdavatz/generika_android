@@ -83,8 +83,6 @@ public class MainActivity extends BaseActivity implements
     ProductItemDataFetchFragment.FetchResult> {
   private static final String TAG = "Main";
 
-  private Context context;
-
   // view
   private DrawerLayout drawerLayout;
   private ActionBarDrawerToggle drawerToggle;
@@ -104,14 +102,13 @@ public class MainActivity extends BaseActivity implements
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     setContentView(R.layout.activity_main);
 
     // default: `scanned` product items
     this.realm = Realm.getDefaultInstance();
     this.product = realm.where(Product.class)
       .equalTo("sourceType", "scanned").findFirst();
-
-    this.context = (Context)this;
 
     this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
 
@@ -132,14 +129,14 @@ public class MainActivity extends BaseActivity implements
   }
 
   private ProductItemDataFetchFragment buildProductItemDataFetchFragment(
-      Context context) {
+      Context context_) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     Fragment fragment = fragmentManager.findFragmentByTag(
       ProductItemDataFetchFragment.TAG);
     if (fragment == null) {
       // check search lang in preference
       SharedPreferences sharedPreferences = PreferenceManager
-        .getDefaultSharedPreferences(context);
+        .getDefaultSharedPreferences(context_);
       String searchLang = sharedPreferences.getString(
         Constant.kSearchLang, Constant.LANG_DE);
       String urlBase = String.format(

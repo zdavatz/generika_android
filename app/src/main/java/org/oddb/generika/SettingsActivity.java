@@ -17,7 +17,6 @@
  */
 package org.oddb.generika;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.support.v7.app.ActionBar;
@@ -33,14 +32,12 @@ public class SettingsActivity extends BaseActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_settings);
 
+    setContentView(R.layout.activity_settings);
     initViews();
   }
 
   private void initViews() {
-    Context context = (Context)this;
-
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(context.getString(R.string.settings));
     setSupportActionBar(toolbar);
