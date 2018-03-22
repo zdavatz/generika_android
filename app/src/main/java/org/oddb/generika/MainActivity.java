@@ -33,7 +33,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -45,11 +44,8 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -63,11 +59,8 @@ import io.realm.RealmResults;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.OrderedCollectionChangeSet;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
 
 import org.oddb.generika.app.BaseActivity;
 import org.oddb.generika.model.Product;
@@ -85,6 +78,9 @@ public class MainActivity extends BaseActivity implements
   ProductItemDataFetchFragment.FetchCallback<
     ProductItemDataFetchFragment.FetchResult> {
   private static final String TAG = "Main";
+
+  private static final String SOURCE_TYPE_SCANNED = "scanned"; // medications
+  private static final String SOURCE_TYPE_RECEIPT = "receipt"; // prescriptions
 
   // view
   private DrawerLayout drawerLayout;
@@ -117,29 +113,37 @@ public class MainActivity extends BaseActivity implements
 
     initViews();
 
-    switchProduct("scanned");
+    switchProduct("medications"); // medications/prescriptions
   }
 
-  private void switchProduct(String nextSourceType) {
-    this.sourceType = nextSourceType;
+  /**
+   * Switches product and list adapter
+   *
+   * @param String productName prescriptions/medications
+   * @return void
+   */
+  private void switchProduct(String productName) {
+    String sourceType_ = SOURCE_TYPE_SCANNED;
+    if (productName != null && productName.equals("prescriptions")) {
+      sourceType_ = SOURCE_TYPE_RECEIPT;
+    }
+    this.sourceType = sourceType_;
 
     this.product = realm.where(Product.class)
-      .equalTo("sourceType", nextSourceType).findFirst();
-
-    // NOTE: only for "scanned" product
-    this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
+      .equalTo("sourceType", sourceType).findFirst();
 
     initProductItems();
 
-    // change list adapter
-    if (sourceType.equals("scanned")) {
+    if (sourceType.equals(SOURCE_TYPE_SCANNED)) {
       this.listAdapter = new ScannedProductItemListAdapter(product.getItems());
-    } else if (sourceType.equals("receipt")) {
+      this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
+    } else if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {
       this.listAdapter = new ReceiptProductItemListAdapter(product.getItems());
+      this.productItemDataFetcher = null;
     }
-    listAdapter.setCallback(this);
 
-    // adapter has listeners
+    // change list adapter
+    listAdapter.setCallback(this);
     listView.setAdapter(listAdapter);
   }
 
@@ -192,7 +196,7 @@ public class MainActivity extends BaseActivity implements
     if (product == null) { return; }
 
     // TODO:
-    if (sourceType.equals("receipt")) {
+    if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {
       return;
     }
 
@@ -288,14 +292,14 @@ public class MainActivity extends BaseActivity implements
             String name = getResources().getResourceEntryName(
               menuItem.getItemId());
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
-            String nextSourceType;
+            String productName;
             if (name.contains("prescriptions")) {
-              nextSourceType = "receipt";
-            } else {  // default (medications)
-              nextSourceType = "scanned";
+              productName = "prescriptions";
+            } else {  // default (scanned product items)
+              productName = "medications";
             }
             title = menuItem.getTitle();  // update `title`
-            switchProduct(nextSourceType);
+            switchProduct(productName);
             menuItem.setChecked(true);
           }
           drawerLayout.closeDrawers();
@@ -308,14 +312,15 @@ public class MainActivity extends BaseActivity implements
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (sourceType.equals("scanned")) {
+        if (sourceType.equals(SOURCE_TYPE_SCANNED)) { // medications
           Intent intent = new Intent(
             MainActivity.this, BarcodeCaptureActivity.class);
           intent.putExtra(Constant.kAutoFocus, true);
           intent.putExtra(Constant.kUseFlash, true);
           startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
+        } else if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {  // prescriptions
+          // TODO: prescriptions
         }
-        // TODO: prescriptions
       }
     });
   }
