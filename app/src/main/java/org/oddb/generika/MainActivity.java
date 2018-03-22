@@ -73,8 +73,11 @@ import org.oddb.generika.app.BaseActivity;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.network.ProductItemDataFetchFragment;
-import org.oddb.generika.ui.list.ProductItemListAdapter;
 import org.oddb.generika.util.Constant;
+// list adapters
+import org.oddb.generika.ui.list.ProductItemListAdapter;
+import org.oddb.generika.ui.list.ScannedProductItemListAdapter;
+import org.oddb.generika.ui.list.ReceiptProductItemListAdapter;
 
 
 public class MainActivity extends BaseActivity implements
@@ -90,10 +93,12 @@ public class MainActivity extends BaseActivity implements
   private ListView listView;
   private FloatingActionButton fab;
 
-  // database
+  private EditText searchBox;
+
   private Realm realm;
   private Product product;  // container object
-  private ProductItemListAdapter productItemListAdapter;
+  private String sourceType;
+  private ProductItemListAdapter listAdapter; // scanned/receipt
 
   // network (headless fragment)
   private boolean fetching = false;
@@ -105,20 +110,37 @@ public class MainActivity extends BaseActivity implements
 
     setContentView(R.layout.activity_main);
 
-    // default: `scanned` product items
     this.realm = Realm.getDefaultInstance();
-    this.product = realm.where(Product.class)
-      .equalTo("sourceType", "scanned").findFirst();
 
+    // default: medications (scanned product items)
+    this.title = context.getString(R.string.medications);
+
+    initViews();
+
+    switchProduct("scanned");
+  }
+
+  private void switchProduct(String nextSourceType) {
+    this.sourceType = nextSourceType;
+
+    this.product = realm.where(Product.class)
+      .equalTo("sourceType", nextSourceType).findFirst();
+
+    // NOTE: only for "scanned" product
     this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
 
     initProductItems();
 
-    this.productItemListAdapter = new ProductItemListAdapter(
-      product.getItems());
-    productItemListAdapter.setCallback(this);
+    // change list adapter
+    if (sourceType.equals("scanned")) {
+      this.listAdapter = new ScannedProductItemListAdapter(product.getItems());
+    } else if (sourceType.equals("receipt")) {
+      this.listAdapter = new ReceiptProductItemListAdapter(product.getItems());
+    }
+    listAdapter.setCallback(this);
 
-    initViews();
+    // adapter has listeners
+    listView.setAdapter(listAdapter);
   }
 
   @Override
@@ -168,6 +190,12 @@ public class MainActivity extends BaseActivity implements
 
   private void initProductItems() {
     if (product == null) { return; }
+
+    // TODO:
+    if (sourceType.equals("receipt")) {
+      return;
+    }
+
     if (product.getItems().size() == 0) {
       ProductItem.withRetry(2, new ProductItem.WithRetry() {
         @Override
@@ -193,6 +221,9 @@ public class MainActivity extends BaseActivity implements
           int i = insertions[0];
           Log.d(TAG, "(addChangeListener) inserttion: " + i);
           ProductItem productItem = items.get(i);
+          if (productItem.getEan().equals(Constant.INIT_DATA.get("ean"))) {
+            return; // do nothing for placeholder row
+          }
           // pass dummy object as container for id and ean
           ProductItem item = new ProductItem();
           item.setId(productItem.getId());
@@ -205,9 +236,6 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void initViews() {
-    // default: medications
-    this.title = context.getString(R.string.medications);
-
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(title);
     setSupportActionBar(toolbar);
@@ -220,13 +248,14 @@ public class MainActivity extends BaseActivity implements
       public void onDrawerOpened(View view) {
         super.onDrawerOpened(view);
         getSupportActionBar().setTitle(title);
+
         invalidateOptionsMenu(); // onPrepareOptionsMenu
       }
 
       public void onDrawerClosed(View view) {
         super.onDrawerClosed(view);
-        // TODO: update title
         getSupportActionBar().setTitle(title);
+
         invalidateOptionsMenu();  // onPrepareOptionsMenu
       }
     };
@@ -237,24 +266,40 @@ public class MainActivity extends BaseActivity implements
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
 
-    final EditText searchBox = (EditText)findViewById(R.id.search_box);
-    setupSearchBox(searchBox);
+    this.searchBox = (EditText)findViewById(R.id.search_box);
+    setupSearchBox();
 
     this.listView = (ListView)findViewById(R.id.list_view);
-    listView.setAdapter(productItemListAdapter);
-    // see adapter (OnTouchListener)
-    // listView.setOnItemClickListener(this);
 
+    // drawer navigation (products)
     NavigationView navigationView = (NavigationView)findViewById(
       R.id.navigation_view);
     navigationView.setNavigationItemSelectedListener(
       new NavigationView.OnNavigationItemSelectedListener() {
         @Override
         public boolean onNavigationItemSelected(MenuItem menuItem) {
-          menuItem.setChecked(true);
+          Log.d(TAG, "(onNavigationItemSelected) menuItem: " + menuItem);
+
+          searchBox.setCursorVisible(false);
+          searchBox.clearFocus();
+          fab.setVisibility(View.VISIBLE);
+
+          if (!menuItem.isChecked()) {
+            String name = getResources().getResourceEntryName(
+              menuItem.getItemId());
+            Log.d(TAG, "(onNavigationItemSelected) name: " + name);
+            String nextSourceType;
+            if (name.contains("prescriptions")) {
+              nextSourceType = "receipt";
+            } else {  // default (medications)
+              nextSourceType = "scanned";
+            }
+            title = menuItem.getTitle();  // update `title`
+            switchProduct(nextSourceType);
+            menuItem.setChecked(true);
+          }
           drawerLayout.closeDrawers();
-          Toast.makeText(
-            MainActivity.this, menuItem.getTitle(), Toast.LENGTH_LONG).show();
+          Toast.makeText(MainActivity.this, title, Toast.LENGTH_LONG).show();
           return true;
         }
     });
@@ -263,16 +308,19 @@ public class MainActivity extends BaseActivity implements
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Intent intent = new Intent(
-          MainActivity.this, BarcodeCaptureActivity.class);
-        intent.putExtra(Constant.kAutoFocus, true);
-        intent.putExtra(Constant.kUseFlash, true);
-        startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
+        if (sourceType.equals("scanned")) {
+          Intent intent = new Intent(
+            MainActivity.this, BarcodeCaptureActivity.class);
+          intent.putExtra(Constant.kAutoFocus, true);
+          intent.putExtra(Constant.kUseFlash, true);
+          startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
+        }
+        // TODO: prescriptions
       }
     });
   }
 
-  private void setupSearchBox(final EditText searchBox) {
+  private void setupSearchBox() {
     // filter
     searchBox.addTextChangedListener(new TextWatcher() {
       @Override
@@ -289,7 +337,7 @@ public class MainActivity extends BaseActivity implements
         // minimum 3 chars
         if (filterString.length() < 3) {
           if (filterString.length() == 0) {  // back to all items
-            productItemListAdapter.updateData(product.getItems());
+            listAdapter.updateData(product.getItems());
           }
           return;
         }
@@ -313,7 +361,7 @@ public class MainActivity extends BaseActivity implements
         // https://github.com/realm/realm-android-adapters/blob/\
         //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
         //   /io/realm/RealmBaseAdapter.java#L135
-        productItemListAdapter.updateData(data);
+        listAdapter.updateData(data);
       }
 
       @Override
@@ -556,7 +604,7 @@ public class MainActivity extends BaseActivity implements
                 productItem_.getSize() != null) {
               // TODO: stop redraw all items on listview
               // redraw this row
-              productItemListAdapter.refresh(productItem_, listView);
+              listAdapter.refresh(productItem_, listView);
 
               Log.d(TAG, "(updateFromFetch/onChange) productItem.name: " +
                     productItem_.getName());
