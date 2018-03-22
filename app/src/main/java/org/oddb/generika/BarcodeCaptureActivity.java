@@ -71,7 +71,7 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.BaseActivity;
 import org.oddb.generika.barcode.BarcodeGraphic;
 import org.oddb.generika.barcode.BarcodeGraphicTracker;
 import org.oddb.generika.barcode.BarcodeImageCapturingDetector;

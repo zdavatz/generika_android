@@ -26,7 +26,7 @@ import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
 
-import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.BaseActivity;
 
 
 public class InformationActivity extends BaseActivity {

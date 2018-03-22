@@ -62,7 +62,7 @@ import io.realm.OrderedCollectionChangeSet;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.BaseActivity;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.network.ProductItemDataFetchFragment;

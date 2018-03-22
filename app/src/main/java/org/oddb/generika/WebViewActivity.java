@@ -38,7 +38,7 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 
-import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.BaseActivity;
 import org.oddb.generika.util.Constant;
 
 

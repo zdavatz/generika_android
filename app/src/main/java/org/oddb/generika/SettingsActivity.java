@@ -23,7 +23,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import org.oddb.generika.app.BaseActivity;
+import org.oddb.generika.BaseActivity;
 
 
 public class SettingsActivity extends BaseActivity {
