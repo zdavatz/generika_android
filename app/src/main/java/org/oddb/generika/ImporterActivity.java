@@ -17,46 +17,30 @@
  */
 package org.oddb.generika;
 
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.MenuItem;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 
 import org.oddb.generika.BaseActivity;
 
 
-public class SettingsActivity extends BaseActivity {
-  private static final String TAG = "Settings";
+public class ImporterActivity extends BaseActivity {
+  private static final String TAG = "ImporterActivity";
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    setContentView(R.layout.activity_settings);
-    initViews();
-  }
-
-  private void initViews() {
-    Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
-    toolbar.setTitle(context.getString(R.string.settings));
-    setSupportActionBar(toolbar);
-
-    ActionBar actionBar = getSupportActionBar();
-    actionBar.setDisplayHomeAsUpEnabled(true);
-    actionBar.setDisplayShowHomeEnabled(true);
+    // e.g.
+    //
+    // * https://dl.grauwoelfchen.net/data/RZ_2018-01-13T183946.amk
+    // * file:///storage/emulated/0/Download/RZ_2017-12-20T141403.amk
+    Uri uri = getIntent().getData();
+    Log.d(TAG, "(onCreate) uri: " + uri);
   }
 
   @Override
   protected void onDestroy() {
     super.onDestroy();
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == android.R.id.home) {
-      finish();
-    }
-    return super.onOptionsItemSelected(item);
   }
 }

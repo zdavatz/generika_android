@@ -27,10 +27,60 @@
             android:value="barcode" />
 
         <activity
+            android:name=".ImporterActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden">
+
+            <!-- `Open With` from email attachment/browser/file explorer etc. -->
+            <intent-filter android:label="@string/app_name">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              <data
+                android:scheme="https"
+                android:host="*"
+                android:mimeType="application/octet-stream"
+                android:pathPattern=".*\\.amk" />
+            </intent-filter>
+
+            <intent-filter android:label="@string/app_name">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              <data
+                android:scheme="https"
+                android:host="*"
+                android:mimeType="application/json"
+                android:pathPattern=".*\\.amk" />
+            </intent-filter>
+
+            <intent-filter android:label="@string/app_name">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <data
+                android:scheme="content"
+                android:host="*"
+                android:mimeType="*/*"
+                android:pathPattern=".*\\.amk" />
+            </intent-filter>
+
+            <intent-filter android:label="@string/app_name">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <data
+                android:scheme="file"
+                android:host="*"
+                android:mimeType="*/*"
+                android:pathPattern=".*\\.amk" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

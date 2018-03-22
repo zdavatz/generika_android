@@ -14,9 +14,7 @@
 
     <!-- [drawer] -->
     <string name="medications">Médicaments</string>
-    <!--
     <string name="prescriptions">Ordonnance Médicale</string>
-    -->
 
     <!-- [settings]-->
     <!-- groups -->

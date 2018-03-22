@@ -33,7 +33,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -45,35 +44,29 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
-import io.realm.Case;
-import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.OrderedCollectionChangeSet;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
 
-import org.oddb.generika.app.BaseActivity;
-import org.oddb.generika.model.Product;
+import org.oddb.generika.BaseActivity;
+import org.oddb.generika.data.ProductItemManager;
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.network.ProductItemDataFetchFragment;
 import org.oddb.generika.ui.list.ProductItemListAdapter;
+import org.oddb.generika.ui.list.ScannedProductItemListAdapter;
+import org.oddb.generika.ui.list.ReceiptProductItemListAdapter;
 import org.oddb.generika.util.Constant;
 
 
@@ -83,6 +76,9 @@ public class MainActivity extends BaseActivity implements
     ProductItemDataFetchFragment.FetchResult> {
   private static final String TAG = "Main";
 
+  private static final String SOURCE_TYPE_SCANNED = "scanned"; // medications
+  private static final String SOURCE_TYPE_RECEIPT = "receipt"; // prescriptions
+
   // view
   private DrawerLayout drawerLayout;
   private ActionBarDrawerToggle drawerToggle;
@@ -90,10 +86,11 @@ public class MainActivity extends BaseActivity implements
   private ListView listView;
   private FloatingActionButton fab;
 
-  // database
-  private Realm realm;
-  private Product product;  // container object
-  private ProductItemListAdapter productItemListAdapter;
+  private EditText searchBox;
+
+  private String sourceType;
+  private ProductItemManager itemManager;  // data manager
+  private ProductItemListAdapter listAdapter; // scanned/receipt
 
   // network (headless fragment)
   private boolean fetching = false;
@@ -105,27 +102,51 @@ public class MainActivity extends BaseActivity implements
 
     setContentView(R.layout.activity_main);
 
-    // default: `scanned` product items
-    this.realm = Realm.getDefaultInstance();
-    this.product = realm.where(Product.class)
-      .equalTo("sourceType", "scanned").findFirst();
-
-    this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
-
-    initProductItems();
-
-    this.productItemListAdapter = new ProductItemListAdapter(
-      product.getItems());
-    productItemListAdapter.setCallback(this);
+    // default: medications (scanned product items)
+    this.itemManager = new ProductItemManager(SOURCE_TYPE_SCANNED);
+    this.title = context.getString(R.string.medications);
 
     initViews();
+
+    switchProduct("medications"); // medications/prescriptions
+  }
+
+  /**
+   * Switches product and list adapter
+   *
+   * @param String productName prescriptions/medications
+   * @return void
+   */
+  private void switchProduct(String productName) {
+    String sourceType_ = SOURCE_TYPE_SCANNED;
+    if (productName != null && productName.equals("prescriptions")) {
+      sourceType_ = SOURCE_TYPE_RECEIPT;
+    }
+    this.sourceType = sourceType_;
+
+    itemManager.bindProductBySourceType(sourceType);
+    initProductItems();
+
+    if (sourceType.equals(SOURCE_TYPE_SCANNED)) {
+      this.listAdapter = new ScannedProductItemListAdapter(
+        itemManager.getProductItems());
+      this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
+    } else if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {
+      this.listAdapter = new ReceiptProductItemListAdapter(
+        itemManager.getProductItems());
+      this.productItemDataFetcher = null;
+    }
+
+    // change list adapter
+    listAdapter.setCallback(this);
+    listView.setAdapter(listAdapter);
   }
 
   @Override
   protected void onDestroy() {
     super.onDestroy();
 
-    realm.close();
+    itemManager.release();
   }
 
   private ProductItemDataFetchFragment buildProductItemDataFetchFragment(
@@ -147,45 +168,24 @@ public class MainActivity extends BaseActivity implements
     return (ProductItemDataFetchFragment)fragment;
   }
 
-  private void insertPlaceholder(boolean withUniqueCheck) {
-    realm.beginTransaction();
-    // placeholder
-    ProductItem.Barcode barcode = new ProductItem.Barcode();
-    barcode.setValue(Constant.INIT_DATA.get("ean"));
-
-    // TODO: translation
-    ProductItem item = ProductItem.insertNewBarcodeItemIntoSource(
-      realm, barcode, product, withUniqueCheck);
-    item.setName(Constant.INIT_DATA.get("name"));
-    item.setSize(Constant.INIT_DATA.get("size"));
-    item.setDatetime(Constant.INIT_DATA.get("datetime"));
-    item.setPrice(Constant.INIT_DATA.get("price"));
-    item.setDeduction(Constant.INIT_DATA.get("deduction"));
-    item.setCategory(Constant.INIT_DATA.get("category"));
-    item.setExpiresAt(Constant.INIT_DATA.get("expiresAt"));
-    realm.commitTransaction();
-  }
-
   private void initProductItems() {
-    if (product == null) { return; }
-    if (product.getItems().size() == 0) {
-      ProductItem.withRetry(2, new ProductItem.WithRetry() {
-        @Override
-        public void execute(final int currentCount) {
-          insertPlaceholder(currentCount == 1);
-        }
-      });
+    // TODO:
+    if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {
+      return;
+    }
+
+    if (itemManager.getProductItems().size() == 0) {
+      itemManager.preparePlaceholder();
     }
 
     // Check new product item insertion via barcode reader
-    RealmList productItems = product.getItems();
+    RealmList productItems = itemManager.getProductItems();
     productItems.removeAllChangeListeners();
     productItems.addChangeListener(
       new OrderedRealmCollectionChangeListener<RealmList<ProductItem>>() {
       @Override
       public void onChange(
-        RealmList<ProductItem> items,
-        OrderedCollectionChangeSet changeSet) {
+        RealmList<ProductItem> items, OrderedCollectionChangeSet changeSet) {
         Log.d(TAG, "(addChangeListener) items.size: " + items.size());
 
         int insertions[] = changeSet.getInsertions();
@@ -208,9 +208,6 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void initViews() {
-    // default: medications
-    this.title = context.getString(R.string.medications);
-
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(title);
     setSupportActionBar(toolbar);
@@ -219,17 +216,17 @@ public class MainActivity extends BaseActivity implements
     this.drawerToggle = new ActionBarDrawerToggle(
       this, drawerLayout,
       R.string.open, R.string.close) {
-
       public void onDrawerOpened(View view) {
         super.onDrawerOpened(view);
         getSupportActionBar().setTitle(title);
+
         invalidateOptionsMenu(); // onPrepareOptionsMenu
       }
 
       public void onDrawerClosed(View view) {
         super.onDrawerClosed(view);
-        // TODO: update title
         getSupportActionBar().setTitle(title);
+
         invalidateOptionsMenu();  // onPrepareOptionsMenu
       }
     };
@@ -240,24 +237,40 @@ public class MainActivity extends BaseActivity implements
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
 
-    final EditText searchBox = (EditText)findViewById(R.id.search_box);
-    setupSearchBox(searchBox);
+    this.searchBox = (EditText)findViewById(R.id.search_box);
+    setupSearchBox();
 
     this.listView = (ListView)findViewById(R.id.list_view);
-    listView.setAdapter(productItemListAdapter);
-    // see adapter (OnTouchListener)
-    // listView.setOnItemClickListener(this);
 
+    // drawer navigation (products)
     NavigationView navigationView = (NavigationView)findViewById(
       R.id.navigation_view);
     navigationView.setNavigationItemSelectedListener(
       new NavigationView.OnNavigationItemSelectedListener() {
         @Override
         public boolean onNavigationItemSelected(MenuItem menuItem) {
-          menuItem.setChecked(true);
+          Log.d(TAG, "(onNavigationItemSelected) menuItem: " + menuItem);
+
+          searchBox.setCursorVisible(false);
+          searchBox.clearFocus();
+          fab.setVisibility(View.VISIBLE);
+
+          if (!menuItem.isChecked()) {
+            String name = getResources().getResourceEntryName(
+              menuItem.getItemId());
+            Log.d(TAG, "(onNavigationItemSelected) name: " + name);
+            String productName;
+            if (name.contains("prescriptions")) {
+              productName = "prescriptions";
+            } else {  // default (scanned product items)
+              productName = "medications";
+            }
+            title = menuItem.getTitle();  // update `title`
+            switchProduct(productName);
+            menuItem.setChecked(true);
+          }
           drawerLayout.closeDrawers();
-          Toast.makeText(
-            MainActivity.this, menuItem.getTitle(), Toast.LENGTH_LONG).show();
+          Toast.makeText(MainActivity.this, title, Toast.LENGTH_LONG).show();
           return true;
         }
     });
@@ -266,16 +279,20 @@ public class MainActivity extends BaseActivity implements
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Intent intent = new Intent(
-          MainActivity.this, BarcodeCaptureActivity.class);
-        intent.putExtra(Constant.kAutoFocus, true);
-        intent.putExtra(Constant.kUseFlash, true);
-        startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
+        if (sourceType.equals(SOURCE_TYPE_SCANNED)) { // medications
+          Intent intent = new Intent(
+            MainActivity.this, BarcodeCaptureActivity.class);
+          intent.putExtra(Constant.kAutoFocus, true);
+          intent.putExtra(Constant.kUseFlash, true);
+          startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
+        } else if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {  // prescriptions
+          // TODO: prescriptions
+        }
       }
     });
   }
 
-  private void setupSearchBox(final EditText searchBox) {
+  private void setupSearchBox() {
     // filter
     searchBox.addTextChangedListener(new TextWatcher() {
       @Override
@@ -292,23 +309,12 @@ public class MainActivity extends BaseActivity implements
         // minimum 3 chars
         if (filterString.length() < 3) {
           if (filterString.length() == 0) {  // back to all items
-            productItemListAdapter.updateData(product.getItems());
+            listAdapter.updateData(itemManager.getProductItems());
           }
           return;
         }
-
-        RealmResults<ProductItem> data;
-
-        realm.beginTransaction();
-        // insensitive wors only for latin-1 chars
-        data = product.getItems()
-          .where()
-          .contains("name", filterString, Case.INSENSITIVE)
-          .or()
-          .contains("ean", filterString)
-          .findAll();
-        realm.commitTransaction();
-
+        RealmResults<ProductItem> data = itemManager
+          .findProductItemsByNameOrEan(filterString);
         // NOTE:
         // This `updateData()` method invokes `notifyDataSetChanged()`, after
         // data set. See also below.
@@ -316,7 +322,7 @@ public class MainActivity extends BaseActivity implements
         // https://github.com/realm/realm-android-adapters/blob/\
         //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
         //   /io/realm/RealmBaseAdapter.java#L135
-        productItemListAdapter.updateData(data);
+        listAdapter.updateData(data);
       }
 
       @Override
@@ -412,7 +418,7 @@ public class MainActivity extends BaseActivity implements
             barcode_.setValue(barcode.displayValue);
             barcode_.setFilepath(filepath);
             // save record into realm (next: changeset listener)
-            addProductItem(barcode_);
+            itemManager.addProductItem(barcode_);
           }
         } else {
           Log.d(TAG, "(onActivityResult) Barcode not found");
@@ -430,30 +436,14 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
-  // TODO: Consider to create item manager
-  private void addProductItem(final ProductItem.Barcode barcode) {
-    ProductItem.withRetry(2, new ProductItem.WithRetry() {
-      @Override
-      public void execute(final int currentCount) {
-        Log.d(TAG, "(addProductItem/execute) currentCount: " + currentCount);
-        final Product product_ = product;
-        realm.executeTransaction(new Realm.Transaction() {
-          @Override
-          public void execute(Realm realm_) {
-            ProductItem.insertNewBarcodeItemIntoSource(
-              realm_, barcode, product_, (currentCount == 1));
-          }
-        });
-      }
-    });
-  }
-
   // -- ProductItemListAdapter.ItemListener
 
   @Override
   public void onDelete(String productItemId) {
-    // should check sourceType of Product?
-    deleteProductItem(productItemId); // productItem is primary key (itemTag)
+    // productItem is primary key (itemTag)
+    itemManager.deleteProductItem(productItemId);
+
+    // should check sourceType of Product at here?
   }
 
   @Override
@@ -464,55 +454,7 @@ public class MainActivity extends BaseActivity implements
     properties.put("expiresAt", ProductItem.makeExpiresAt(newDate));
     Log.d(TAG, "(onExpiresAtChange) expiresAt: " +
                ProductItem.makeExpiresAt(newDate));
-    updateProductItem(productItemId, properties, null);
-  }
-
-  // TODO: Consider to create item manager
-  // `realm_` parameter might be little bit ugly.
-  private void updateProductItem(
-    String productItemId, final HashMap properties, Realm realm_) {
-    final String id = productItemId;
-
-    Realm m = realm_; // not main ui thread
-    if (m == null) {
-      m = realm;
-    }
-
-    m.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm_) {
-        ProductItem productItem = realm_.where(ProductItem.class)
-          .equalTo("id", id).findFirst();
-        if (productItem != null) {
-          try {
-            if (productItem.isValid()) {
-              // TODO: create alert dialog for failure?
-              productItem.updateProperties(properties);
-            }
-          } catch (Exception e) {
-            Log.d(TAG, "(updateProductITem) Update error: " +
-                  e.getMessage());
-          }
-        }
-      }
-    });
-  }
-
-  // TODO: Consider to create item manager
-  private void deleteProductItem(String productItemId) {
-    final String id = productItemId;
-
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm realm_) {
-        ProductItem productItem = realm_.where(ProductItem.class)
-          .equalTo("id", id).findFirst();
-        if (productItem != null) {
-          // TODO: create alert dialog for failure?
-          productItem.delete();
-        }
-      }
-    });
+    itemManager.updateProductItem(productItemId, properties);
   }
 
   private void startFetching(ProductItem productItem) {
@@ -536,17 +478,14 @@ public class MainActivity extends BaseActivity implements
       Log.d(TAG, "(updateFromFetch) resut.itemId: " + id);
 
       final HashMap<String, String> properties = result.itemMap;
-
-      // realm is not transferred via background async task
-      Realm realm_ = Realm.getDefaultInstance();
+      // NOTE:
+      // realm is not transferred to background async task thread
+      // it's not accecible.
+      ProductItemManager itemManager_ = new ProductItemManager(
+        SOURCE_TYPE_SCANNED);
       try {
-        final ProductItem productItem = realm_.where(ProductItem.class)
-          .equalTo(ProductItem.FIELD_ID, id).findFirst();
-
+        final ProductItem productItem = itemManager_.getProductItemById(id);
         if (productItem == null) { return; }
-        // NOTE:
-        // try to remove at first (Fix remaining callback issue on Android 8.0)
-        // but not sure yet :/
         productItem.removeAllChangeListeners();
         // this listener is invoked after update transaction below
         productItem.addChangeListener(new RealmChangeListener<ProductItem>() {
@@ -559,7 +498,7 @@ public class MainActivity extends BaseActivity implements
                 productItem_.getSize() != null) {
               // TODO: stop redraw all items on listview
               // redraw this row
-              productItemListAdapter.refresh(productItem_, listView);
+              listAdapter.refresh(productItem_, listView);
 
               Log.d(TAG, "(updateFromFetch/onChange) productItem.name: " +
                     productItem_.getName());
@@ -571,11 +510,10 @@ public class MainActivity extends BaseActivity implements
             }
           }
         });
-        updateProductItem(productItem.getId(), properties, realm_);
+        // above onChange will be called
+        itemManager_.updateProductItem(productItem.getId(), properties);
       } finally {
-        if (realm_ != null) {
-          realm_.close();
-        }
+        itemManager_.release();
       }
     }
   }
@@ -655,7 +593,6 @@ public class MainActivity extends BaseActivity implements
       intent.putExtra(Constant.kSeq, productItem.getSeq());
     }
     startActivity(intent);
-
     overridePendingTransition(R.anim.slide_leave,
                               R.anim.slide_enter);
   }

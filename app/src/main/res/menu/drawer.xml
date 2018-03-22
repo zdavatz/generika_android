@@ -7,11 +7,9 @@
             android:icon="@drawable/ic_insert_photo_black_24dp"
             android:checked="true"
             android:title="@string/medications" />
-        <!--
         <item
             android:id="@+id/navigation_item_prescriptions"
             android:icon="@drawable/ic_move_to_inbox_black_24dp"
             android:title="@string/prescriptions" />
-        -->
     </group>
 </menu>
