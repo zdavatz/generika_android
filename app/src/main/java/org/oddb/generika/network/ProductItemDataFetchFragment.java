@@ -1,3 +1,20 @@
+/*
+ *  Generika Android
+ *  Copyright (C) 2018 ywesee GmbH
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package org.oddb.generika.network;
 
 import android.content.Context;
@@ -13,19 +30,14 @@ import android.util.Log;
 import org.json.JSONObject;
 import org.json.JSONException;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.lang.StringBuffer;
-import java.net.URL;
 import java.util.HashMap;
 
-import javax.net.ssl.HttpsURLConnection;
 
 import org.oddb.generika.model.ProductItem;
 import org.oddb.generika.util.Constant;
+import org.oddb.generika.util.ConnectionStream;
+import org.oddb.generika.util.StreamReader;
 
 
 public class ProductItemDataFetchFragment extends Fragment {
@@ -145,14 +157,14 @@ public class ProductItemDataFetchFragment extends Fragment {
       Result result = null;
 
       if (!isCancelled() && urls != null && urls.length > 0) {
-        Log.d(TAG, "(doInBackground) urls[0]: " + urls[0]);
+        String urlString = urls[0];
+        Log.d(TAG, "(doInBackground) urlString: " + urlString);
         try {
-          URL url = new URL(urls[0]);
-          String resultString = fetchUrl(url);
-          Log.d(TAG, "(doInBackground) resultString: " + resultString);
+          String response = fetch(urlString);
+          Log.d(TAG, "(doInBackground) response: " + response);
 
-          if (resultString != null) {
-            JSONObject jsonObj = new JSONObject(resultString);
+          if (response != null) {
+            JSONObject jsonObj = new JSONObject(response);
             result = new Result(jsonObj);  // inner result
           } else {
             throw new IOException("No response received");
@@ -197,60 +209,31 @@ public class ProductItemDataFetchFragment extends Fragment {
       // TODO
     }
 
-    private String fetchUrl(URL url) throws IOException {
-      InputStream stream = null;
-      HttpsURLConnection conn = null;
+    private String fetch(String urlString) throws IOException {
       String response = null;
-
+      ConnectionStream stream = null;
       try {
-        // TODO: set user-agent
-        conn = (HttpsURLConnection)url.openConnection();
-        conn.setReadTimeout(Constant.HUC_READ_TIMEOUT);
-        conn.setConnectTimeout(Constant.HUC_CONNECT_TIMEOUT);
-        conn.setRequestMethod("GET");
-        conn.setDoInput(true);
-        conn.connect();
+        stream = new ConnectionStream();
+        stream.setSource(urlString);
+
+        StreamReader reader = new StreamReader();
+        reader.setMaxReadLength(500);
+        reader.setStream(stream.derive());
         publishProgress(FetchCallback.Progress.CONNECT_SUCCESS);
-        int responseCode = conn.getResponseCode();
-        if (responseCode != HttpsURLConnection.HTTP_OK) {
-          throw new IOException("HTTP error code: " + responseCode);
-        }
-        stream = conn.getInputStream();
+
+        response = reader.read();
         publishProgress(FetchCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
-        if (stream != null) {
-          response = readStream(stream, 500);
-        }
+      } catch (IOException e) {
+        Log.d(TAG, "(fetch) e: " + e.getMessage());
+        e.printStackTrace();
       } finally {
         if (stream != null) {
           stream.close();
         }
-        if (conn != null) {
-          conn.disconnect();
-        }
       }
       return response;
     }
-
-    private String readStream(InputStream stream, int maxReadLength)
-      throws IOException, UnsupportedEncodingException {
-      Reader reader = null;
-      reader = new InputStreamReader(stream, "UTF-8");
-      char[] rawBuffer = new char[maxReadLength];
-      int readLength;
-
-      StringBuffer buffer = new StringBuffer();
-      while (((readLength = reader.read(rawBuffer)) != -1) &&
-             maxReadLength > 0) {
-        if (readLength > maxReadLength) {
-          readLength = maxReadLength;
-        }
-        buffer.append(rawBuffer, 0, readLength);
-        maxReadLength -= readLength;
-      }
-      return buffer.toString();
-    }
   }
-
 
   // -- fragment methods
 
