@@ -28,6 +28,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -129,7 +130,6 @@ public class ImporterActivity extends BaseActivity
 
   private void importJSON(String content) {
     Log.d(TAG, "(importJSON) content: " + content);
-    HashMap<String, String> map = new HashMap<String, String>();
     try {
       JSONObject json = new JSONObject(content);
       // Log.d(TAG, "(importJSON) JSONObject: " + json);
@@ -141,7 +141,7 @@ public class ImporterActivity extends BaseActivity
       //map.put("size", obj.getString("size"));
       //map.put("deduction", obj.getString("deduction"));
       //map.put("price", obj.getString("price"));
-      //map.put("category", obj.getString("category"));
+			//map.put("category", obj.getString("category"));
     } catch (Exception e) {
       Log.d(TAG, "(importJSON) exception: " + e.getMessage());
       e.printStackTrace();

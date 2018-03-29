@@ -24,11 +24,14 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.RealmConfiguration;
 
-import org.oddb.generika.model.Product;
+import org.oddb.generika.model.Data;
+import org.oddb.generika.model.Migration;
 import org.oddb.generika.util.AppLocale;
 
 
 public class GenerikaApplication extends Application {
+
+  private static final int SCHEME_VERSION = 1;
 
   @Override
   public void onCreate() {
@@ -47,30 +50,32 @@ public class GenerikaApplication extends Application {
 
   protected void initRealm() {
     Realm.init(this);
-    RealmConfiguration realmConfig = new RealmConfiguration.Builder()
+
+    RealmConfiguration config = new RealmConfiguration.Builder()
       .name("generika.realm")
+      .schemaVersion(SCHEME_VERSION)
+      .migration(new Migration())
       .initialData(new Realm.Transaction() {
         @Override
         public void execute(Realm realm) {
-          RealmResults<Product> products = realm.where(Product.class)
-            .findAll();
-          if (products.size() != 2) {
-            // by patient oneself / via barcode reader
-            Product p0 = realm.createObject(Product.class);
-            p0.setSourceType("scanned");
-
-            // by doctor, pharmacy (operator) / via receipt
-            Product p1 = realm.createObject(Product.class);
-            p1.setSourceType("receipt");
+          RealmResults<Data> data = realm.where(Data.class).findAll();
+          Data d0, d1;
+          if (data.size() != 2) {
+            // by patient oneself / via barcode scanner
+            d0 = realm.createObject(Data.class);
+            d0.setSourceType("barcode");
+            // by doctor, pharmacy (operator) / via .amk file
+            d1 = realm.createObject(Data.class);
+            d1.setSourceType("amkjson");
           }
         }
       })
       .build();
 
-    // enable this, if delete all product items at boot
+    // enable this, if delete all items at boot
     //Realm.deleteRealm(realmConfig);
 
-    Realm.setDefaultConfiguration(realmConfig);
+    Realm.setDefaultConfiguration(config);
   }
 
   protected void setLocale() {

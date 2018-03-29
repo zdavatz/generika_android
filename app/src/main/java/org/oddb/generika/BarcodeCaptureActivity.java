@@ -76,7 +76,7 @@ import org.oddb.generika.barcode.BarcodeGraphic;
 import org.oddb.generika.barcode.BarcodeGraphicTracker;
 import org.oddb.generika.barcode.BarcodeImageCapturingDetector;
 import org.oddb.generika.barcode.BarcodeTrackerFactory;
-import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.model.Product;
 import org.oddb.generika.ui.reader.CameraSource;
 import org.oddb.generika.ui.reader.CameraSourcePreview;
 import org.oddb.generika.ui.reader.GraphicOverlay;
@@ -369,7 +369,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       File barcodes = new File(data.files, "barcodes");
 
       // e.g. 7680529860526-20180223210923.jpg
-      String dateString = ProductItem.makeScannedAt(null);
+      String dateString = Product.makeScannedAt(null);
       String filename = String.format(
         "%s-%s.jpg", data.barcodeValue, dateString);
       Log.d(TAG, "(doInBackground) filename: " + filename);

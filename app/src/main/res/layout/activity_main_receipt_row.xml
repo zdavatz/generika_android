@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="83.0dp">
+
+    <com.daimajia.swipe.SwipeLayout
+      android:id="@+id/receipt_item_row"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent">
+
+      <!-- bottom -->
+      <LinearLayout
+          android:layout_width="72dp"
+          android:layout_height="match_parent"
+          android:background="@color/darkGray">
+
+          <ImageView
+              android:id="@+id/receipt_item_delete_button"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:layout_centerVertical="true"
+              android:layout_alignParentRight="true"
+              android:layout_gravity="center|right"
+              android:adjustViewBounds="false"
+              android:focusable="false"
+              android:paddingLeft="19dp"
+              android:paddingRight="16dp"
+              android:src="@android:drawable/ic_menu_delete"/>
+
+      </LinearLayout>
+
+      <!-- surface -->
+      <RelativeLayout
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:background="#fcfcfc">
+
+          <TextView
+              android:id="@+id/receipt_item_name"
+              android:layout_width="270.5dp"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="1.25dp"
+              android:layout_marginBottom="2.25dp"
+              android:singleLine="true"
+              android:paddingTop="1.5dp"
+              android:paddingRight="1.75dp"
+              android:paddingLeft="1.75dp"
+              android:paddingBottom="1.05dp"
+              android:textColor="@color/titleColor"
+              android:textSize="13.5sp"/>
+
+      </RelativeLayout>
+
+    </com.daimajia.swipe.SwipeLayout>
+
+</RelativeLayout>

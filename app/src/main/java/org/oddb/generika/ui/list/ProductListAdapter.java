@@ -19,6 +19,7 @@ package org.oddb.generika.ui.list;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,37 +27,203 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daimajia.swipe.SwipeLayout;
+import com.daimajia.swipe.SwipeLayout;
+import com.daimajia.swipe.implments.SwipeItemAdapterMangerImpl;
+import com.daimajia.swipe.interfaces.SwipeAdapterInterface;
+import com.daimajia.swipe.interfaces.SwipeItemMangerInterface;
+import com.daimajia.swipe.util.Attributes;
+
+import io.realm.OrderedRealmCollection;
 import io.realm.RealmList;
+import io.realm.RealmResults;
+import io.realm.RealmBaseAdapter;
 
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.oddb.generika.MainActivity;
 import org.oddb.generika.R;
-import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.model.Product;
 import org.oddb.generika.ui.MonthYearPickerDialogFragment;
-import org.oddb.generika.ui.list.BaseProductItemListAdapter;
 import org.oddb.generika.util.Constant;
 
 
-public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
-  private static final String TAG = "ScannedProductItemListAdapter";
+public class ProductListAdapter extends RealmBaseAdapter<Product>
+  implements SwipeItemMangerInterface, SwipeAdapterInterface {
+  private static final String TAG = "ProductListAdapter";
+
+  protected ListItemListener itemListener;
+  protected SwipeItemAdapterMangerImpl itemManager;
 
   private final Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
   private final Pattern deduction20 = Pattern.compile("\\A\\s*20\\s*%\\z");
 
-  public ScannedProductItemListAdapter(RealmList<ProductItem> realmList) {
-    super(realmList);
+  protected final String expiresAtFormat = "MM.yyyy";
+
+  public ProductListAdapter(RealmList<Product> realmList) {
+    super((OrderedRealmCollection<Product>)realmList);
+
+    // swipe
+    this.itemManager = new SwipeItemAdapterMangerImpl(this);
   }
+
+  public interface ListItemListener {
+    abstract void onDelete(String itemId);
+    abstract void onExpiresAtChange(String itemId, Date newDate);
+  }
+
+  public void setCallback(ListItemListener callback) {
+    this.itemListener = callback;
+  }
+
+  @Override
+  public void updateData(@Nullable OrderedRealmCollection<Product> data) {
+    super.updateData(data);
+    // pass
+  }
+
+  @Override
+  public boolean hasStableIds() { // default: false
+    return false;
+  }
+
+  @Override
+  public long getItemId(int position) {
+    // NOTE:
+    // this is same the getItemId() of current RealmBaseAdapter class.
+    // Our primary key is String UUID. It's guranteed uniqueness in DB through
+    // use of retry block, but `hashCode` is not enough to provide uniqueness
+    // here :'(
+    //return getItem(position).getId().hashCode();
+    // TODO: think another good way
+    return position;
+  }
+
+  // -- swipe action
+
+  // swipe layout wrapper holds custom touch status fields
+  public class SwipeRow {
+    // touch directions
+    public final static int kRighttoLeft = -1;
+    public final static int kNone= 0;
+    public final static int kLefttoRight = 1;
+
+    // duration as range of touch event for swipe action
+    public final HashMap<String, Integer> kSwipeDurationThreshold =
+      new HashMap<String, Integer>() {{ // will be checked with uptimeMillis
+        put("min", Constant.SWIPE_DURATION_MIN);
+        put("max", Constant.SWIPE_DURATION_MAX);
+      }};
+
+    // custom fields
+    private int touchDown = 0;
+    private int touchDirection = kNone;
+    private long touchStartedAt = 0;
+    private boolean hasDialog = false;
+
+    public Product item;
+    public SwipeLayout layout;
+
+    SwipeRow(SwipeLayout layout) {
+      this.layout = layout;
+    }
+
+    // delegate to layout
+    public void setOnTouchListener(View.OnTouchListener listener) {
+      this.layout.setOnTouchListener(listener);
+    }
+    public String getState() { return this.layout.getOpenStatus().toString(); }
+    public String getEdge() { return this.layout.getDragEdge().toString(); }
+    public void open(boolean smooth) { this.layout.open(smooth);}
+    public void close(boolean smooth) { this.layout.close(smooth); }
+
+    // accessor methods
+    public void setTouchDown(int v) { this.touchDown = v; }
+    public int getTouchDown() { return this.touchDown; }
+
+    public void setTouchDirection(int v) { this.touchDirection = v; }
+    public int getTouchDirection() { return this.touchDirection; }
+
+    public void setTouchStartedAt(long v) { this.touchStartedAt = v; }
+    public long getTouchStartedAt() { return this.touchStartedAt; }
+
+    public void setHasDialog(boolean v) { this.hasDialog = v; }
+    public boolean hasDialog() { return this.hasDialog; }
+
+    // product as item
+    public void setItem(Product item) { this.item = item; }
+    public Product getItem() { return this.item; }
+  }
+
+  @Override
+  public int getSwipeLayoutResourceId(int _position) {
+    return R.id.product_item_row;
+  }
+
+  @Override
+  public void openItem(int position) {
+    itemManager.openItem(position);
+  }
+
+  @Override
+  public void closeItem(int position) {
+    itemManager.closeItem(position);
+  }
+
+  @Override
+  public void closeAllExcept(SwipeLayout layout) {
+    itemManager.closeAllExcept(layout);
+  }
+
+  @Override
+  public void closeAllItems() {
+    itemManager.closeAllItems();
+  }
+
+  @Override
+  public List<Integer> getOpenItems() {
+    return itemManager.getOpenItems();
+  }
+
+  @Override
+  public List<SwipeLayout> getOpenLayouts() {
+    return itemManager.getOpenLayouts();
+  }
+
+  @Override
+  public void removeShownLayouts(SwipeLayout layout) {
+    itemManager.removeShownLayouts(layout);
+  }
+
+  @Override
+  public boolean isOpen(int position) {
+    return itemManager.isOpen(position);
+  }
+
+  @Override
+  public Attributes.Mode getMode() {
+    return itemManager.getMode();
+  }
+
+  @Override
+  public void setMode(Attributes.Mode mode) {
+    itemManager.setMode(mode);
+  }
+
+  // -- view
 
   private static class ViewHolder {
     ImageView barcodeImage;
@@ -80,7 +247,7 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
   public View getView(final int position, View convertView, ViewGroup parent) {
     View view = convertView;
     if (view == null) {
-      view = super.getView(position, convertView, parent);
+      view = generateView(position, parent);
       itemManager.initialize(view, position);
     } else {
       itemManager.updateConvertView(view, position);
@@ -93,9 +260,9 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
     layout.close();
     layout.setShowMode(SwipeLayout.ShowMode.LayDown);
 
-    ProductItem productItem = (ProductItem)getItem(position);
+    Product item = (Product)getItem(position);
     final SwipeRow row = new SwipeRow(layout);
-    row.setProductItem(productItem);
+    row.setItem(item);
 
     // handle other touch events
     row.setOnTouchListener(new View.OnTouchListener() {
@@ -130,7 +297,7 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
               Log.d(TAG, "(onTouch/up) short tap, duration: " + duration);
               // short (single) tap
               // TODO: re-consider it might be not good (usage: MainActivity)
-              ProductItem item = row.getProductItem();
+              Product item = (Product)row.getItem();
               if ((item == null || item.getEan() == null) ||
                   (item.getEan().equals(Constant.INIT_DATA.get("ean")))) {
                 // placeholder row
@@ -207,7 +374,7 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
 
   private void showMonthYearPickerDialog(SwipeRow row, Context context) {
     // extract month and year
-    String expiresAt = ProductItem.getLocalDateAs(
+    String expiresAt = Product.getLocalDateAs(
       row.item.getExpiresAt(), expiresAtFormat);
     String[] dateFields = {"", ""};
     if (expiresAt.contains(".")) {
@@ -230,7 +397,7 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
       public void onDateSet(
         DatePicker view, int year, int month, int _dayOfMonth) {
         row.setHasDialog(false);
-        ProductItem item = row.getProductItem();
+        Product item = row.getItem();
         if (itemListener != null && item != null) {
           Calendar cal = Calendar.getInstance();  // local time zone
           cal.set(Calendar.YEAR, year);
@@ -249,25 +416,24 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
       "MonthYearPickerDialogFragment");
   }
 
-  @Override
   protected View generateView(int position, ViewGroup parent) {
     return LayoutInflater.from(parent.getContext()).inflate(
-        R.layout.activity_main_row, parent, false);
+        R.layout.activity_main_product_row, parent, false);
   }
 
   private void fillValues(int position, View convertView, ViewGroup parent) {
     View view = convertView;
     Context context = (Context)parent.getContext();
 
-    final ProductItem item = (ProductItem)getItem(position);
+    final Product item = (Product)getItem(position);
     final String itemId = item.getId();
 
-    // row for scanned product item
+    // row for product
     ViewHolder viewHolder = new ViewHolder();
 
     // barcode image
     viewHolder.barcodeImage = (ImageView)view.findViewById(
-      R.id.scanned_product_item_barcode_image);
+      R.id.product_item_barcode_image);
     String filepath = item.getFilepath();
     if (filepath != null) {
       File imageFile = new File(filepath);
@@ -280,51 +446,51 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
 
     // name
     viewHolder.name = (TextView)view.findViewById(
-      R.id.scanned_product_item_name);
+      R.id.product_item_name);
     viewHolder.name.setText(item.getName());
 
     // size
     viewHolder.size = (TextView)view.findViewById(
-      R.id.scanned_product_item_size);
+      R.id.product_item_size);
     viewHolder.size.setText(item.getSize());
     // datetime
     viewHolder.datetime = (TextView)view.findViewById(
-      R.id.scanned_product_item_datetime);
+      R.id.product_item_datetime);
     viewHolder.datetime.setText(
-      ProductItem.getLocalDateAs(item.getDatetime(), "HH:mm dd.MM.YYYY"));
+      item.getLocalDateAs(item.getDatetime(), "HH:mm dd.MM.YYYY"));
 
     // price
     viewHolder.price = (TextView)view.findViewById(
-      R.id.scanned_product_item_price);
+      R.id.product_item_price);
     viewHolder.price.setText(item.getPrice());
     // deduction
     viewHolder.deduction = (TextView)view.findViewById(
-      R.id.scanned_product_item_deduction);
+      R.id.product_item_deduction);
     String deductionValue = item.getDeduction();
     viewHolder.deduction.setText(deductionValue);
     viewHolder.deduction.setTextColor(
       composeDeductionTextColor(deductionValue, context));
     // category
     viewHolder.category = (TextView)view.findViewById(
-      R.id.scanned_product_item_category);
+      R.id.product_item_category);
     viewHolder.category.setText(item.getCategory());
 
     // ean
     viewHolder.ean = (TextView)view.findViewById(
-      R.id.scanned_product_item_ean);
+      R.id.product_item_ean);
     viewHolder.ean.setText(item.getEan());
     // expiresAt
-    String expiresAtValue = ProductItem.getLocalDateAs(
+    String expiresAtValue = Product.getLocalDateAs(
       item.getExpiresAt(), expiresAtFormat);
     viewHolder.expiresAt = (TextView)view.findViewById(
-      R.id.scanned_product_item_expires_at);
+      R.id.product_item_expires_at);
     viewHolder.expiresAt.setText(expiresAtValue);
     viewHolder.expiresAt.setTextColor(
       composeExpiresAtTextColor(expiresAtValue, context));
 
     // delete button
     ImageView deleteButton = (ImageView)view.findViewById(
-      R.id.scanned_product_item_delete_button);
+      R.id.product_item_delete_button);
     deleteButton.setTag(itemId);
     deleteButton.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -383,5 +549,42 @@ public class ScannedProductItemListAdapter extends BaseProductItemListAdapter {
       // pass (default color)
     }
     return color;
+  }
+
+  // -- util
+
+  /**
+   * Findes the row (view) for product list item, then refreshes only it.
+   *
+   * @param Produt product target product item instance
+   * @param ListView listView
+   * @return void
+   */
+  public void refresh(Product product, ListView listView) {
+    // find it in visible range
+    int startPosition = listView.getFirstVisiblePosition();
+    Product item;
+    for (int i = startPosition,
+             j = listView.getLastVisiblePosition(); i <= j; i++) {
+      if (i < listView.getCount()) {
+        try {
+          item = (Product)listView.getItemAtPosition(i);
+        } catch (ArrayIndexOutOfBoundsException ignore) {
+          Log.d(TAG, "(refresh) startPosition: " + startPosition);
+          Log.d(TAG, "(refresh) i: " + i);
+          Log.d(TAG, "(refresh) j: " + j);
+          break;  // listView has already changed?
+        }
+        if (product.equals(item)) {
+          Log.d(TAG, "(refresh) item.ean: " + item.getEan());
+          // TODO: refactor view
+          View view = listView.getChildAt(i - startPosition);
+          // `getView()` is same as `listView.getAdapter().getView()`
+          View row = getView(i, view, listView);
+          row.setVisibility(View.VISIBLE);
+          break;
+        }
+      }
+    }
   }
 }

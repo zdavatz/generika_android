@@ -19,13 +19,14 @@ package org.oddb.generika.ui.list;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListAdapter;
-import android.widget.ListView;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.implments.SwipeItemAdapterMangerImpl;
 import com.daimajia.swipe.interfaces.SwipeAdapterInterface;
@@ -34,51 +35,42 @@ import com.daimajia.swipe.util.Attributes;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmList;
-import io.realm.RealmResults;
 import io.realm.RealmBaseAdapter;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import org.oddb.generika.R;
-import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.model.Receipt;
 import org.oddb.generika.util.Constant;
 
 
-abstract public class BaseProductItemListAdapter
-  extends RealmBaseAdapter<ProductItem>
-  implements
-    ProductItemListAdapter,
-    SwipeItemMangerInterface,
-    SwipeAdapterInterface {
-  private static final String TAG = "BaseProductItemListAdapter";
+public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
+  implements SwipeItemMangerInterface, SwipeAdapterInterface {
+  private static final String TAG = "ReceiptListAdapter";
 
-  protected ProductItemListAdapter.ItemListener itemListener;
+  protected ListItemListener itemListener;
   protected SwipeItemAdapterMangerImpl itemManager;
 
-  protected final String expiresAtFormat = "MM.yyyy";
-
-  public BaseProductItemListAdapter(RealmList<ProductItem> realmList) {
-    super((OrderedRealmCollection<ProductItem>)realmList);
+  public ReceiptListAdapter(RealmList<Receipt> realmList) {
+    super((OrderedRealmCollection<Receipt>)realmList);
 
     // swipe
     this.itemManager = new SwipeItemAdapterMangerImpl(this);
   }
 
-  // -- ProductItemListAdapter: ListAdapter
-  
-  @Override
-  public void updateData(@Nullable OrderedRealmCollection<ProductItem> data) {
-    super.updateData(data);
+  public interface ListItemListener {
+    abstract void onDelete(String itemId);
+  }
 
-    // pass
+  public void setCallback(ListItemListener callback) {
+    this.itemListener = callback;
   }
 
   @Override
-  public void setCallback(ProductItemListAdapter.ItemListener callback) {
-    // list
-    this.itemListener = callback;
+  public void updateData(@Nullable OrderedRealmCollection<Receipt> data) {
+    super.updateData(data);
+    // pass
   }
 
   @Override
@@ -98,10 +90,18 @@ abstract public class BaseProductItemListAdapter
     return position;
   }
 
-  // -- SwipeLayout
+  private static class ViewHolder {
+    TextView name;
+
+    // TODO
+
+    ImageView deleteButton;
+  }
+
+  // -- swipe action
 
   // swipe layout wrapper holds custom touch status fields
-  protected class SwipeRow {
+  public class SwipeRow {
     // touch directions
     public final static int kRighttoLeft = -1;
     public final static int kNone= 0;
@@ -120,7 +120,7 @@ abstract public class BaseProductItemListAdapter
     private long touchStartedAt = 0;
     private boolean hasDialog = false;
 
-    public ProductItem item;
+    public Receipt item;
     public SwipeLayout layout;
 
     SwipeRow(SwipeLayout layout) {
@@ -149,24 +149,14 @@ abstract public class BaseProductItemListAdapter
     public void setHasDialog(boolean v) { this.hasDialog = v; }
     public boolean hasDialog() { return this.hasDialog; }
 
-    public void setProductItem(ProductItem item) { this.item = item; }
-    public ProductItem getProductItem() { return this.item; }
+    // receipt as item
+    public void setItem(Receipt item) { this.item = item; }
+    public Receipt getItem() { return this.item; }
   }
-
-  @Override
-  public View getView(final int position, View convertView, ViewGroup parent) {
-    View view = convertView;
-    if (view == null) {
-      view = generateView(position, parent);
-    }
-    return view;
-  }
-
-  abstract protected View generateView(final int position, ViewGroup parent);
 
   @Override
   public int getSwipeLayoutResourceId(int _position) {
-    return R.id.scanned_product_item_row;
+    return R.id.receipt_item_row;
   }
 
   @Override
@@ -217,5 +207,78 @@ abstract public class BaseProductItemListAdapter
   @Override
   public void setMode(Attributes.Mode mode) {
     itemManager.setMode(mode);
+  }
+
+  // -- view
+
+  @Override
+  public View getView(final int position, View convertView, ViewGroup parent) {
+    View view = convertView;
+    if (view == null) {
+      view = generateView(position, parent);
+      itemManager.initialize(view, position);
+    } else {
+      itemManager.updateConvertView(view, position);
+    }
+
+    final ViewGroup parentView = parent;
+
+    final SwipeLayout layout = (SwipeLayout)view.findViewById(
+      getSwipeLayoutResourceId(position));
+    layout.close();
+    layout.setShowMode(SwipeLayout.ShowMode.LayDown);
+
+    Receipt item = (Receipt)getItem(position);
+    final SwipeRow row = new SwipeRow(layout);
+    row.setItem(item);
+
+    // handle other touch events
+    row.setOnTouchListener(new View.OnTouchListener() {
+      @Override
+      public boolean onTouch(View view, MotionEvent event) {
+        // TODO
+        return false;
+      }
+    });
+
+    fillValues(position, view, parent);
+    return view;
+  }
+
+  protected View generateView(int position, ViewGroup parent) {
+    return LayoutInflater.from(parent.getContext()).inflate(
+        R.layout.activity_main_receipt_row, parent, false);
+  }
+
+  private void fillValues(int position, View convertView, ViewGroup parent) {
+    View view = convertView;
+    Context context = (Context)parent.getContext();
+
+    final Receipt item = (Receipt)getItem(position);
+    final String itemId = item.getId();
+
+    // row for receipt
+    ViewHolder viewHolder = new ViewHolder();
+    // name
+    viewHolder.name = (TextView)view.findViewById(
+      R.id.receipt_item_name);
+    viewHolder.name.setText(item.getName());
+
+    // delete button
+    ImageView deleteButton = (ImageView)view.findViewById(
+      R.id.receipt_item_delete_button);
+    deleteButton.setTag(itemId);
+    deleteButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (itemListener != null) {
+          itemListener.onDelete((String)view.getTag());
+        }
+      }
+    });
+    viewHolder.deleteButton = deleteButton;
+    viewHolder.deleteButton.setTag(itemId);
+
+    view.setTag(viewHolder);
   }
 }

@@ -33,24 +33,22 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.HashMap;
 
-
-import org.oddb.generika.model.ProductItem;
+import org.oddb.generika.model.Product;
 import org.oddb.generika.util.Constant;
 import org.oddb.generika.util.ConnectionStream;
 import org.oddb.generika.util.StreamReader;
 
 
-public class ProductItemDataFetchFragment extends Fragment {
-  public static final String TAG = "ProductItemDataFetchFragment";
+public class ProductInfoFetcher extends Fragment {
+  public static final String TAG = "ProductInfoFetcher";
 
   private FetchCallback<FetchResult> fetchCallback;
   private FetchTask fetchTask;
   private String baseUrl;
 
-  // ProductItem
-  private String itemId;
-  private String itemEan;
-
+  // Product
+  private String id;
+  private String ean;
 
   public interface FetchCallback<T> {
     interface Progress {
@@ -71,27 +69,27 @@ public class ProductItemDataFetchFragment extends Fragment {
   }
 
   public class FetchResult {
-    public String itemId;
-    public HashMap<String, String> itemMap;
+    public String id;
+    public HashMap<String, String> map;
     public String errorMessage;
 
     public FetchResult(FetchTask.Result result) throws JSONException {
       if (result != null) {
-        this.itemId = result.itemId;
+        this.id = result.id;
 
-        if (result.itemObj != null) {
-          JSONObject obj = result.itemObj;
+        if (result.object != null) {
+          JSONObject object = result.object;;
           // just map all values as string, here
-          HashMap<String, String> itemMap = new HashMap<String, String>();
-          itemMap.put("seq", obj.getString("seq"));
-          itemMap.put("name", obj.getString("name"));
-          // not used (extracted from ean in ProductItem)
-          //itemMap.put("pack", obj.getString("pack"));
-          itemMap.put("size", obj.getString("size"));
-          itemMap.put("deduction", obj.getString("deduction"));
-          itemMap.put("price", obj.getString("price"));
-          itemMap.put("category", obj.getString("category"));
-          this.itemMap = itemMap;
+          HashMap<String, String> map = new HashMap<String, String>();
+          map.put("seq", object.getString("seq"));
+          map.put("name", object.getString("name"));
+          // not used (extracted from ean)
+          // map.put("pack", object.getString("pack"));
+          map.put("size", object.getString("size"));
+          map.put("deduction", object.getString("deduction"));
+          map.put("price", object.getString("price"));
+          map.put("category", object.getString("category"));
+          this.map = map;
         }
         if (result.exception != null) {
           this.errorMessage = result.exception.getMessage();
@@ -115,12 +113,12 @@ public class ProductItemDataFetchFragment extends Fragment {
 
     // inner result object
     private class Result {
-      public String itemId;
-      public JSONObject itemObj;
+      public String id;
+      public JSONObject object;
       public Exception exception;
 
-      public Result(JSONObject itemObj) {
-        this.itemObj = itemObj;
+      public Result(JSONObject object) {
+        this.object = object;
       }
 
       public Result(Exception exception) {
@@ -141,7 +139,7 @@ public class ProductItemDataFetchFragment extends Fragment {
             // TODO: replace with translated string
             Result result = new Result(
               new Exception("Keine Verbindung zum Internet!"));
-            result.itemId = itemId;
+            result.id = id;
             fetchCallback.updateFromFetch(new FetchResult(result));
           } catch (Exception e) {  // (unexpected) JSONException
             // don't care
@@ -164,8 +162,8 @@ public class ProductItemDataFetchFragment extends Fragment {
           Log.d(TAG, "(doInBackground) response: " + response);
 
           if (response != null) {
-            JSONObject jsonObj = new JSONObject(response);
-            result = new Result(jsonObj);  // inner result
+            JSONObject json = new JSONObject(response);
+            result = new Result(json);  // inner result
           } else {
             throw new IOException("No response received");
           }
@@ -176,7 +174,7 @@ public class ProductItemDataFetchFragment extends Fragment {
           String message = String.format(
             "%s\n\"%s\"",
             "Kein Medikament gefunden auf Generika.cc mit dem folgenden EAN-Code:",
-            itemEan);
+            ean);
           result = new Result(new Exception(message));
         }
       }
@@ -189,10 +187,10 @@ public class ProductItemDataFetchFragment extends Fragment {
       if (fetchCallback != null) {
         try {
           if (result != null &&
-              (result.itemObj != null || result.exception != null)) {
+              (result.object != null || result.exception != null)) {
             // inner result to final result (FetchResult)
             FetchResult fetchResult = new FetchResult(result);
-            fetchResult.itemId = itemId;
+            fetchResult.id = id;
             fetchCallback.updateFromFetch(fetchResult);
           }
         } catch (JSONException e) {
@@ -237,13 +235,13 @@ public class ProductItemDataFetchFragment extends Fragment {
 
   // -- fragment methods
 
-  public static ProductItemDataFetchFragment getInstance(
+  public static ProductInfoFetcher getInstance(
     FragmentManager fragmentManager, String baseUrl) {
 
-    ProductItemDataFetchFragment fragment = (ProductItemDataFetchFragment)
-      fragmentManager.findFragmentByTag(ProductItemDataFetchFragment.TAG);
+    ProductInfoFetcher fragment = (ProductInfoFetcher)
+      fragmentManager.findFragmentByTag(ProductInfoFetcher.TAG);
     if (fragment == null) {
-      fragment = new ProductItemDataFetchFragment();
+      fragment = new ProductInfoFetcher();
     } else if (fragment.getArguments() != null) {
       fragment.getArguments().clear();
     }
@@ -298,16 +296,15 @@ public class ProductItemDataFetchFragment extends Fragment {
     super.onDestroy();
   }
 
-  public void invokeFetch(ProductItem productItem) {
+  public void invokeFetch(Product product) {
     cancelFetch();
     this.fetchTask = new FetchTask(this.fetchCallback);
 
-    this.itemId = productItem.getId();
-    this.itemEan = productItem.getEan();
-    productItem = null;
+    this.id = product.getId();
+    this.ean = product.getEan();
 
     String urlString = baseUrl;
-    urlString += itemEan;
+    urlString += ean;
 
     Log.d(TAG, "(invokeFetch) urlString: " + urlString);
     fetchTask.execute(urlString);

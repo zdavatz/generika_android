@@ -61,23 +61,22 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.oddb.generika.BaseActivity;
-import org.oddb.generika.data.ProductItemManager;
-import org.oddb.generika.model.ProductItem;
-import org.oddb.generika.network.ProductItemDataFetchFragment;
-import org.oddb.generika.ui.list.ProductItemListAdapter;
-import org.oddb.generika.ui.list.ScannedProductItemListAdapter;
-import org.oddb.generika.ui.list.ReceiptProductItemListAdapter;
+import org.oddb.generika.data.DataManager;
+import org.oddb.generika.model.Product;
+import org.oddb.generika.network.ProductInfoFetcher;
+import org.oddb.generika.ui.list.ProductListAdapter;
+import org.oddb.generika.ui.list.ReceiptListAdapter;
 import org.oddb.generika.util.Constant;
 
 
 public class MainActivity extends BaseActivity implements
-  ProductItemListAdapter.ItemListener,
-  ProductItemDataFetchFragment.FetchCallback<
-    ProductItemDataFetchFragment.FetchResult> {
+  ProductListAdapter.ListItemListener,
+  ReceiptListAdapter.ListItemListener,
+  ProductInfoFetcher.FetchCallback<ProductInfoFetcher.FetchResult> {
   private static final String TAG = "Main";
 
-  private static final String SOURCE_TYPE_SCANNED = "scanned"; // medications
-  private static final String SOURCE_TYPE_RECEIPT = "receipt"; // prescriptions
+  private static final String SOURCE_TYPE_BARCODE = "barcode"; // product
+  private static final String SOURCE_TYPE_AMKJSON = "amkjson"; // receipt
 
   // view
   private DrawerLayout drawerLayout;
@@ -89,12 +88,13 @@ public class MainActivity extends BaseActivity implements
   private EditText searchBox;
 
   private String sourceType;
-  private ProductItemManager itemManager;  // data manager
-  private ProductItemListAdapter listAdapter; // scanned/receipt
+  private DataManager dataManager;
+  // TODO
+  private ProductListAdapter listAdapter; // products / receipts
 
   // network (headless fragment)
   private boolean fetching = false;
-  private ProductItemDataFetchFragment productItemDataFetcher;
+  private ProductInfoFetcher fetcher;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -102,39 +102,35 @@ public class MainActivity extends BaseActivity implements
 
     setContentView(R.layout.activity_main);
 
-    // default: medications (scanned product items)
-    this.itemManager = new ProductItemManager(SOURCE_TYPE_SCANNED);
+    // default: drugs (barcode product)
     this.title = context.getString(R.string.medications);
+    this.dataManager = new DataManager(SOURCE_TYPE_BARCODE);
 
     initViews();
 
-    switchProduct("medications"); // medications/prescriptions
+    switchSource(SOURCE_TYPE_BARCODE);
   }
 
   /**
-   * Switches product and list adapter
+   * Switches source and list adapter
    *
    * @param String productName prescriptions/medications
    * @return void
    */
-  private void switchProduct(String productName) {
-    String sourceType_ = SOURCE_TYPE_SCANNED;
-    if (productName != null && productName.equals("prescriptions")) {
-      sourceType_ = SOURCE_TYPE_RECEIPT;
-    }
+  private void switchSource(String sourceType_) {
     this.sourceType = sourceType_;
 
-    itemManager.bindProductBySourceType(sourceType);
-    initProductItems();
+    dataManager.bindDataBySourceType(sourceType);
+    initData();
 
-    if (sourceType.equals(SOURCE_TYPE_SCANNED)) {
-      this.listAdapter = new ScannedProductItemListAdapter(
-        itemManager.getProductItems());
-      this.productItemDataFetcher = buildProductItemDataFetchFragment(context);
-    } else if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {
-      this.listAdapter = new ReceiptProductItemListAdapter(
-        itemManager.getProductItems());
-      this.productItemDataFetcher = null;
+    if (sourceType.equals(SOURCE_TYPE_BARCODE)) {
+      this.listAdapter = new ProductListAdapter(dataManager.getProducts());
+      this.fetcher = buildProductInfoFetcher(context);
+    } else if (sourceType.equals(SOURCE_TYPE_AMKJSON)) {
+      // TODO: receipts
+      //this.listAdapter = new ReceiptListAdapter(null);
+      this.listAdapter = new ProductListAdapter(dataManager.getProducts());
+      this.fetcher = null;
     }
 
     // change list adapter
@@ -146,14 +142,13 @@ public class MainActivity extends BaseActivity implements
   protected void onDestroy() {
     super.onDestroy();
 
-    itemManager.release();
+    dataManager.release();
   }
 
-  private ProductItemDataFetchFragment buildProductItemDataFetchFragment(
-      Context context_) {
+  private ProductInfoFetcher buildProductInfoFetcher(Context context_) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     Fragment fragment = fragmentManager.findFragmentByTag(
-      ProductItemDataFetchFragment.TAG);
+      ProductInfoFetcher.TAG);
     if (fragment == null) {
       // check search lang in preference
       SharedPreferences sharedPreferences = PreferenceManager
@@ -162,46 +157,41 @@ public class MainActivity extends BaseActivity implements
         Constant.kSearchLang, Constant.LANG_DE);
       String urlBase = String.format(
         Constant.API_URL_PATH, searchLang);
-      fragment = ProductItemDataFetchFragment.getInstance(
-        fragmentManager, urlBase);
+      fragment = ProductInfoFetcher.getInstance(fragmentManager, urlBase);
     }
-    return (ProductItemDataFetchFragment)fragment;
+    return (ProductInfoFetcher)fragment;
   }
 
-  private void initProductItems() {
+  private void initData() {
     // TODO:
-    if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {
+    if (sourceType.equals(SOURCE_TYPE_AMKJSON)) {
       return;
     }
 
-    if (itemManager.getProductItems().size() == 0) {
-      itemManager.preparePlaceholder();
+    if (dataManager.getProducts().size() == 0) {
+      dataManager.preparePlaceholder();
     }
 
-    // Check new product item insertion via barcode reader
-    RealmList productItems = itemManager.getProductItems();
-    productItems.removeAllChangeListeners();
-    productItems.addChangeListener(
-      new OrderedRealmCollectionChangeListener<RealmList<ProductItem>>() {
+    // Check new product insertion via barcode reader
+    RealmList products = dataManager.getProducts();
+    products.removeAllChangeListeners();
+    products.addChangeListener(
+      new OrderedRealmCollectionChangeListener<RealmList<Product>>() {
       @Override
       public void onChange(
-        RealmList<ProductItem> items, OrderedCollectionChangeSet changeSet) {
+        RealmList<Product> items, OrderedCollectionChangeSet changeSet) {
         Log.d(TAG, "(addChangeListener) items.size: " + items.size());
 
         int insertions[] = changeSet.getInsertions();
         if (insertions != null && insertions.length == 1) {  // new scan
           int i = insertions[0];
           Log.d(TAG, "(addChangeListener) inserttion: " + i);
-          ProductItem productItem = items.get(i);
-          if (productItem.getEan().equals(Constant.INIT_DATA.get("ean"))) {
+          Product product = (Product)items.get(i);
+          if (product.getEan().equals(Constant.INIT_DATA.get("ean"))) {
             return; // do nothing for placeholder row
           }
-          // pass dummy object as container for id and ean
-          ProductItem item = new ProductItem();
-          item.setId(productItem.getId());
-          item.setEan(productItem.getEan());
           // invoke async api call
-          startFetching(item);
+          startFetching(product);
         }
       }
     });
@@ -259,14 +249,14 @@ public class MainActivity extends BaseActivity implements
             String name = getResources().getResourceEntryName(
               menuItem.getItemId());
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
-            String productName;
+            String sourceType_;
             if (name.contains("prescriptions")) {
-              productName = "prescriptions";
-            } else {  // default (scanned product items)
-              productName = "medications";
+              sourceType_ = SOURCE_TYPE_AMKJSON;
+            } else {  // back to default
+              sourceType_ = SOURCE_TYPE_BARCODE;
             }
-            title = menuItem.getTitle();  // update `title`
-            switchProduct(productName);
+            title = menuItem.getTitle(); // updated `title`
+            switchSource(sourceType_);
             menuItem.setChecked(true);
           }
           drawerLayout.closeDrawers();
@@ -279,14 +269,14 @@ public class MainActivity extends BaseActivity implements
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (sourceType.equals(SOURCE_TYPE_SCANNED)) { // medications
+        if (sourceType.equals(SOURCE_TYPE_BARCODE)) { // product
           Intent intent = new Intent(
             MainActivity.this, BarcodeCaptureActivity.class);
           intent.putExtra(Constant.kAutoFocus, true);
           intent.putExtra(Constant.kUseFlash, true);
           startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
-        } else if (sourceType.equals(SOURCE_TYPE_RECEIPT)) {  // prescriptions
-          // TODO: prescriptions
+        } else if (sourceType.equals(SOURCE_TYPE_AMKJSON)) { // receipt
+          // TODO
         }
       }
     });
@@ -304,17 +294,18 @@ public class MainActivity extends BaseActivity implements
       @Override
       public void onTextChanged(
         CharSequence s, int start, int before, int count) {
+        // TODO: check current sourceType
         String filterString = s.toString().toLowerCase();
         Log.d(TAG, "(onTextChanged) filterString: " + filterString);
         // minimum 3 chars
         if (filterString.length() < 3) {
-          if (filterString.length() == 0) {  // back to all items
-            listAdapter.updateData(itemManager.getProductItems());
+          if (filterString.length() == 0) { // back to all items
+            listAdapter.updateData(dataManager.getProducts());
           }
           return;
         }
-        RealmResults<ProductItem> data = itemManager
-          .findProductItemsByNameOrEan(filterString);
+        RealmResults<Product> products = dataManager
+          .findProductsByNameOrEan(filterString);
         // NOTE:
         // This `updateData()` method invokes `notifyDataSetChanged()`, after
         // data set. See also below.
@@ -322,7 +313,7 @@ public class MainActivity extends BaseActivity implements
         // https://github.com/realm/realm-android-adapters/blob/\
         //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
         //   /io/realm/RealmBaseAdapter.java#L135
-        listAdapter.updateData(data);
+        listAdapter.updateData(products);
       }
 
       @Override
@@ -413,12 +404,12 @@ public class MainActivity extends BaseActivity implements
           Log.d(TAG, "(onActivityResult) filepath: " + filepath);
 
           if (barcode.displayValue.length() == 13) {
-            // use ProductItem's Barcode
-            ProductItem.Barcode barcode_ = new ProductItem.Barcode();
+            // use Product's Barcode
+            Product.Barcode barcode_ = new Product.Barcode();
             barcode_.setValue(barcode.displayValue);
             barcode_.setFilepath(filepath);
             // save record into realm (next: changeset listener)
-            itemManager.addProductItem(barcode_);
+            dataManager.addProduct(barcode_);
           }
         } else {
           Log.d(TAG, "(onActivityResult) Barcode not found");
@@ -436,84 +427,83 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
-  // -- ProductItemListAdapter.ItemListener
+  // -- {Product,Receipt}ListAdapter.ListItemListener
 
   @Override
-  public void onDelete(String productItemId) {
-    // productItem is primary key (itemTag)
-    itemManager.deleteProductItem(productItemId);
+  public void onDelete(String id) {
+    // id is primary key (itemTag)
+
+    // TODO: check current sourceType
+    dataManager.deleteProduct(id);
 
     // should check sourceType of Product at here?
   }
 
   @Override
-  public void onExpiresAtChange(String productItemId, Date newDate) {
+  public void onExpiresAtChange(String id, Date newDate) {
     Log.d(TAG, "(onExpiresAtChange) date: " + newDate);  // local time
 
     HashMap<String, String> properties = new HashMap<String, String>();
-    properties.put("expiresAt", ProductItem.makeExpiresAt(newDate));
+    properties.put("expiresAt", Product.makeExpiresAt(newDate));
     Log.d(TAG, "(onExpiresAtChange) expiresAt: " +
-               ProductItem.makeExpiresAt(newDate));
-    itemManager.updateProductItem(productItemId, properties);
+               Product.makeExpiresAt(newDate));
+    dataManager.updateProduct(id, properties);
   }
 
-  private void startFetching(ProductItem productItem) {
-    if (!fetching && productItemDataFetcher != null) {
-      productItemDataFetcher.invokeFetch(productItem);
+  private void startFetching(Product product) {
+    if (!fetching && fetcher != null) {
+      fetcher.invokeFetch(product);
       this.fetching = true;
     }
   }
 
-  // -- ProductItemDataFetchFragment.FetchCallback
+  // -- ProductInfoFetcher.FetchCallback
 
   @Override
-  public void updateFromFetch(
-    ProductItemDataFetchFragment.FetchResult result) {
+  public void updateFromFetch(ProductInfoFetcher.FetchResult result) {
     Log.d(TAG, "(updateFromFetch) result: " + result);
     if (result == null) { return; }
     if (result.errorMessage != null) {
       alertDialog("", result.errorMessage);
-    } else if (result.itemMap != null) {
-      final String id = result.itemId;
-      Log.d(TAG, "(updateFromFetch) resut.itemId: " + id);
+    } else if (result.map != null) {
+      final String id = result.id;
+      Log.d(TAG, "(updateFromFetch) resut.id: " + id);
 
-      final HashMap<String, String> properties = result.itemMap;
+      final HashMap<String, String> properties = result.map;
       // NOTE:
       // realm is not transferred to background async task thread
       // it's not accecible.
-      ProductItemManager itemManager_ = new ProductItemManager(
-        SOURCE_TYPE_SCANNED);
+      DataManager dataManager_ = new DataManager(SOURCE_TYPE_BARCODE);
       try {
-        final ProductItem productItem = itemManager_.getProductItemById(id);
-        if (productItem == null) { return; }
-        productItem.removeAllChangeListeners();
+        final Product product = dataManager_.getProductById(id);
+        if (product == null) { return; }
+        product.removeAllChangeListeners();
         // this listener is invoked after update transaction below
-        productItem.addChangeListener(new RealmChangeListener<ProductItem>() {
+        product.addChangeListener(new RealmChangeListener<Product>() {
           @Override
-          public void onChange(ProductItem productItem_) {
-            if (productItem_ == null || !productItem_.isValid()) { return; }
+          public void onChange(Product product_) {
+            if (product_ == null || !product_.isValid()) { return; }
             // only once (remove self)
-            productItem_.removeAllChangeListeners();
-            if (productItem_.getName() != null &&
-                productItem_.getSize() != null) {
+            product_.removeAllChangeListeners();
+            if (product_.getName() != null && product_.getSize() != null) {
               // TODO: stop redraw all items on listview
               // redraw this row
-              listAdapter.refresh(productItem_, listView);
+              listAdapter.refresh(product_, listView);
 
-              Log.d(TAG, "(updateFromFetch/onChange) productItem.name: " +
-                    productItem_.getName());
+              Log.d(TAG, "(updateFromFetch/onChange) product.name: " +
+                    product_.getName());
               // notify result to user
               // TODO: replace with translated string
               String title = "Generika.cc sagt";
-              String message = productItem_.toMessage();
-              alertDialog(title, message, productItem_);
+              String message = product_.toMessage();
+              alertDialog(title, message, product_);
             }
           }
         });
         // above onChange will be called
-        itemManager_.updateProductItem(productItem.getId(), properties);
+        dataManager_.updateProduct(product.getId(), properties);
       } finally {
-        itemManager_.release();
+        dataManager_.release();
       }
     }
   }
@@ -535,8 +525,8 @@ public class MainActivity extends BaseActivity implements
   @Override
   public void finishFetching() {
     this.fetching = false;
-    if (productItemDataFetcher != null) {
-      productItemDataFetcher.cancelFetch();
+    if (fetcher != null) {
+      fetcher.cancelFetch();
     }
   }
 
@@ -558,7 +548,7 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void alertDialog(
-    String title, String message, final ProductItem productItem_) {
+    String title, String message, final Product product) {
     AlertDialog.Builder builder = new AlertDialog.Builder(context);
     builder.setTitle(title);
     builder.setMessage(message);
@@ -568,7 +558,7 @@ public class MainActivity extends BaseActivity implements
       context.getString(R.string.open),
       new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int _id) {
-        openWebView(productItem_);
+        openWebView(product);
         dialog.cancel();
       }
     });
@@ -583,14 +573,14 @@ public class MainActivity extends BaseActivity implements
     alert.show();
   }
 
-  public void openWebView(ProductItem productItem) {
+  public void openWebView(Product product) {
     // WebView reads type and lang from shared preferences
     // So, just puts arguments here.
     Intent intent = new Intent(this, WebViewActivity.class);
-    if (productItem != null) {
-      intent.putExtra(Constant.kEan, productItem.getEan());
-      intent.putExtra(Constant.kReg, productItem.getReg());
-      intent.putExtra(Constant.kSeq, productItem.getSeq());
+    if (product != null) {
+      intent.putExtra(Constant.kEan, product.getEan());
+      intent.putExtra(Constant.kReg, product.getReg());
+      intent.putExtra(Constant.kSeq, product.getSeq());
     }
     startActivity(intent);
     overridePendingTransition(R.anim.slide_leave,
