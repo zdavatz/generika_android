@@ -44,6 +44,9 @@ import java.util.Map;
 import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Receipt;
+import org.oddb.generika.model.Operator;
+import org.oddb.generika.model.Patient;
+import org.oddb.generika.model.Product;
 import org.oddb.generika.util.Constant;
 import org.oddb.generika.util.ConnectionStream;
 import org.oddb.generika.util.StreamReader;
@@ -125,10 +128,10 @@ public class ImporterActivity extends BaseActivity
       } else if (url.startsWith("file:") || url.startsWith("content:")) {
         String content = readFileFromUri(uri);
         if (content != null && !content.equals("")) {
-          // TODO: prepare extras to intent for alert
-          Result _result = importJSON(content);
+          Result result = importJSON(content);
+          extras.put("filename", result.getFilename());
+          extras.put("message", result.getMessage());
         }
-
         openMainView(flags, extras);
       }
     } catch (IOException e) {
@@ -157,93 +160,87 @@ public class ImporterActivity extends BaseActivity
   }
 
   public class Result {
-    public String hashedKey;
-    public String errorMessage;
+    private String filename = null;
+    private String message = null;
 
-    public Result(String key) {
-      if (key != null) {
-        this.hashedKey = key;
-      }
-    }
+    public Result() {}
 
-    public void setErrorMessage(String message) {
-      this.errorMessage = message;
-    }
+    public String getFilename() { return filename; }
+    public void setFilename(String filename_) { this.filename = filename_; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message_) { this.message = message_; }
   }
 
+  // save incominng json file into app after some validations
   private Result importJSON(String content) {
     Log.d(TAG, "(importJSON) content: " + content);
 
-    Result result;
+    Result result = new Result();
     try {
-      HashMap<String, String> rMap = new HashMap<String, String>();
       JSONObject json = new JSONObject(content);
 
-      rMap.put("hashedKey", json.getString("prescription_hash"));
-      rMap.put("placeDate", json.getString("place_date"));
-
-      // TODO: key mapping in model
-      // operator (Receipt.Operator)
-      HashMap<String, String> oMap = new HashMap<String, String>();
-      JSONObject operator = json.getJSONObject("operator");
-      oMap.put("givenName", operator.getString("given_name"));
-      oMap.put("familyName", operator.getString("family_name"));
-      oMap.put("title", operator.getString("title"));
-      oMap.put("email", operator.getString("email_address"));
-      oMap.put("phone", operator.getString("phone_number"));
-      oMap.put("address", operator.getString("postal_address"));
-      oMap.put("city", operator.getString("family_name"));
-      oMap.put("zipcode", operator.getString("zip_code"));
-      oMap.put("country", operator.getString("country"));
-      oMap.put("signature", operator.getString("signature"));
-
-      // patient (Receipt.Patient)
-      HashMap<String, String> pMap = new HashMap<String, String>();
-      JSONObject patient = json.getJSONObject("patient");
-      pMap.put("identifier", patient.getString("patient_id"));
-      pMap.put("givenName", patient.getString("given_name"));
-      pMap.put("familyName", patient.getString("family_name"));
-      pMap.put("birthDate", patient.getString("birth_date"));
-      pMap.put("gender", patient.getString("gender"));
-      pMap.put("height", patient.getString("height_cm"));
-      pMap.put("weight", patient.getString("weight_kg"));
-      pMap.put("email", patient.getString("email_address"));
-      pMap.put("phone", patient.getString("phone_number"));
-      pMap.put("address", patient.getString("postal_address"));
-      pMap.put("city", patient.getString("city"));
-      pMap.put("zipcode", patient.getString("zip_code"));
-      pMap.put("country", patient.getString("country"));
-
-      // medications (Product)
-      JSONArray medications = json.getJSONArray("medications");
-      for (int i = 0; i < medications.length(); i++) {
-        HashMap<String, String> mMap = new HashMap<String, String>();
-        JSONObject medication = medications.getJSONObject(i);
-        mMap.put("ean", medication.getString("eancode"));
-        mMap.put("reg", medication.getString("regnrs"));
-        mMap.put("pack", medication.getString("package"));
-        mMap.put("name", medication.getString("product_name"));
-        mMap.put("atc", medication.getString("atccode"));
-        mMap.put("owner", medication.getString("owner"));
-        mMap.put("comment", medication.getString("comment"));
+      String hashedKey = json.getString("prescription_hash");
+      if (hashedKey == null || hashedKey.equals("")) {
+        // import error (required)
+        result.setMessage("TODO");
+        return result;
       }
 
-      // TODO
-      Receipt.Amkfile amkfile = new Receipt.Amkfile();
       DataManager dataManager = new DataManager(Constant.SOURCE_TYPE_AMKJSON);
-      dataManager.addReceipt(amkfile);
+      Receipt importedReceipt = dataManager.getReceiptByHashedKey(hashedKey);
+      if (importedReceipt != null) {
+        // duplicated
+        result.setMessage("TODO");
+        return result;
+      }
 
+      // operator
+      Operator operator = Operator.newInstanceFromJSON(
+        json.getJSONObject("operator"));
+
+      // patient
+      Patient patient = Patient.newInstanceFromJSON(
+        json.getJSONObject("patient"));
+
+      // medications
+      JSONArray medicationArray = json.getJSONArray("medications");
+      int count = medicationArray.length();
+      Product[] medications = new Product[count];
+      for (int i = 0; i < count; i++) {
+        JSONObject medication = medicationArray.getJSONObject(i);
+        medications[i] = Product.newInstanceFromJSON(medication);
+      }
+
+      // .amk
+      Receipt.Amkfile amkfile = new Receipt.Amkfile();
+      amkfile.setPrescriptionHash(hashedKey);
+      amkfile.setContent(content);
+
+      // TODO: save file in background
+      String filepath = ".amk";
+      amkfile.setFilepath(filepath);
+      Log.d(TAG, "(importJSON) .amk filepath: " + filepath);
+
+      if (filepath == null || filepath.equals("")) {
+        // save error
+        result.setMessage("TODO");
+        return result;
+      }
+
+      Receipt receipt = new Receipt();
+      receipt.setHashedKey(hashedKey);
+      receipt.setPlaceDate(json.getString("place_date"));
+      receipt.setFilepath(filepath);
+
+      dataManager.addReceipt(receipt, operator, patient, medications);
       // TODO
-      // update properties to realm object got via hashedKey
-
-      // hashedKey
-      result = new Result("");
+      result.setFilename(".amk");
     } catch (Exception e) {
+      // TODO
       Log.d(TAG, "(importJSON) exception: " + e.getMessage());
       e.printStackTrace();
-      // TODO
-      result = new Result(null);
-      result.setErrorMessage(e.getMessage());
+      result.setMessage(e.getMessage());
     }
     return result;
   }
@@ -284,12 +281,16 @@ public class ImporterActivity extends BaseActivity
 
     @Override
     protected void onPostExecute(String content) {
+      Result result = null;
       if (content != null && !content.equals("")) {
-        // TODO: prepare extras to intent for alert
-        Result _result = importJSON(content);
+        result = importJSON(content);
       }
-      int flags = Intent.FLAG_FROM_BACKGROUND;
       HashMap<String, String> extras = new HashMap<String, String>();
+      int flags = Intent.FLAG_FROM_BACKGROUND;
+      if (result != null) {
+        extras.put("filename", result.getFilename());
+        extras.put("message", result.getMessage());
+      }
       openMainView(flags, extras);
     }
   }

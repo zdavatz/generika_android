@@ -65,14 +65,14 @@ import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.network.ProductInfoFetcher;
+import org.oddb.generika.ui.list.GenerikaListAdapter;
 import org.oddb.generika.ui.list.ProductListAdapter;
 import org.oddb.generika.ui.list.ReceiptListAdapter;
 import org.oddb.generika.util.Constant;
 
 
 public class MainActivity extends BaseActivity implements
-  ProductListAdapter.ListItemListener,
-  ReceiptListAdapter.ListItemListener,
+  GenerikaListAdapter.ListItemListener,
   ProductInfoFetcher.FetchCallback<ProductInfoFetcher.FetchResult> {
   private static final String TAG = "Main";
 
@@ -88,8 +88,7 @@ public class MainActivity extends BaseActivity implements
 
   private String sourceType;
   private DataManager dataManager;
-  // TODO
-  private ProductListAdapter listAdapter; // products / receipts
+  private GenerikaListAdapter listAdapter; // Product / Receipt
 
   // network (headless fragment)
   private boolean fetching = false;
@@ -150,9 +149,7 @@ public class MainActivity extends BaseActivity implements
       this.listAdapter = new ProductListAdapter(dataManager.getProducts());
       this.fetcher = buildProductInfoFetcher(context);
     } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
-      // TODO: receipts
-      //this.listAdapter = new ReceiptListAdapter(null);
-      this.listAdapter = new ProductListAdapter(dataManager.getProducts());
+      this.listAdapter = new ReceiptListAdapter(dataManager.getReceipts());
       this.fetcher = null;
     }
 
@@ -191,12 +188,12 @@ public class MainActivity extends BaseActivity implements
       return;
     }
 
-    if (dataManager.getProducts().size() == 0) {
+    RealmList<Product> products = dataManager.getProductsList();
+    if (products.size() == 0) {
       dataManager.preparePlaceholder();
     }
 
     // Check new product insertion via barcode reader
-    RealmList products = dataManager.getProducts();
     products.removeAllChangeListeners();
     products.addChangeListener(
       new OrderedRealmCollectionChangeListener<RealmList<Product>>() {
@@ -325,20 +322,14 @@ public class MainActivity extends BaseActivity implements
         // minimum 3 chars
         if (filterString.length() < 3) {
           if (filterString.length() == 0) { // back to all items
-            listAdapter.updateData(dataManager.getProducts());
+            RealmResults<Product> products = dataManager.getProducts();
+            listAdapter.updateItems(products);
           }
           return;
         }
         RealmResults<Product> products = dataManager
           .findProductsByNameOrEan(filterString);
-        // NOTE:
-        // This `updateData()` method invokes `notifyDataSetChanged()`, after
-        // data set. See also below.
-        //
-        // https://github.com/realm/realm-android-adapters/blob/\
-        //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
-        //   /io/realm/RealmBaseAdapter.java#L135
-        listAdapter.updateData(products);
+        listAdapter.updateItems(products);
       }
 
       @Override
@@ -452,7 +443,7 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
-  // -- {Product,Receipt}ListAdapter.ListItemListener
+  // -- GenerikaListAdapter.ListItemListener
 
   @Override
   public void onDelete(String id) {

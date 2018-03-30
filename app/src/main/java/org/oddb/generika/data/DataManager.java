@@ -29,6 +29,8 @@ import java.util.HashMap;
 import org.oddb.generika.model.Data;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
+import org.oddb.generika.model.Operator;
+import org.oddb.generika.model.Patient;
 import org.oddb.generika.util.Constant;
 
 
@@ -109,8 +111,17 @@ public class DataManager {
       .equalTo(Product.FIELD_ID, id).findFirst();
   }
 
-  public RealmList<Product> getProducts() {
-    //if (data == null) { return null; }  // TOD: should raise exception
+  // results implements list
+  public RealmResults<Product> getProducts() {
+    RealmList<Product> list = getProductsList();
+    if (list != null) {
+      return list.where().findAll();
+    }
+    return null;
+  }
+
+  public RealmList<Product> getProductsList() {
+    if (data == null) { return null; }  // TOD: should raise exception
 
     return data.getItems();
   }
@@ -143,7 +154,8 @@ public class DataManager {
           @Override
           public void execute(Realm realm_) {
             Product.insertNewBarcodeIntoSource(
-              realm_, barcode, data_, (currentCount == 1));
+              realm_, barcode, data_,
+              (currentCount == 1));
           }
         });
       }
@@ -191,7 +203,30 @@ public class DataManager {
 
   // -- Receipt
 
-  public void addReceipt(final Receipt.Amkfile amkfile) {
+  public Receipt getReceiptByHashedKey(String hashedKey) {
+    if (data == null) { return null; }  // TOD: should raise exception
+
+    return data.getFiles().where().equalTo("hashedKey", hashedKey).findFirst();
+  }
+
+  // results implements list
+  public RealmResults<Receipt> getReceipts() {
+    RealmList<Receipt> list = getReceiptsList();
+    if (list != null) {
+      return list.where().findAll();
+    }
+    return null;
+  }
+
+  public RealmList<Receipt> getReceiptsList() {
+    if (data == null) { return null; }  // TOD: should raise exception
+
+    return data.getFiles();
+  }
+
+  public void addReceipt(
+    final Receipt receipt, final Operator operator, final Patient patient,
+    final Product[] medications) {
     if (data == null) { return; }  // TOD: should raise exception
 
     Receipt.withRetry(2, new Receipt.WithRetry() {
@@ -199,11 +234,13 @@ public class DataManager {
       public void execute(final int currentCount) {
         Log.d(TAG, "(addReceipt/execute) currentCount: " + currentCount);
         final Data data_ = data;
+
         realm.executeTransaction(new Realm.Transaction() {
           @Override
           public void execute(Realm realm_) {
-            Receipt.insertNewAmkfileIntoSource(
-              realm_, amkfile, data_, (currentCount == 1));
+            Receipt.insertNewReceiptIntoSource(
+              realm_, receipt, operator, patient, medications, data_,
+              (currentCount == 1));
           }
         });
       }

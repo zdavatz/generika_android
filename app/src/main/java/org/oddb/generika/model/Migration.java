@@ -47,7 +47,6 @@ public class Migration implements RealmMigration {
      *   (hashedKey, placeDate, givenName, familyName, medications)
      * - ADD new an array property `files` into Data
      */
-
     if (oldVersion == 0) {
       Log.d(TAG, "(migrate) oldVersion: " + oldVersion);
 
@@ -84,6 +83,72 @@ public class Migration implements RealmMigration {
 
       schema.get("Data")
         .addRealmListField("files", receiptSchema)
+        .transform(new RealmObjectSchema.Function() {
+          @Override
+          public void apply(DynamicRealmObject obj) {
+            // pass (no new data)
+          }
+        });
+
+      oldVersion++;
+    }
+
+    /**
+     * // Version 1 - 2 v1.0.27 -> v1.0.28 (03.2018)
+     *
+     * - ADD new fields into Product (atc, owner, comment)
+     * - ADD new a class Operator
+     * - ADD new a class Patient
+     * - DELETE fields from Receipt (givenName, familyName)
+     * - ADD new fields into Receipt (datetime, filpath, filename)
+     * - SET relations (receipt -> operator, receipt -> patient)
+     */
+    if (oldVersion == 1) {
+      Log.d(TAG, "(migrate) oldVersion: " + oldVersion);
+
+      RealmObjectSchema _productSchema = schema.get("Product")
+        .addField("atc", String.class)
+        .addField("owner", String.class)
+        .addField("comment", String.class);
+
+      RealmObjectSchema operatorSchema = schema.create("Operator")
+        .addField("id", String.class, FieldAttribute.PRIMARY_KEY)
+        .addField("givenName", String.class)
+        .addField("familyName", String.class)
+        .addField("title", String.class)
+        .addField("email", String.class)
+        .addField("phone", String.class)
+        .addField("address", String.class)
+        .addField("city", String.class)
+        .addField("zipcode", String.class)
+        .addField("country", String.class)
+        .addField("signature", String.class);
+
+      RealmObjectSchema patientSchema = schema.create("Patient")
+        .addField("id", String.class, FieldAttribute.PRIMARY_KEY)
+        .addField("identifier", String.class)
+        .addField("givenName", String.class)
+        .addField("familyName", String.class)
+        .addField("birthDate", String.class)
+        .addField("gender", String.class)
+        .addField("weight", String.class)
+        .addField("height", String.class)
+        .addField("email", String.class)
+        .addField("phone", String.class)
+        .addField("address", String.class)
+        .addField("city", String.class)
+        .addField("zipcode", String.class)
+        .addField("country", String.class);
+
+      // relations
+      RealmObjectSchema receiptSchema = schema.get("Receipt")
+        .removeField("givenName")
+        .removeField("familyName")
+        .addField("datetime", String.class)
+        .addField("filepath", String.class)
+        .addField("filename", String.class)
+        .addRealmListField("operator", operatorSchema)
+        .addRealmListField("patient", patientSchema)
         .transform(new RealmObjectSchema.Function() {
           @Override
           public void apply(DynamicRealmObject obj) {

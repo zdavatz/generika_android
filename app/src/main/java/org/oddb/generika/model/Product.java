@@ -26,6 +26,9 @@ import io.realm.RealmObject;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
+import org.json.JSONObject;
+import org.json.JSONException;
+
 import java.io.File;
 import java.lang.IllegalAccessException;
 import java.lang.IllegalArgumentException;
@@ -79,10 +82,11 @@ public class Product extends RealmObject implements Retryable {
   // expiry date (verfalldatum)
   private String expiresAt;
 
+  private String name;
+
   // -- scanned product (drug)
   // (values from oddb api)
   private String seq;
-  private String name;
   private String size;
   private String deduction;
   private String price;
@@ -90,17 +94,17 @@ public class Product extends RealmObject implements Retryable {
 
   // -- prescribed product (medication)
   // (values from .amk file)
-  //private String comment;
-  //private String atc;
-  //private String owner;
+  private String atc;
+  private String owner;
+  private String comment;
 
   // -- static methods
 
-  private static String generateId() {
+  public static String generateId() {
     return UUID.randomUUID().toString();
   }
 
-  private static String generateId(Realm realm) {
+  public static String generateId(Realm realm) {
     String id;
     while (true) {
       id = generateId();
@@ -111,6 +115,52 @@ public class Product extends RealmObject implements Retryable {
       }
     }
     return id;
+  }
+
+  private static HashMap<String, String> productkeyMap() {
+    // property, importing key (.amk, api)
+    HashMap<String, String> keyMap = new HashMap<String, String>();
+    keyMap.put("ean", "eancode");
+    keyMap.put("reg", "regnrs");
+    keyMap.put("pack", "package");
+    keyMap.put("name", "product_name");
+    // (scanned drug)
+    keyMap.put("seq", "seq");
+    keyMap.put("size", "size");
+    keyMap.put("deduction", "deduction");
+    keyMap.put("price", "price");
+    keyMap.put("category", "category");
+    // (prescribed medication)
+    keyMap.put("atc", "atccode");
+    keyMap.put("owner", "owner");
+    keyMap.put("comment", "comment");
+    return keyMap;
+  }
+
+  // without id
+  public static Product newInstanceFromJSON(JSONObject json) throws
+    SecurityException, NoSuchMethodException, IllegalArgumentException,
+    IllegalAccessException, InvocationTargetException {
+    Product product = new Product();
+
+    Class c = Product.class;
+    Class[] parameterTypes = new Class[]{String.class};
+    HashMap<String, String> keyMap = productkeyMap();
+    for (String key: keyMap.keySet()) {
+      String value;
+      try {
+        value = json.getString(keyMap.get(key));
+      } catch (JSONException _e) {
+        value = null;
+      }
+      if (value != null && value != "" && value != "null")  {
+        String methodName = "set" +
+          key.substring(0, 1).toUpperCase() + key.substring(1);
+        Method method = c.getDeclaredMethod(methodName, parameterTypes);
+        method.invoke(product, new Object[]{value});
+      }
+    }
+    return product;
   }
 
   public static void withRetry(final int limit, WithRetry f) {
@@ -273,6 +323,15 @@ public class Product extends RealmObject implements Retryable {
     return category;
   }
   public void setCategory(String category) { this.category = category; }
+
+  public String getAtc() { return atc; }
+  public void setAtc(String value) { this.atc = value; }
+
+  public String getOwner() { return owner; }
+  public void setOwner(String value) { this.owner = value; }
+
+  public String getComment() { return comment; }
+  public void setComment(String value) { this.comment = value; }
 
   // NOTE: it must be called in realm transaction
   public void updateProperties(HashMap<String, String> properties) throws

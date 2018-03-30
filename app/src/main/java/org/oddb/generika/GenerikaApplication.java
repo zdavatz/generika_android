@@ -31,7 +31,7 @@ import org.oddb.generika.util.AppLocale;
 
 public class GenerikaApplication extends Application {
 
-  private static final int SCHEME_VERSION = 1;
+  private static final int SCHEME_VERSION = 2;
 
   @Override
   public void onCreate() {
