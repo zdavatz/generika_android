@@ -84,6 +84,7 @@ public class MainActivity extends BaseActivity implements
   private ActionBarDrawerToggle drawerToggle;
   private CharSequence title;
   private ListView listView;
+  private NavigationView navigationView;
   private FloatingActionButton fab;
 
   private EditText searchBox;
@@ -126,11 +127,18 @@ public class MainActivity extends BaseActivity implements
 
     initViews();
 
+    // from import
+    if (sourceType_.equals(SOURCE_TYPE_AMKJSON)) {
+      navigationView.setCheckedItem(R.id.navigation_item_prescriptions);
+    }
+
     switchSource(sourceType_);
   }
 
   /**
-   * Switches source and list adapter
+   * Switches source and list adapter.
+   *
+   * sourceType, listAdapter and fetcher will be set.
    *
    * @param String productName prescriptions/medications
    * @return void
@@ -250,8 +258,8 @@ public class MainActivity extends BaseActivity implements
 
     this.listView = (ListView)findViewById(R.id.list_view);
 
-    // drawer navigation (products)
-    NavigationView navigationView = (NavigationView)findViewById(
+    // drawer navigation
+    this.navigationView = (NavigationView)findViewById(
       R.id.navigation_view);
     navigationView.setNavigationItemSelectedListener(
       new NavigationView.OnNavigationItemSelectedListener() {
