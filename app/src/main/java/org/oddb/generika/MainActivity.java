@@ -59,6 +59,7 @@ import io.realm.OrderedCollectionChangeSet;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
@@ -99,16 +100,33 @@ public class MainActivity extends BaseActivity implements
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     setContentView(R.layout.activity_main);
 
-    // default: drugs (barcode product)
-    this.title = context.getString(R.string.medications);
-    this.dataManager = new DataManager(SOURCE_TYPE_BARCODE);
+    String sourceType_, title_;
+
+    Intent intent = getIntent();
+    Log.d(TAG, "(onCreate) intent: " + intent);
+    Set<String> categories = intent.getCategories();
+    if ((categories == null ||
+         !categories.contains(Intent.CATEGORY_LAUNCHER)) &&
+        !Intent.ACTION_MAIN.equals(intent.getAction())) {
+      Bundle extras = intent.getExtras();
+      // TODO: set alert with extras
+      Log.d(TAG, "(onCreate) extras: " + extras);
+      // from ImporterActivity
+      sourceType_ = SOURCE_TYPE_AMKJSON;
+      title_ = context.getString(R.string.prescriptions);
+    } else {
+      sourceType_ = SOURCE_TYPE_BARCODE;
+      title_ = context.getString(R.string.medications);
+    }
+
+    this.title = title_;
+    this.dataManager = new DataManager(sourceType_);
 
     initViews();
 
-    switchSource(SOURCE_TYPE_BARCODE);
+    switchSource(sourceType_);
   }
 
   /**

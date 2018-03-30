@@ -18,6 +18,7 @@
 package org.oddb.generika;
 
 import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.Manifest;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -38,6 +39,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.oddb.generika.BaseActivity;
 import org.oddb.generika.util.Constant;
@@ -58,6 +60,7 @@ public class ImporterActivity extends BaseActivity
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     if (Build.VERSION.SDK_INT >= Constant.VERSION_23__6_0) {
       if (checkPermissions()) {
         doImport();
@@ -110,38 +113,103 @@ public class ImporterActivity extends BaseActivity
     String url = uri.toString().toLowerCase();
 
     String result = null;
+    int flags = 0;
+    HashMap<String, String> extras = new HashMap<String, String>();
     try {
       Log.d(TAG, "(doImport) uri: " + uri.toString());
       if (url.startsWith("https:")) {
-        // because network access cannot run in main thread
+        // because network access cannot run in main thread.
         FetchTask fetchTask = new FetchTask();
         fetchTask.execute(uri);
       } else if (url.startsWith("file:") || url.startsWith("content:")) {
         result = readFileFromUri(uri);
         if (result != null) {
+          // TODO: prepare extras to intent for alert
           importJSON(result);
         }
+
+        openMainView(flags, extras);
       }
     } catch (IOException e) {
       Log.d(TAG, "(doImport) exception: " + e.getMessage());
       e.printStackTrace();
     }
+    // do nothing
+    openMainView(flags, extras);
+  }
+
+  private void openMainView(
+    int additionalflags, HashMap<String, String> extras) {
+    int flags =
+      Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+      Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_NO_ANIMATION |
+      additionalflags;
+
+    Intent intent = new Intent(this, MainActivity.class);
+    intent.setFlags(intent.getFlags() | flags);
+
+    for (Map.Entry<String, String> entry: extras.entrySet()) {
+      intent.putExtra(entry.getKey(), entry.getValue());
+    }
+    startActivity(intent);
+    finish();
   }
 
   private void importJSON(String content) {
     Log.d(TAG, "(importJSON) content: " + content);
     try {
+      HashMap<String, String> rMap = new HashMap<String, String>();
       JSONObject json = new JSONObject(content);
-      // Log.d(TAG, "(importJSON) JSONObject: " + json);
 
-      //map.put("seq", obj.getString("seq"));
-      //map.put("name", obj.getString("name"));
-      //// not used (extracted from ean in ProductItem)
-      ////itemMap.put("pack", obj.getString("pack"));
-      //map.put("size", obj.getString("size"));
-      //map.put("deduction", obj.getString("deduction"));
-      //map.put("price", obj.getString("price"));
-			//map.put("category", obj.getString("category"));
+      rMap.put("hashedKey", json.getString("prescription_hash"));
+      rMap.put("placeDate", json.getString("place_date"));
+
+      // TODO: key mapping in model
+      // operator (Receipt.Operator)
+      HashMap<String, String> oMap = new HashMap<String, String>();
+      JSONObject operator = json.getJSONObject("operator");
+      oMap.put("givenName", operator.getString("given_name"));
+      oMap.put("familyName", operator.getString("family_name"));
+      oMap.put("title", operator.getString("title"));
+      oMap.put("email", operator.getString("email_address"));
+      oMap.put("phone", operator.getString("phone_number"));
+      oMap.put("address", operator.getString("postal_address"));
+      oMap.put("city", operator.getString("family_name"));
+      oMap.put("zipcode", operator.getString("zip_code"));
+      oMap.put("country", operator.getString("country"));
+      oMap.put("signature", operator.getString("signature"));
+
+      // patient (Receipt.Patient)
+      HashMap<String, String> pMap = new HashMap<String, String>();
+      JSONObject patient = json.getJSONObject("patient");
+      pMap.put("identifier", patient.getString("patient_id"));
+      pMap.put("givenName", patient.getString("given_name"));
+      pMap.put("familyName", patient.getString("family_name"));
+      pMap.put("birthDate", patient.getString("birth_date"));
+      pMap.put("gender", patient.getString("gender"));
+      pMap.put("height", patient.getString("height_cm"));
+      pMap.put("weight", patient.getString("weight_kg"));
+      pMap.put("email", patient.getString("email_address"));
+      pMap.put("phone", patient.getString("phone_number"));
+      pMap.put("address", patient.getString("postal_address"));
+      pMap.put("city", patient.getString("city"));
+      pMap.put("zipcode", patient.getString("zip_code"));
+      pMap.put("country", patient.getString("country"));
+
+      // medications (Product)
+      JSONArray medications = json.getJSONArray("medications");
+      for (int i = 0; i < medications.length(); i++) {
+        HashMap<String, String> mMap = new HashMap<String, String>();
+        JSONObject medication = medications.getJSONObject(i);
+        mMap.put("ean", medication.getString("eancode"));
+        mMap.put("reg", medication.getString("regnrs"));
+        mMap.put("pack", medication.getString("package"));
+        mMap.put("name", medication.getString("product_name"));
+        mMap.put("atc", medication.getString("atccode"));
+        mMap.put("owner", medication.getString("owner"));
+        mMap.put("comment", medication.getString("comment"));
+
+      }
     } catch (Exception e) {
       Log.d(TAG, "(importJSON) exception: " + e.getMessage());
       e.printStackTrace();
@@ -185,8 +253,12 @@ public class ImporterActivity extends BaseActivity
     @Override
     protected void onPostExecute(String result) {
       if (result != null) {
+        // TODO: prepare extras to intent for alert
         importJSON(result);
       }
+      int flags = Intent.FLAG_FROM_BACKGROUND;
+      HashMap<String, String> extras = new HashMap<String, String>();
+      openMainView(flags, extras);
     }
   }
 
