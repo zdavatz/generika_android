@@ -42,6 +42,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.oddb.generika.BaseActivity;
+import org.oddb.generika.data.DataManager;
+import org.oddb.generika.model.Receipt;
 import org.oddb.generika.util.Constant;
 import org.oddb.generika.util.ConnectionStream;
 import org.oddb.generika.util.StreamReader;
@@ -106,13 +108,12 @@ public class ImporterActivity extends BaseActivity
 
   private void doImport() {
     // e.g.
-    // * https://dl.grauwoelfchen.net/data/RZ_2018-01-13T183946.amk
-    // * file:///storage/emulated/0/Download/RZ_2017-12-20T141403.amk
-    // * content://com.android.chrome.FileProvider/downloads/RZ_2018-01-13T183946.amk
+    // * https://<domain>/data/<file>.amk
+    // * file:///storage/emulated/0/Download/<file>.amk
+    // * content://com.android.chrome.FileProvider/downloads/<file>.amk
     Uri uri = getIntent().getData();
     String url = uri.toString().toLowerCase();
 
-    String result = null;
     int flags = 0;
     HashMap<String, String> extras = new HashMap<String, String>();
     try {
@@ -122,10 +123,10 @@ public class ImporterActivity extends BaseActivity
         FetchTask fetchTask = new FetchTask();
         fetchTask.execute(uri);
       } else if (url.startsWith("file:") || url.startsWith("content:")) {
-        result = readFileFromUri(uri);
-        if (result != null) {
+        String content = readFileFromUri(uri);
+        if (content != null && !content.equals("")) {
           // TODO: prepare extras to intent for alert
-          importJSON(result);
+          Result _result = importJSON(content);
         }
 
         openMainView(flags, extras);
@@ -155,8 +156,25 @@ public class ImporterActivity extends BaseActivity
     finish();
   }
 
-  private void importJSON(String content) {
+  public class Result {
+    public String hashedKey;
+    public String errorMessage;
+
+    public Result(String key) {
+      if (key != null) {
+        this.hashedKey = key;
+      }
+    }
+
+    public void setErrorMessage(String message) {
+      this.errorMessage = message;
+    }
+  }
+
+  private Result importJSON(String content) {
     Log.d(TAG, "(importJSON) content: " + content);
+
+    Result result;
     try {
       HashMap<String, String> rMap = new HashMap<String, String>();
       JSONObject json = new JSONObject(content);
@@ -208,12 +226,26 @@ public class ImporterActivity extends BaseActivity
         mMap.put("atc", medication.getString("atccode"));
         mMap.put("owner", medication.getString("owner"));
         mMap.put("comment", medication.getString("comment"));
-
       }
+
+      // TODO
+      Receipt.Amkfile amkfile = new Receipt.Amkfile();
+      DataManager dataManager = new DataManager(Constant.SOURCE_TYPE_AMKJSON);
+      dataManager.addReceipt(amkfile);
+
+      // TODO
+      // update properties to realm object got via hashedKey
+
+      // hashedKey
+      result = new Result("");
     } catch (Exception e) {
       Log.d(TAG, "(importJSON) exception: " + e.getMessage());
       e.printStackTrace();
+      // TODO
+      result = new Result(null);
+      result.setErrorMessage(e.getMessage());
     }
+    return result;
   }
 
   private String decodeContent(String raw) {
@@ -251,10 +283,10 @@ public class ImporterActivity extends BaseActivity
     }
 
     @Override
-    protected void onPostExecute(String result) {
-      if (result != null) {
+    protected void onPostExecute(String content) {
+      if (content != null && !content.equals("")) {
         // TODO: prepare extras to intent for alert
-        importJSON(result);
+        Result _result = importJSON(content);
       }
       int flags = Intent.FLAG_FROM_BACKGROUND;
       HashMap<String, String> extras = new HashMap<String, String>();

@@ -58,6 +58,7 @@ import org.oddb.generika.MainActivity;
 import org.oddb.generika.R;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.ui.MonthYearPickerDialogFragment;
+import org.oddb.generika.util.Formatter;
 import org.oddb.generika.util.Constant;
 
 
@@ -374,7 +375,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
 
   private void showMonthYearPickerDialog(SwipeRow row, Context context) {
     // extract month and year
-    String expiresAt = Product.getLocalDateAs(
+    String expiresAt = Formatter.formatAsLocalDate(
       row.item.getExpiresAt(), expiresAtFormat);
     String[] dateFields = {"", ""};
     if (expiresAt.contains(".")) {
@@ -457,7 +458,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     viewHolder.datetime = (TextView)view.findViewById(
       R.id.product_item_datetime);
     viewHolder.datetime.setText(
-      item.getLocalDateAs(item.getDatetime(), "HH:mm dd.MM.YYYY"));
+      Formatter.formatAsLocalDate(item.getDatetime(), "HH:mm dd.MM.YYYY"));
 
     // price
     viewHolder.price = (TextView)view.findViewById(
@@ -480,7 +481,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
       R.id.product_item_ean);
     viewHolder.ean.setText(item.getEan());
     // expiresAt
-    String expiresAtValue = Product.getLocalDateAs(
+    String expiresAtValue = Formatter.formatAsLocalDate(
       item.getExpiresAt(), expiresAtFormat);
     viewHolder.expiresAt = (TextView)view.findViewById(
       R.id.product_item_expires_at);

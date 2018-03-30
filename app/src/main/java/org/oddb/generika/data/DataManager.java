@@ -28,6 +28,7 @@ import java.util.HashMap;
 
 import org.oddb.generika.model.Data;
 import org.oddb.generika.model.Product;
+import org.oddb.generika.model.Receipt;
 import org.oddb.generika.util.Constant;
 
 
@@ -67,35 +68,6 @@ public class DataManager {
       .equalTo("sourceType", sourceType).findFirst();
   }
 
-  public Product getProductById(String id) {
-    if (data == null) { return null; }  // TOD: should raise exception
-
-    return data.getItems().where()
-      .equalTo(Product.FIELD_ID, id).findFirst();
-  }
-
-  public RealmList<Product> getProducts() {
-    //if (data == null) { return null; }  // TOD: should raise exception
-
-    return data.getItems();
-  }
-
-  public RealmResults<Product> findProductsByNameOrEan(String query) {
-    if (data == null) { return null; }  // TOD: should raise exception
-
-    RealmResults<Product> products;
-    realm.beginTransaction();
-    // insensitive wors only for latin-1 chars
-    products = data.getItems()
-      .where()
-      .contains("name", query, Case.INSENSITIVE)
-      .or()
-      .contains("ean", query)
-      .findAll();
-    realm.commitTransaction();
-    return products;
-  }
-
   public void preparePlaceholder() {
     if (data == null) { return; }  // TODO: should raise exception
 
@@ -126,6 +98,37 @@ public class DataManager {
     product.setCategory(Constant.INIT_DATA.get("category"));
     product.setExpiresAt(Constant.INIT_DATA.get("expiresAt"));
     realm.commitTransaction();
+  }
+
+  // -- Product
+
+  public Product getProductById(String id) {
+    if (data == null) { return null; }  // TOD: should raise exception
+
+    return data.getItems().where()
+      .equalTo(Product.FIELD_ID, id).findFirst();
+  }
+
+  public RealmList<Product> getProducts() {
+    //if (data == null) { return null; }  // TOD: should raise exception
+
+    return data.getItems();
+  }
+
+  public RealmResults<Product> findProductsByNameOrEan(String query) {
+    if (data == null) { return null; }  // TOD: should raise exception
+
+    RealmResults<Product> products;
+    realm.beginTransaction();
+    // insensitive wors only for latin-1 chars
+    products = data.getItems()
+      .where()
+      .contains("name", query, Case.INSENSITIVE)
+      .or()
+      .contains("ean", query)
+      .findAll();
+    realm.commitTransaction();
+    return products;
   }
 
   public void addProduct(final Product.Barcode barcode) {
@@ -182,6 +185,27 @@ public class DataManager {
           // TODO: create alert dialog for failure?
           product.delete();
         }
+      }
+    });
+  }
+
+  // -- Receipt
+
+  public void addReceipt(final Receipt.Amkfile amkfile) {
+    if (data == null) { return; }  // TOD: should raise exception
+
+    Receipt.withRetry(2, new Receipt.WithRetry() {
+      @Override
+      public void execute(final int currentCount) {
+        Log.d(TAG, "(addReceipt/execute) currentCount: " + currentCount);
+        final Data data_ = data;
+        realm.executeTransaction(new Realm.Transaction() {
+          @Override
+          public void execute(Realm realm_) {
+            Receipt.insertNewAmkfileIntoSource(
+              realm_, amkfile, data_, (currentCount == 1));
+          }
+        });
       }
     });
   }

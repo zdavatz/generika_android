@@ -27,8 +27,17 @@ import io.realm.RealmObject;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
+import java.lang.IllegalAccessException;
+import java.lang.IllegalArgumentException;
+import java.lang.NoSuchMethodException;
+import java.lang.SecurityException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.UUID;
 
-public class Receipt extends RealmObject {
+
+public class Receipt extends RealmObject implements Retryable {
   private final static String TAG = "Receipt";
 
   public static final String FIELD_ID = "id";
@@ -52,6 +61,48 @@ public class Receipt extends RealmObject {
   // private Operator operator;
   // private Patient patient;
 
+  // -- static methods
+
+  private static String generateId() {
+    return UUID.randomUUID().toString();
+  }
+
+  private static String generateId(Realm realm) {
+    String id;
+    while (true) {
+      id = generateId();
+      Receipt receipt = realm.where(Receipt.class)
+        .equalTo(FIELD_ID, id).findFirst();
+      if (receipt == null) {
+        break;
+      }
+    }
+    return id;
+  }
+
+  public static void withRetry(final int limit, WithRetry f) {
+    Retryable.withRetry(limit, f);
+  }
+
+  public static class Amkfile {
+    String value;
+    String filepath;
+
+    public void setValue(String value_) {
+      this.value = value_;
+    }
+    public void setFilepath(String filepath_) {
+      this.filepath = filepath_;
+    }
+  }
+
+  public static Receipt insertNewAmkfileIntoSource(
+    Realm realm,
+    Receipt.Amkfile amkfile, Data data, boolean withUniqueCheck) {
+    // TODO
+    return new Receipt();
+  }
+
   // -- instance methods
 
   public String getId() { return id; }
@@ -70,4 +121,23 @@ public class Receipt extends RealmObject {
   public String getIssuedPlace() { return ""; } // (via place_date)
 
   public String getName() { return givenName; }
+
+  // NOTE: it must be called in realm transaction
+  public void updateProperties(HashMap<String, String> properties) throws
+    SecurityException, NoSuchMethodException, IllegalArgumentException {
+    // TODO
+  };
+
+  public boolean delete() {
+    boolean deleted = true;
+    if (deleted) {
+      // this method returns nothing...
+      deleteFromRealm();
+    } else {
+      Log.d(TAG, "(delete) id: " + id);
+    }
+    // TODO:
+    // (for now) return image is deleted or not
+    return deleted;
+  }
 }

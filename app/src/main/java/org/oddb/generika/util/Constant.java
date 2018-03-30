@@ -54,7 +54,6 @@ public class Constant extends Object {
   public final static String LANG_FR = "fr";
   public final static String LANG_EN = "en";
 
-
   // [BarcodeCapture]
   // -- intent keys
   public final static String kAutoFocus = "kAutoFocus";
@@ -98,8 +97,7 @@ public class Constant extends Object {
   public final static String WEB_URL_PATH_FACHINFO =
     "%s/" + URL_FLAVOR + "/fachinfo/reg/%s";
 
-
-  // [Product Item ListView]
+  // [Product/Receipt ListView]
   // -- swipe on row
   public final static int SWIPE_DURATION_MIN = 600;
   public final static int SWIPE_DURATION_MAX = 1024;
@@ -117,4 +115,9 @@ public class Constant extends Object {
       put("category", "CATEGORY");
       put("expiresAt", "EXPIRES AT");
     }};
+
+  // [Shared]
+  // -- sourceType (value)
+  public final static String SOURCE_TYPE_BARCODE = "barcode"; // product
+  public final static String SOURCE_TYPE_AMKJSON = "amkjson"; // receipt
 }

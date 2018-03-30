@@ -27,7 +27,6 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 
 import java.io.File;
-import java.lang.String;
 import java.lang.IllegalAccessException;
 import java.lang.IllegalArgumentException;
 import java.lang.NoSuchMethodException;
@@ -50,7 +49,7 @@ import java.util.UUID;
  *
  * The prescribed medication belongs to the Receipt object.
  */
-public class Product extends RealmObject {
+public class Product extends RealmObject implements Retryable {
   private final static String TAG = "Product";
 
   public static final String FIELD_ID = "id";
@@ -95,6 +94,8 @@ public class Product extends RealmObject {
   //private String atc;
   //private String owner;
 
+  // -- static methods
+
   private static String generateId() {
     return UUID.randomUUID().toString();
   }
@@ -112,36 +113,8 @@ public class Product extends RealmObject {
     return id;
   }
 
-  // utility to return formatted local date string fields for display
-  // (scannedAt/importedAt, and expiresAt)
-  public static String getLocalDateAs(String date, String formatString) {
-    String datetimeString = "";
-    if (date == null || date.length() == 0 ||
-        formatString == null || formatString.length() == 0) {
-      return datetimeString;
-    }
-    try {
-      // NOTE:
-      // TimeZote.getDefaultZone() and Calendar.getInstance().getTimeZone()
-      // both will return wrong timezone in Android 6.1 (>= 7.0 OK) :'(
-
-      // from UTC
-      SimpleDateFormat inFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
-      inFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-      // to local time
-      SimpleDateFormat outFormatter = new SimpleDateFormat(formatString);
-      outFormatter.setTimeZone(Calendar.getInstance().getTimeZone());
-
-      datetimeString = outFormatter.format(inFormatter.parse(date));
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      return datetimeString;
-    }
-  }
-
-  public interface WithRetry {
-    void execute(final int currentCount);
+  public static void withRetry(final int limit, WithRetry f) {
+    Retryable.withRetry(limit, f);
   }
 
   // e.g. 20180223210923 in UTC (for saved value)
@@ -153,33 +126,6 @@ public class Product extends RealmObject {
       expiresAt = formatter.format(date);
     }
     return expiresAt;
-  }
-
-  /**
-   * Utility provides retry block for primary key collision etc.
-   *
-   * Product.withRetry(2, new Product.WithRetry() {
-   *   @Override
-   *   public void execute(final int currentCount) {
-   *     // do something
-   *   }
-   * });
-   */
-  public static void withRetry(final int limit, WithRetry f) {
-    for (int c = 0;; c++) {
-      try {
-        final int j = c;
-        f.execute(j);
-        break;
-      } catch (Exception e) {
-        if (c < limit) {
-          continue;
-        } else {
-          e.printStackTrace();
-          throw e;
-        }
-      }
-    }
   }
 
   // -- scanned product classes and methods
