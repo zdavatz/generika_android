@@ -27,7 +27,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -58,14 +57,17 @@ import org.oddb.generika.MainActivity;
 import org.oddb.generika.R;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.ui.MonthYearPickerDialogFragment;
+import org.oddb.generika.util.Formatter;
 import org.oddb.generika.util.Constant;
 
 
 public class ProductListAdapter extends RealmBaseAdapter<Product>
-  implements SwipeItemMangerInterface, SwipeAdapterInterface {
+  implements
+    GenerikaListAdapter,
+    SwipeItemMangerInterface, SwipeAdapterInterface {
   private static final String TAG = "ProductListAdapter";
 
-  protected ListItemListener itemListener;
+  protected GenerikaListAdapter.ListItemListener itemListener;
   protected SwipeItemAdapterMangerImpl itemManager;
 
   private final Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
@@ -73,27 +75,71 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
 
   protected final String expiresAtFormat = "MM.yyyy";
 
-  public ProductListAdapter(RealmList<Product> realmList) {
-    super((OrderedRealmCollection<Product>)realmList);
+  public ProductListAdapter(RealmResults<Product> products) {
+    super((OrderedRealmCollection<Product>)products);
 
     // swipe
     this.itemManager = new SwipeItemAdapterMangerImpl(this);
   }
 
-  public interface ListItemListener {
-    abstract void onDelete(String itemId);
-    abstract void onExpiresAtChange(String itemId, Date newDate);
-  }
+  // GenerikaListAdapter
 
-  public void setCallback(ListItemListener callback) {
+  @Override
+  public void setCallback(GenerikaListAdapter.ListItemListener callback) {
     this.itemListener = callback;
   }
 
   @Override
-  public void updateData(@Nullable OrderedRealmCollection<Product> data) {
-    super.updateData(data);
+  public void updateItems(@Nullable Object data) {
+    // NOTE:
+    // This `updateData()` method invokes `notifyDataSetChanged()`, after
+    // data set. See also below.
+    //
+    // https://github.com/realm/realm-android-adapters/blob/\
+    //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
+    //   /io/realm/RealmBaseAdapter.java#L135
+    this.updateData((OrderedRealmCollection<Product>)data);
+
     // pass
   }
+
+  /**
+   * Findes the row (view) for product list item, then refreshes only it.
+   *
+   * @param Produt product target product item instance
+   * @param ListView listView
+   * @return void
+   */
+  @Override
+  public void refresh(Product product, ListView listView) {
+    // find it in visible range
+    int startPosition = listView.getFirstVisiblePosition();
+    Product item;
+    for (int i = startPosition,
+             j = listView.getLastVisiblePosition(); i <= j; i++) {
+      if (i < listView.getCount()) {
+        try {
+          item = (Product)listView.getItemAtPosition(i);
+        } catch (ArrayIndexOutOfBoundsException ignore) {
+          Log.d(TAG, "(refresh) startPosition: " + startPosition);
+          Log.d(TAG, "(refresh) i: " + i);
+          Log.d(TAG, "(refresh) j: " + j);
+          break;  // listView has already changed?
+        }
+        if (product.equals(item)) {
+          Log.d(TAG, "(refresh) item.ean: " + item.getEan());
+          // TODO: refactor view
+          View view = listView.getChildAt(i - startPosition);
+          // `getView()` is same as `listView.getAdapter().getView()`
+          View row = getView(i, view, listView);
+          row.setVisibility(View.VISIBLE);
+          break;
+        }
+      }
+    }
+  }
+
+  // --
 
   @Override
   public boolean hasStableIds() { // default: false
@@ -374,7 +420,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
 
   private void showMonthYearPickerDialog(SwipeRow row, Context context) {
     // extract month and year
-    String expiresAt = Product.getLocalDateAs(
+    String expiresAt = Formatter.formatAsLocalDate(
       row.item.getExpiresAt(), expiresAtFormat);
     String[] dateFields = {"", ""};
     if (expiresAt.contains(".")) {
@@ -457,7 +503,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     viewHolder.datetime = (TextView)view.findViewById(
       R.id.product_item_datetime);
     viewHolder.datetime.setText(
-      item.getLocalDateAs(item.getDatetime(), "HH:mm dd.MM.YYYY"));
+      Formatter.formatAsLocalDate(item.getDatetime(), "HH:mm dd.MM.YYYY"));
 
     // price
     viewHolder.price = (TextView)view.findViewById(
@@ -480,7 +526,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
       R.id.product_item_ean);
     viewHolder.ean.setText(item.getEan());
     // expiresAt
-    String expiresAtValue = Product.getLocalDateAs(
+    String expiresAtValue = Formatter.formatAsLocalDate(
       item.getExpiresAt(), expiresAtFormat);
     viewHolder.expiresAt = (TextView)view.findViewById(
       R.id.product_item_expires_at);
@@ -549,42 +595,5 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
       // pass (default color)
     }
     return color;
-  }
-
-  // -- util
-
-  /**
-   * Findes the row (view) for product list item, then refreshes only it.
-   *
-   * @param Produt product target product item instance
-   * @param ListView listView
-   * @return void
-   */
-  public void refresh(Product product, ListView listView) {
-    // find it in visible range
-    int startPosition = listView.getFirstVisiblePosition();
-    Product item;
-    for (int i = startPosition,
-             j = listView.getLastVisiblePosition(); i <= j; i++) {
-      if (i < listView.getCount()) {
-        try {
-          item = (Product)listView.getItemAtPosition(i);
-        } catch (ArrayIndexOutOfBoundsException ignore) {
-          Log.d(TAG, "(refresh) startPosition: " + startPosition);
-          Log.d(TAG, "(refresh) i: " + i);
-          Log.d(TAG, "(refresh) j: " + j);
-          break;  // listView has already changed?
-        }
-        if (product.equals(item)) {
-          Log.d(TAG, "(refresh) item.ean: " + item.getEan());
-          // TODO: refactor view
-          View view = listView.getChildAt(i - startPosition);
-          // `getView()` is same as `listView.getAdapter().getView()`
-          View row = getView(i, view, listView);
-          row.setVisibility(View.VISIBLE);
-          break;
-        }
-      }
-    }
   }
 }

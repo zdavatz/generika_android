@@ -19,10 +19,12 @@ package org.oddb.generika.ui.list;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -35,6 +37,7 @@ import com.daimajia.swipe.util.Attributes;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmList;
+import io.realm.RealmResults;
 import io.realm.RealmBaseAdapter;
 
 import java.util.HashMap;
@@ -46,32 +49,79 @@ import org.oddb.generika.util.Constant;
 
 
 public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
-  implements SwipeItemMangerInterface, SwipeAdapterInterface {
+  implements 
+    GenerikaListAdapter,
+    SwipeItemMangerInterface, SwipeAdapterInterface {
   private static final String TAG = "ReceiptListAdapter";
 
-  protected ListItemListener itemListener;
+  protected GenerikaListAdapter.ListItemListener itemListener;
   protected SwipeItemAdapterMangerImpl itemManager;
 
-  public ReceiptListAdapter(RealmList<Receipt> realmList) {
-    super((OrderedRealmCollection<Receipt>)realmList);
+  public ReceiptListAdapter(RealmResults<Receipt> receipts) {
+    super((OrderedRealmCollection<Receipt>)receipts);
 
     // swipe
     this.itemManager = new SwipeItemAdapterMangerImpl(this);
   }
 
-  public interface ListItemListener {
-    abstract void onDelete(String itemId);
-  }
+  // GenerikaListAdapter
 
-  public void setCallback(ListItemListener callback) {
+  @Override
+  public void setCallback(GenerikaListAdapter.ListItemListener callback) {
     this.itemListener = callback;
   }
 
   @Override
-  public void updateData(@Nullable OrderedRealmCollection<Receipt> data) {
-    super.updateData(data);
+  public void updateItems(@Nullable Object data) {
+    // NOTE:
+    // This `updateData()` method invokes `notifyDataSetChanged()`, after
+    // data set. See also below.
+    //
+    // https://github.com/realm/realm-android-adapters/blob/\
+    //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
+    //   /io/realm/RealmBaseAdapter.java#L135
+    this.updateData((OrderedRealmCollection<Receipt>)data);
+
     // pass
   }
+
+  /**
+   * Findes the row (view) for receipt list item, then refreshes only it.
+   *
+   * @param Receipt receipt item instance
+   * @param ListView listView
+   * @return void
+   */
+  @Override
+  public void refresh(Receipt receipt, ListView listView) {
+    // find it in visible range
+    int startPosition = listView.getFirstVisiblePosition();
+    Receipt item;
+    for (int i = startPosition,
+             j = listView.getLastVisiblePosition(); i <= j; i++) {
+      if (i < listView.getCount()) {
+        try {
+          item = (Receipt)listView.getItemAtPosition(i);
+        } catch (ArrayIndexOutOfBoundsException ignore) {
+          Log.d(TAG, "(refresh) startPosition: " + startPosition);
+          Log.d(TAG, "(refresh) i: " + i);
+          Log.d(TAG, "(refresh) j: " + j);
+          break;  // listView has already changed?
+        }
+        if (receipt.equals(item)) {
+          Log.d(TAG, "(refresh) item.placeDate: " + item.getPlaceDate());
+          // TODO: refactor view
+          View view = listView.getChildAt(i - startPosition);
+          // `getView()` is same as `listView.getAdapter().getView()`
+          View row = getView(i, view, listView);
+          row.setVisibility(View.VISIBLE);
+          break;
+        }
+      }
+    }
+  }
+
+  // --
 
   @Override
   public boolean hasStableIds() { // default: false
@@ -91,7 +141,7 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
   }
 
   private static class ViewHolder {
-    TextView name;
+    TextView placeDate;
 
     // TODO
 
@@ -259,10 +309,10 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
 
     // row for receipt
     ViewHolder viewHolder = new ViewHolder();
-    // name
-    viewHolder.name = (TextView)view.findViewById(
-      R.id.receipt_item_name);
-    viewHolder.name.setText(item.getName());
+    // placeDate
+    viewHolder.placeDate = (TextView)view.findViewById(
+      R.id.receipt_item_place_date);
+    viewHolder.placeDate.setText(item.getPlaceDate());
 
     // delete button
     ImageView deleteButton = (ImageView)view.findViewById(

@@ -65,19 +65,16 @@ import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.network.ProductInfoFetcher;
+import org.oddb.generika.ui.list.GenerikaListAdapter;
 import org.oddb.generika.ui.list.ProductListAdapter;
 import org.oddb.generika.ui.list.ReceiptListAdapter;
 import org.oddb.generika.util.Constant;
 
 
 public class MainActivity extends BaseActivity implements
-  ProductListAdapter.ListItemListener,
-  ReceiptListAdapter.ListItemListener,
+  GenerikaListAdapter.ListItemListener,
   ProductInfoFetcher.FetchCallback<ProductInfoFetcher.FetchResult> {
   private static final String TAG = "Main";
-
-  private static final String SOURCE_TYPE_BARCODE = "barcode"; // product
-  private static final String SOURCE_TYPE_AMKJSON = "amkjson"; // receipt
 
   // view
   private DrawerLayout drawerLayout;
@@ -91,8 +88,7 @@ public class MainActivity extends BaseActivity implements
 
   private String sourceType;
   private DataManager dataManager;
-  // TODO
-  private ProductListAdapter listAdapter; // products / receipts
+  private GenerikaListAdapter listAdapter; // Product / Receipt
 
   // network (headless fragment)
   private boolean fetching = false;
@@ -115,10 +111,10 @@ public class MainActivity extends BaseActivity implements
       // TODO: set alert with extras
       Log.d(TAG, "(onCreate) extras: " + extras);
       // from ImporterActivity
-      sourceType_ = SOURCE_TYPE_AMKJSON;
+      sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
       title_ = context.getString(R.string.prescriptions);
     } else {
-      sourceType_ = SOURCE_TYPE_BARCODE;
+      sourceType_ = Constant.SOURCE_TYPE_BARCODE;
       title_ = context.getString(R.string.medications);
     }
 
@@ -128,7 +124,7 @@ public class MainActivity extends BaseActivity implements
     initViews();
 
     // from import
-    if (sourceType_.equals(SOURCE_TYPE_AMKJSON)) {
+    if (sourceType_.equals(Constant.SOURCE_TYPE_AMKJSON)) {
       navigationView.setCheckedItem(R.id.navigation_item_prescriptions);
     }
 
@@ -149,13 +145,11 @@ public class MainActivity extends BaseActivity implements
     dataManager.bindDataBySourceType(sourceType);
     initData();
 
-    if (sourceType.equals(SOURCE_TYPE_BARCODE)) {
+    if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
       this.listAdapter = new ProductListAdapter(dataManager.getProducts());
       this.fetcher = buildProductInfoFetcher(context);
-    } else if (sourceType.equals(SOURCE_TYPE_AMKJSON)) {
-      // TODO: receipts
-      //this.listAdapter = new ReceiptListAdapter(null);
-      this.listAdapter = new ProductListAdapter(dataManager.getProducts());
+    } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+      this.listAdapter = new ReceiptListAdapter(dataManager.getReceipts());
       this.fetcher = null;
     }
 
@@ -190,16 +184,16 @@ public class MainActivity extends BaseActivity implements
 
   private void initData() {
     // TODO:
-    if (sourceType.equals(SOURCE_TYPE_AMKJSON)) {
+    if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
       return;
     }
 
-    if (dataManager.getProducts().size() == 0) {
+    RealmList<Product> products = dataManager.getProductsList();
+    if (products.size() == 0) {
       dataManager.preparePlaceholder();
     }
 
     // Check new product insertion via barcode reader
-    RealmList products = dataManager.getProducts();
     products.removeAllChangeListeners();
     products.addChangeListener(
       new OrderedRealmCollectionChangeListener<RealmList<Product>>() {
@@ -277,9 +271,9 @@ public class MainActivity extends BaseActivity implements
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
             String sourceType_;
             if (name.contains("prescriptions")) {
-              sourceType_ = SOURCE_TYPE_AMKJSON;
+              sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
             } else {  // back to default
-              sourceType_ = SOURCE_TYPE_BARCODE;
+              sourceType_ = Constant.SOURCE_TYPE_BARCODE;
             }
             title = menuItem.getTitle(); // updated `title`
             switchSource(sourceType_);
@@ -295,13 +289,15 @@ public class MainActivity extends BaseActivity implements
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (sourceType.equals(SOURCE_TYPE_BARCODE)) { // product
+        if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
+          // product
           Intent intent = new Intent(
             MainActivity.this, BarcodeCaptureActivity.class);
           intent.putExtra(Constant.kAutoFocus, true);
           intent.putExtra(Constant.kUseFlash, true);
           startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
-        } else if (sourceType.equals(SOURCE_TYPE_AMKJSON)) { // receipt
+        } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+          // receipt
           // TODO
         }
       }
@@ -326,20 +322,14 @@ public class MainActivity extends BaseActivity implements
         // minimum 3 chars
         if (filterString.length() < 3) {
           if (filterString.length() == 0) { // back to all items
-            listAdapter.updateData(dataManager.getProducts());
+            RealmResults<Product> products = dataManager.getProducts();
+            listAdapter.updateItems(products);
           }
           return;
         }
         RealmResults<Product> products = dataManager
           .findProductsByNameOrEan(filterString);
-        // NOTE:
-        // This `updateData()` method invokes `notifyDataSetChanged()`, after
-        // data set. See also below.
-        //
-        // https://github.com/realm/realm-android-adapters/blob/\
-        //   bd22599bbbac33e0f3840e5832a99954dcb128c1/adapters/src/main/java\
-        //   /io/realm/RealmBaseAdapter.java#L135
-        listAdapter.updateData(products);
+        listAdapter.updateItems(products);
       }
 
       @Override
@@ -453,7 +443,7 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
-  // -- {Product,Receipt}ListAdapter.ListItemListener
+  // -- GenerikaListAdapter.ListItemListener
 
   @Override
   public void onDelete(String id) {
@@ -499,7 +489,7 @@ public class MainActivity extends BaseActivity implements
       // NOTE:
       // realm is not transferred to background async task thread
       // it's not accecible.
-      DataManager dataManager_ = new DataManager(SOURCE_TYPE_BARCODE);
+      DataManager dataManager_ = new DataManager(Constant.SOURCE_TYPE_BARCODE);
       try {
         final Product product = dataManager_.getProductById(id);
         if (product == null) { return; }

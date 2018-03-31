@@ -36,7 +36,7 @@
           android:background="#fcfcfc">
 
           <TextView
-              android:id="@+id/receipt_item_name"
+              android:id="@+id/receipt_item_place_date"
               android:layout_width="270.5dp"
               android:layout_height="wrap_content"
               android:layout_marginTop="1.25dp"

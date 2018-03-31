@@ -26,8 +26,10 @@ import io.realm.RealmObject;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
+import org.json.JSONObject;
+import org.json.JSONException;
+
 import java.io.File;
-import java.lang.String;
 import java.lang.IllegalAccessException;
 import java.lang.IllegalArgumentException;
 import java.lang.NoSuchMethodException;
@@ -50,7 +52,7 @@ import java.util.UUID;
  *
  * The prescribed medication belongs to the Receipt object.
  */
-public class Product extends RealmObject {
+public class Product extends RealmObject implements Retryable {
   private final static String TAG = "Product";
 
   public static final String FIELD_ID = "id";
@@ -80,10 +82,11 @@ public class Product extends RealmObject {
   // expiry date (verfalldatum)
   private String expiresAt;
 
+  private String name;
+
   // -- scanned product (drug)
   // (values from oddb api)
   private String seq;
-  private String name;
   private String size;
   private String deduction;
   private String price;
@@ -91,15 +94,17 @@ public class Product extends RealmObject {
 
   // -- prescribed product (medication)
   // (values from .amk file)
-  //private String comment;
-  //private String atc;
-  //private String owner;
+  private String atc;
+  private String owner;
+  private String comment;
 
-  private static String generateId() {
+  // -- static methods
+
+  public static String generateId() {
     return UUID.randomUUID().toString();
   }
 
-  private static String generateId(Realm realm) {
+  public static String generateId(Realm realm) {
     String id;
     while (true) {
       id = generateId();
@@ -112,36 +117,54 @@ public class Product extends RealmObject {
     return id;
   }
 
-  // utility to return formatted local date string fields for display
-  // (scannedAt/importedAt, and expiresAt)
-  public static String getLocalDateAs(String date, String formatString) {
-    String datetimeString = "";
-    if (date == null || date.length() == 0 ||
-        formatString == null || formatString.length() == 0) {
-      return datetimeString;
-    }
-    try {
-      // NOTE:
-      // TimeZote.getDefaultZone() and Calendar.getInstance().getTimeZone()
-      // both will return wrong timezone in Android 6.1 (>= 7.0 OK) :'(
-
-      // from UTC
-      SimpleDateFormat inFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
-      inFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-      // to local time
-      SimpleDateFormat outFormatter = new SimpleDateFormat(formatString);
-      outFormatter.setTimeZone(Calendar.getInstance().getTimeZone());
-
-      datetimeString = outFormatter.format(inFormatter.parse(date));
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      return datetimeString;
-    }
+  private static HashMap<String, String> productkeyMap() {
+    // property, importing key (.amk, api)
+    HashMap<String, String> keyMap = new HashMap<String, String>();
+    keyMap.put("ean", "eancode");
+    keyMap.put("reg", "regnrs");
+    keyMap.put("pack", "package");
+    keyMap.put("name", "product_name");
+    // (scanned drug)
+    keyMap.put("seq", "seq");
+    keyMap.put("size", "size");
+    keyMap.put("deduction", "deduction");
+    keyMap.put("price", "price");
+    keyMap.put("category", "category");
+    // (prescribed medication)
+    keyMap.put("atc", "atccode");
+    keyMap.put("owner", "owner");
+    keyMap.put("comment", "comment");
+    return keyMap;
   }
 
-  public interface WithRetry {
-    void execute(final int currentCount);
+  // without id
+  public static Product newInstanceFromJSON(JSONObject json) throws
+    SecurityException, NoSuchMethodException, IllegalArgumentException,
+    IllegalAccessException, InvocationTargetException {
+    Product product = new Product();
+
+    Class c = Product.class;
+    Class[] parameterTypes = new Class[]{String.class};
+    HashMap<String, String> keyMap = productkeyMap();
+    for (String key: keyMap.keySet()) {
+      String value;
+      try {
+        value = json.getString(keyMap.get(key));
+      } catch (JSONException _e) {
+        value = null;
+      }
+      if (value != null && value != "" && value != "null")  {
+        String methodName = "set" +
+          key.substring(0, 1).toUpperCase() + key.substring(1);
+        Method method = c.getDeclaredMethod(methodName, parameterTypes);
+        method.invoke(product, new Object[]{value});
+      }
+    }
+    return product;
+  }
+
+  public static void withRetry(final int limit, WithRetry f) {
+    Retryable.withRetry(limit, f);
   }
 
   // e.g. 20180223210923 in UTC (for saved value)
@@ -153,33 +176,6 @@ public class Product extends RealmObject {
       expiresAt = formatter.format(date);
     }
     return expiresAt;
-  }
-
-  /**
-   * Utility provides retry block for primary key collision etc.
-   *
-   * Product.withRetry(2, new Product.WithRetry() {
-   *   @Override
-   *   public void execute(final int currentCount) {
-   *     // do something
-   *   }
-   * });
-   */
-  public static void withRetry(final int limit, WithRetry f) {
-    for (int c = 0;; c++) {
-      try {
-        final int j = c;
-        f.execute(j);
-        break;
-      } catch (Exception e) {
-        if (c < limit) {
-          continue;
-        } else {
-          e.printStackTrace();
-          throw e;
-        }
-      }
-    }
   }
 
   // -- scanned product classes and methods
@@ -327,6 +323,15 @@ public class Product extends RealmObject {
     return category;
   }
   public void setCategory(String category) { this.category = category; }
+
+  public String getAtc() { return atc; }
+  public void setAtc(String value) { this.atc = value; }
+
+  public String getOwner() { return owner; }
+  public void setOwner(String value) { this.owner = value; }
+
+  public String getComment() { return comment; }
+  public void setComment(String value) { this.comment = value; }
 
   // NOTE: it must be called in realm transaction
   public void updateProperties(HashMap<String, String> properties) throws
