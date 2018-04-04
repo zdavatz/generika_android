@@ -47,7 +47,100 @@
               android:paddingLeft="1.75dp"
               android:paddingBottom="1.05dp"
               android:textColor="@color/titleColor"
-              android:textSize="13.5sp"/>
+              android:textSize="12.5sp"/>
+
+          <TextView
+              android:id="@+id/receipt_item_operator_name"
+              android:layout_width="200.5dp"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="1.25dp"
+              android:layout_marginBottom="2.25dp"
+              android:layout_below="@+id/receipt_item_place_date"
+              android:singleLine="true"
+              android:paddingTop="1.5dp"
+              android:paddingRight="1.75dp"
+              android:paddingLeft="1.75dp"
+              android:paddingBottom="1.05dp"
+              android:textColor="@color/titleColor"
+              android:textSize="10.5sp"/>
+
+          <TextView
+              android:id="@+id/receipt_item_filename"
+              android:layout_width="200.5dp"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="1.25dp"
+              android:layout_marginBottom="2.25dp"
+              android:layout_below="@+id/receipt_item_place_date"
+              android:layout_toRightOf="@+id/receipt_item_operator_name"
+              android:singleLine="true"
+              android:paddingTop="1.5dp"
+              android:paddingRight="1.75dp"
+              android:paddingLeft="1.75dp"
+              android:paddingBottom="1.05dp"
+              android:textColor="@color/titleColor"
+              android:textSize="10.5sp"/>
+            
+          <TextView
+              android:id="@+id/receipt_item_operator_phone"
+              android:layout_width="200.5dp"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="1.25dp"
+              android:layout_marginBottom="2.25dp"
+              android:layout_below="@+id/receipt_item_operator_name"
+              android:singleLine="true"
+              android:paddingTop="1.5dp"
+              android:paddingRight="1.75dp"
+              android:paddingLeft="1.75dp"
+              android:paddingBottom="1.05dp"
+              android:textColor="@color/titleColor"
+              android:textSize="10.5sp"/>
+
+          <TextView
+              android:id="@+id/receipt_item_datetime"
+              android:layout_width="200.5dp"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="1.25dp"
+              android:layout_marginBottom="2.25dp"
+              android:layout_below="@+id/receipt_item_operator_name"
+              android:layout_toRightOf="@+id/receipt_item_operator_phone"
+              android:singleLine="true"
+              android:paddingTop="1.5dp"
+              android:paddingRight="1.75dp"
+              android:paddingLeft="1.75dp"
+              android:paddingBottom="1.05dp"
+              android:textColor="@color/titleColor"
+              android:textSize="10.5sp"/>
+
+          <TextView
+              android:id="@+id/receipt_item_operator_email"
+              android:layout_width="200.5dp"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="1.25dp"
+              android:layout_marginBottom="2.25dp"
+              android:layout_below="@+id/receipt_item_operator_phone"
+              android:singleLine="true"
+              android:paddingTop="1.5dp"
+              android:paddingRight="1.75dp"
+              android:paddingLeft="1.75dp"
+              android:paddingBottom="1.05dp"
+              android:textColor="@color/titleColor"
+              android:textSize="10.5sp"/>
+
+          <TextView
+              android:id="@+id/receipt_item_medications_count"
+              android:layout_width="200.5dp"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="1.25dp"
+              android:layout_marginBottom="2.25dp"
+              android:layout_below="@+id/receipt_item_operator_phone"
+              android:layout_toRightOf="@+id/receipt_item_operator_email"
+              android:singleLine="true"
+              android:paddingTop="1.5dp"
+              android:paddingRight="1.75dp"
+              android:paddingLeft="1.75dp"
+              android:paddingBottom="1.05dp"
+              android:textColor="@color/titleColor"
+              android:textSize="10.5sp"/>
 
       </RelativeLayout>
 
