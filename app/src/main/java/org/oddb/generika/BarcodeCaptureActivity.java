@@ -86,7 +86,7 @@ import org.oddb.generika.util.Constant;
 public final class BarcodeCaptureActivity extends BaseActivity implements
   BarcodeGraphicTracker.BarcodeUpdateListener,
   BarcodeImageCapturingDetector.BarcodeImageCaptureListener {
-  private static final String TAG = "BarcodeCapture";
+  private static final String TAG = "BarcodeCaptureActivity";
 
   private CameraSource cameraSource;
   private CameraSourcePreview preview;
@@ -359,8 +359,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
   private class SaveBarcodeImageTask extends AsyncTask<
     CapturedData, Void, String> {
-
-    private final static String TAG = "SaveBarcodeImage";
+    private final static String TAG = "SaveBarcodeImageTask";
 
     @Override
     protected String doInBackground(CapturedData... params) {

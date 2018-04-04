@@ -30,7 +30,7 @@ import org.oddb.generika.BaseActivity;
 
 
 public class InformationActivity extends BaseActivity {
-  private static final String TAG = "Information";
+  private static final String TAG = "InformationActivity";
 
   @Override
   public void onCreate(Bundle savedInstanceState) {

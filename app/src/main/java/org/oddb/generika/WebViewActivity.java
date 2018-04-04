@@ -43,7 +43,7 @@ import org.oddb.generika.util.Constant;
 
 
 public class WebViewActivity extends BaseActivity {
-  private static final String TAG = "WebView";
+  private static final String TAG = "WebViewActivity";
 
   private WebView webView;
 

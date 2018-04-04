@@ -75,7 +75,7 @@ import org.oddb.generika.util.Constant;
 public class MainActivity extends BaseActivity implements
   GenerikaListAdapter.ListItemListener,
   ProductInfoFetcher.FetchCallback<ProductInfoFetcher.FetchResult> {
-  private static final String TAG = "Main";
+  private static final String TAG = "MainActivity";
 
   // view
   private DrawerLayout drawerLayout;

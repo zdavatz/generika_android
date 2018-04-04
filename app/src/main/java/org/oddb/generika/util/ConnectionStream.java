@@ -41,7 +41,7 @@ import org.oddb.generika.util.Constant;
  * ```
  */
 public class ConnectionStream {
-  private static final String TAG = "DataFetcher";
+  private static final String TAG = "ConnectionStream";
 
   private URL sourceUrl;
   private HttpsURLConnection connection;
