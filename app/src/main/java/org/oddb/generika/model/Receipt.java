@@ -211,22 +211,27 @@ public class Receipt extends RealmObject implements Retryable {
   public String getIssuedDate() { return ""; } // (via place_date)
   public String getIssuedPlace() { return ""; } // (via place_date)
 
+  // if this method returns `false`, `realm.cancelTransaction()` should be
+  // called.
   public boolean delete() {
-    boolean deleted = true;
+    boolean deleted = false;
+
+    File amkfile = null;
     if (filepath != null) {
       File file = new File(filepath);
       if (file.exists()) {
-        deleted = file.delete();
+        amkfile = file;
       }
     }
-    if (deleted) {
-      // this method returns nothing...
+    try {
       deleteFromRealm();
-    } else {
-      Log.d(TAG, "(delete) id: " + id);
+      deleted = true;
+    } catch (IllegalStateException e) {
+      deleted = false;
     }
-    // TODO:
-    // (for now) return image is deleted or not
+    if (amkfile != null) {
+      deleted = amkfile.delete();
+    }
     return deleted;
   }
 }

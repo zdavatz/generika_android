@@ -17,7 +17,6 @@
  */
 package org.oddb.generika.model;
 
-
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.LinkingObjects;
 import io.realm.Realm;
@@ -178,4 +177,17 @@ public class Patient extends RealmObject implements Retryable {
 
   public String getCountry() { return country; }
   public void setCountry(String value) { this.country = value; }
+
+  // if this method returns `false`, `realm.cancelTransaction()` should be
+  // called.
+  public boolean delete() {
+    boolean deleted = false;
+    try {
+      deleteFromRealm();
+      deleted = true;
+    } catch (IllegalStateException e) {
+      deleted = false;
+    }
+    return deleted;
+  }
 }

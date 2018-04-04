@@ -448,11 +448,11 @@ public class MainActivity extends BaseActivity implements
   @Override
   public void onDelete(String id) {
     // id is primary key (itemTag)
-
-    // TODO: check current sourceType
-    dataManager.deleteProduct(id);
-
-    // should check sourceType of Product at here?
+    if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+      dataManager.deleteReceipt(id);
+    } else {
+      dataManager.deleteProduct(id);
+    }
   }
 
   @Override

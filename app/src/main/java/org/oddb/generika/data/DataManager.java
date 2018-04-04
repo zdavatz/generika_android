@@ -188,17 +188,26 @@ public class DataManager {
   public void deleteProduct(String productId) {
     final String id = productId;
 
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm _realm) {
-        Product product = data.getItems().where().equalTo(
-          "id", id).findFirst();
-        if (product != null) {
-          // TODO: create alert dialog for failure?
-          product.delete();
+    try {
+      realm.executeTransaction(new Realm.Transaction() {
+        @Override
+        public void execute(Realm _realm) {
+          Log.d(TAG, "(deleteProduct) productId: " + id);
+
+          boolean deleted = false;
+          Product product = data.getItems().where().equalTo(
+            "id", id).findFirst();
+          deleted = product.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Product"); }
         }
-      }
-    });
+      });
+
+    } catch (IllegalStateException e) {
+      Log.d(TAG, "(deleteProduct) message: " + e.getMessage());
+      e.printStackTrace();
+      // TODO: create alert dialog for failure?
+    }
   }
 
   // -- Receipt
@@ -245,5 +254,44 @@ public class DataManager {
         });
       }
     });
+  }
+
+  public void deleteReceipt(String receiptId) {
+    final String id = receiptId;
+
+    try {
+      realm.executeTransaction(new Realm.Transaction() {
+        @Override
+        public void execute(Realm realm_) {
+          Log.d(TAG, "(deleteReceipt) receiptId: " + id);
+
+          Receipt receipt = data.getFiles().where().equalTo(
+            "id", id).findFirst();
+          boolean deleted = false;
+          Operator operator = receipt.getOperator();
+          deleted = operator.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Operator"); }
+
+          Patient patient = receipt.getPatient();
+          deleted = patient.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Patient"); }
+
+          RealmList<Product> medications = receipt.getMedications();
+          deleted = medications.deleteAllFromRealm();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Medications"); }
+
+          deleted = receipt.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Receipt"); }
+        }
+      });
+    } catch (IllegalStateException e) {
+      Log.d(TAG, "(deleteReceipt) message: " + e.getMessage());
+      e.printStackTrace();
+      // TODO: create alert dialog for failure?
+    }
   }
 }
