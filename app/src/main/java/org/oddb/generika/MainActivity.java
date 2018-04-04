@@ -336,7 +336,6 @@ public class MainActivity extends BaseActivity implements
       @Override
       public void onTextChanged(
         CharSequence s, int start, int before, int count) {
-        // TODO: check current sourceType
         String filterString = s.toString().toLowerCase();
         Log.d(TAG, "(onTextChanged) filterString: " + filterString);
         // minimum 3 chars
