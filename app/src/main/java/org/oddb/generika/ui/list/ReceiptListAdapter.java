@@ -118,7 +118,6 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
         }
         if (receipt.equals(item)) {
           Log.d(TAG, "(refresh) item.placeDate: " + item.getPlaceDate());
-          // TODO: refactor view
           View view = listView.getChildAt(i - startPosition);
           // `getView()` is same as `listView.getAdapter().getView()`
           View row = getView(i, view, listView);
@@ -341,7 +340,7 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
     // filename (original filename)
     viewHolder.filename = (TextView)view.findViewById(
       R.id.receipt_item_filename);
-    viewHolder.filename.setText("(TODO: original filename)");
+    viewHolder.filename.setText(item.getFilename());
 
     // phone
     viewHolder.operatorPhone = (TextView)view.findViewById(

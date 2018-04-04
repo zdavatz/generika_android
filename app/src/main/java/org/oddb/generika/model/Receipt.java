@@ -17,6 +17,7 @@
  */
 package org.oddb.generika.model;
 
+import android.content.Context;
 import android.util.Log;
 
 import io.realm.annotations.PrimaryKey;
@@ -28,6 +29,11 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Calendar;
 import java.util.UUID;
 
 
@@ -79,20 +85,75 @@ public class Receipt extends RealmObject implements Retryable {
   }
 
   public static class Amkfile {
-    String prescriptionHash; // hashedKey
-    String filepath;
-    String content;
+    private Context context;
+    private String url;
 
-    public void setPrescriptionHash(String prescriptionHash_) {
-      this.prescriptionHash = prescriptionHash_;
+    private String originalName;
+
+    private File file;
+    private String content;
+
+    public Amkfile(Context context, String url) {
+      this.context = context;
+      this.url = url;
+
+      try {
+        this.originalName = URLDecoder.decode(
+          new File(url).getName(), "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        Log.d(TAG, "(Amkfile) exception: " + e.getMessage());
+        e.printStackTrace();
+        this.originalName = "";
+      }
+      // local
+      // e.g. /data/user/0/org.oddb.generika/files/amkfiles/RZ_1522825658.amk
+      long timestamp = Calendar.getInstance().getTimeInMillis() / 1000l;
+      String filename = String.format("%s_%d.amk", "RZ", timestamp);
+      File directory = new File(
+        context.getFilesDir() + File.separator + "amkfiles");
+      directory.mkdirs();
+      this.file = new File(directory, filename);
     }
 
-    public void setFilepath(String filepath_) {
-      this.filepath = filepath_;
+    public void setContent(String value) {
+      this.content = value;
     }
 
-    public void setContent(String content_) {
-      this.content = content_;
+    public String getPath() {
+      if (file != null) {
+        return file.getAbsolutePath();
+      }
+      return null;
+    }
+
+    public String getOriginalName() {
+      return originalName;
+    }
+
+    public boolean save() {
+      boolean result = false;
+      FileOutputStream outputStream = null;
+
+      try {
+        outputStream = new FileOutputStream(file);
+        outputStream.write(content.getBytes());
+        outputStream.close();
+        result = true;
+      } catch (Exception e) {
+        Log.d(TAG, "(Amkfile.save) exception: " + e.getMessage());
+        e.printStackTrace();
+        result = false;
+      } finally {
+        if (outputStream != null) {
+          try {
+            outputStream.close();
+          } catch (IOException e) {
+            Log.d(TAG, "(Amkfile.save) exception: " + e.getMessage());
+            e.printStackTrace();
+          }
+        }
+        return result;
+      }
     }
   }
 
@@ -116,6 +177,7 @@ public class Receipt extends RealmObject implements Retryable {
       file.setHashedKey(receipt.getHashedKey());
       file.setPlaceDate(receipt.getPlaceDate());
       file.setFilepath(receipt.getFilepath());
+      file.setFilename(receipt.getFilename());
 
       // each objects below must have id and it must be managed object
       operator.setId(operator.generateId(realm));

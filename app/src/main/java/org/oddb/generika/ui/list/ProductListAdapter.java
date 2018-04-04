@@ -133,7 +133,6 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
         }
         if (product.equals(item)) {
           Log.d(TAG, "(refresh) item.ean: " + item.getEan());
-          // TODO: refactor view
           View view = listView.getChildAt(i - startPosition);
           // `getView()` is same as `listView.getAdapter().getView()`
           View row = getView(i, view, listView);

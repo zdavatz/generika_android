@@ -58,6 +58,8 @@ public class ImporterActivity extends BaseActivity
 
   private static final int PERMISSION_REQUEST_CODE = 100;
 
+  private Uri uri;
+
   private String[] permissions = new String[]{
     Manifest.permission.READ_EXTERNAL_STORAGE,
   };
@@ -66,6 +68,7 @@ public class ImporterActivity extends BaseActivity
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    this.uri = getIntent().getData();
     if (Build.VERSION.SDK_INT >= Constant.VERSION_23__6_0) {
       if (checkPermissions()) {
         doImport();
@@ -114,13 +117,12 @@ public class ImporterActivity extends BaseActivity
     // * https://<domain>/data/<file>.amk
     // * file:///storage/emulated/0/Download/<file>.amk
     // * content://com.android.chrome.FileProvider/downloads/<file>.amk
-    Uri uri = getIntent().getData();
-    String url = uri.toString().toLowerCase();
+    String url = uri.toString();
+    Log.d(TAG, "(doImport) url: " + url);
 
     int flags = 0;
     HashMap<String, String> extras = new HashMap<String, String>();
     try {
-      Log.d(TAG, "(doImport) uri: " + uri.toString());
       if (url.startsWith("https:")) {
         // because network access cannot run in main thread.
         FetchTask fetchTask = new FetchTask();
@@ -174,8 +176,7 @@ public class ImporterActivity extends BaseActivity
 
   // save incominng json file into app after some validations
   private Result importJSON(String content) {
-    Log.d(TAG, "(importJSON) content: " + content);
-
+    // Log.d(TAG, "(importJSON) content: " + content);
     Result result = new Result();
     try {
       JSONObject json = new JSONObject(content);
@@ -212,30 +213,31 @@ public class ImporterActivity extends BaseActivity
         medications[i] = Product.newInstanceFromJSON(medication);
       }
 
-      // .amk
-      Receipt.Amkfile amkfile = new Receipt.Amkfile();
-      amkfile.setPrescriptionHash(hashedKey);
+      // .amk (original file)
+      String url = uri.toString();
+      Receipt.Amkfile amkfile = new Receipt.Amkfile(context, url);
       amkfile.setContent(content);
+      String filepath = amkfile.getPath();
+      String filename = amkfile.getOriginalName();
+      Log.d(TAG, "(importJSON) .amk local filepath: " + filepath);
 
-      // TODO: save file in background
-      String filepath = ".amk";
-      amkfile.setFilepath(filepath);
-      Log.d(TAG, "(importJSON) .amk filepath: " + filepath);
-
-      if (filepath == null || filepath.equals("")) {
+      boolean saved = amkfile.save();
+      Log.d(TAG, "(importJSON) saved: " + saved);
+      if (!saved) {
         // save error
         result.setMessage("TODO");
         return result;
+      } else {
+        result.setFilename(filename);
       }
 
       Receipt receipt = new Receipt();
       receipt.setHashedKey(hashedKey);
       receipt.setPlaceDate(json.getString("place_date"));
       receipt.setFilepath(filepath);
+      receipt.setFilename(filename);
 
       dataManager.addReceipt(receipt, operator, patient, medications);
-      // TODO
-      result.setFilename(".amk");
     } catch (Exception e) {
       // TODO
       Log.d(TAG, "(importJSON) exception: " + e.getMessage());
