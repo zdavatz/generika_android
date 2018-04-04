@@ -33,7 +33,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.UUID;
 
 
@@ -106,9 +108,9 @@ public class Receipt extends RealmObject implements Retryable {
         this.originalName = "";
       }
       // local
-      // e.g. /data/user/0/org.oddb.generika/files/amkfiles/RZ_1522825658.amk
-      long timestamp = Calendar.getInstance().getTimeInMillis() / 1000l;
-      String filename = String.format("%s_%d.amk", "RZ", timestamp);
+      // e.g. /path/to/org.oddb.generika/files/amkfiles/RZ-20180404053819.amk
+      String filename = String.format(
+        "%s-%s.amk", "RZ", Receipt.makeImportedAt(null));
       File directory = new File(
         context.getFilesDir() + File.separator + "amkfiles");
       directory.mkdirs();
@@ -157,6 +159,29 @@ public class Receipt extends RealmObject implements Retryable {
     }
   }
 
+  // e.g. 20180223210923 in UTC (for saved value)
+  public static String makeImportedAt(String filepath_) {
+    String importedAt = "";
+    if (filepath_ != null) {
+      // extract timestamp part from path
+      File file = new File(filepath_);
+      String filename = file.getName().toString();
+      Log.d(TAG, "(makeImportedAt) filename: " + filename);
+      if (filename.length() == 32) {
+        // RZ:2 + -:1 + TIMESTAMP:14 + .:1 + EXT:3 = 21 (amk)
+        importedAt = filename.substring(3, 17);
+      }
+    }
+    // normally datetime_ is set from filename
+    if (importedAt.equals("")) {
+      Calendar calendar = Calendar.getInstance();
+      SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+      importedAt = formatter.format(calendar.getTime());
+    }
+    return importedAt;
+  }
+
   // NOTE: it must be called in realm transaction & try/catch block
   public static Receipt insertNewReceiptIntoSource(
     Realm realm,
@@ -174,10 +199,12 @@ public class Receipt extends RealmObject implements Retryable {
 
       // id will be random generated UUID
       Receipt file = realm.createObject(Receipt.class, id);
+      String filepath_ = receipt.getFilepath();
       file.setHashedKey(receipt.getHashedKey());
       file.setPlaceDate(receipt.getPlaceDate());
-      file.setFilepath(receipt.getFilepath());
+      file.setFilepath(filepath_);
       file.setFilename(receipt.getFilename());
+      file.setDatetime(makeImportedAt(filepath_));
 
       // each objects below must have id and it must be managed object
       operator.setId(operator.generateId(realm));
@@ -195,9 +222,6 @@ public class Receipt extends RealmObject implements Retryable {
         final Product managedProduct = realm.copyToRealm(product);
         medicationList.add(0, managedProduct);
       }
-
-      // TODO: datetime
-      file.setDatetime("");
 
       // insert (receipt, operator, patient, products) to first
       // on list as source

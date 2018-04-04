@@ -239,9 +239,8 @@ public class ImporterActivity extends BaseActivity
 
       dataManager.addReceipt(receipt, operator, patient, medications);
     } catch (Exception e) {
-      // TODO
       Log.d(TAG, "(importJSON) exception: " + e.getMessage());
-      e.printStackTrace();
+      Log.d(TAG, "(importJSON) " + Log.getStackTraceString(e));
       result.setMessage(e.getMessage());
     }
     return result;

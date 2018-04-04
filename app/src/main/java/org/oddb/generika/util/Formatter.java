@@ -45,7 +45,8 @@ public class Formatter extends Object {
 
       datetimeString = outFormatter.format(inFormatter.parse(date));
     } catch (Exception e) {
-      e.printStackTrace();
+      // nothing to display
+      datetimeString = "";
     }
     return datetimeString;
   }

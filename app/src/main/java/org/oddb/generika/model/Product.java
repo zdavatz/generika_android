@@ -196,7 +196,7 @@ public class Product extends RealmObject implements Retryable {
   public static String makeScannedAt(String filepath_) {
       String scannedAt = "";
       if (filepath_ != null) {
-        // extract timestapm part from path
+        // extract timestamp part from path
         File file = new File(filepath_);
         String filename = file.getName().toString();
         Log.d(TAG, "(makeScannedAt) filename: " + filename);
