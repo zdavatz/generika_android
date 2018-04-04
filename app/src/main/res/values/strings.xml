@@ -13,7 +13,7 @@
     <string name="information">About</string>
 
     <!-- [drawer] -->
-    <string name="medications">Medications</string>
+    <string name="drugs">Medications</string>
     <string name="prescriptions">Prescriptions</string>
 
     <!-- [settings]-->

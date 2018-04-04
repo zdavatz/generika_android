@@ -75,6 +75,11 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
   }
 
   @Override
+  public void refreshAll() {
+    this.notifyDataSetChanged();
+  }
+
+  @Override
   public void updateItems(@Nullable Object data) {
     // NOTE:
     // This `updateData()` method invokes `notifyDataSetChanged()`, after

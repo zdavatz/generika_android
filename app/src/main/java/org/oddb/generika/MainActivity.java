@@ -81,6 +81,7 @@ public class MainActivity extends BaseActivity implements
   private ActionBarDrawerToggle drawerToggle;
   private CharSequence title;
   private ListView listView;
+  private ActionBar actionBar;
   private NavigationView navigationView;
   private FloatingActionButton fab;
 
@@ -104,30 +105,24 @@ public class MainActivity extends BaseActivity implements
     Intent intent = getIntent();
     Log.d(TAG, "(onCreate) intent: " + intent);
     Set<String> categories = intent.getCategories();
+    // from import activity, or back from settings etc.
     if ((categories == null ||
          !categories.contains(Intent.CATEGORY_LAUNCHER)) &&
-        !Intent.ACTION_MAIN.equals(intent.getAction())) {
-      Bundle extras = intent.getExtras();
+         !Intent.ACTION_MAIN.equals(intent.getAction())) {
       // TODO: set alert with extras
+      Bundle extras = intent.getExtras();
       Log.d(TAG, "(onCreate) extras: " + extras);
-      // from ImporterActivity
       sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
       title_ = context.getString(R.string.prescriptions);
-    } else {
+    } else { // from launcher
       sourceType_ = Constant.SOURCE_TYPE_BARCODE;
-      title_ = context.getString(R.string.medications);
+      title_ = context.getString(R.string.drugs);
     }
 
     this.title = title_;
     this.dataManager = new DataManager(sourceType_);
 
-    initViews();
-
-    // from import
-    if (sourceType_.equals(Constant.SOURCE_TYPE_AMKJSON)) {
-      navigationView.setCheckedItem(R.id.navigation_item_prescriptions);
-    }
-
+    initViews(sourceType_);
     switchSource(sourceType_);
   }
 
@@ -136,10 +131,11 @@ public class MainActivity extends BaseActivity implements
    *
    * sourceType, listAdapter and fetcher will be set.
    *
-   * @param String productName prescriptions/medications
+   * @param String sourceType amkjson/barcode
    * @return void
    */
   private void switchSource(String sourceType_) {
+    Log.d(TAG, "(switchSource) sourceType: " + sourceType_);
     this.sourceType = sourceType_;
 
     dataManager.bindDataBySourceType(sourceType);
@@ -155,6 +151,8 @@ public class MainActivity extends BaseActivity implements
 
     // change list adapter
     listAdapter.setCallback(this);
+    listAdapter.refreshAll();
+
     listView.setAdapter(listAdapter);
   }
 
@@ -217,7 +215,7 @@ public class MainActivity extends BaseActivity implements
     });
   }
 
-  private void initViews() {
+  private void initViews(String sourceType_) {
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(title);
     setSupportActionBar(toolbar);
@@ -243,7 +241,7 @@ public class MainActivity extends BaseActivity implements
     drawerToggle.syncState();
     drawerLayout.addDrawerListener(drawerToggle);
 
-    ActionBar actionBar = getSupportActionBar();
+    this.actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
 
@@ -270,7 +268,7 @@ public class MainActivity extends BaseActivity implements
               menuItem.getItemId());
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
             String sourceType_;
-            if (name.contains("prescriptions")) {
+            if (name.contains("receipt")) {
               sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
             } else {  // back to default
               sourceType_ = Constant.SOURCE_TYPE_BARCODE;
@@ -283,6 +281,18 @@ public class MainActivity extends BaseActivity implements
           Toast.makeText(MainActivity.this, title, Toast.LENGTH_LONG).show();
           return true;
         }
+    });
+
+    navigationView.post(new Runnable() {
+      @Override
+      public void run() {
+        Log.d(TAG, "(initViews) sourceType: " + sourceType_);
+        if (sourceType_.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+          navigationView.setCheckedItem(R.id.navigation_item_receipts);
+        } else {
+          navigationView.setCheckedItem(R.id.navigation_item_products);
+        }
+      }
     });
 
     this.fab = (FloatingActionButton)findViewById(R.id.fab);
@@ -439,6 +449,7 @@ public class MainActivity extends BaseActivity implements
         );
       }
     } else {
+      Log.d(TAG, "(onActivityResult) requestCode: " + requestCode);
       super.onActivityResult(requestCode, resultCode, data);
     }
   }
