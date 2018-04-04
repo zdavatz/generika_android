@@ -56,7 +56,7 @@ import java.util.regex.Pattern;
 import org.oddb.generika.MainActivity;
 import org.oddb.generika.R;
 import org.oddb.generika.model.Product;
-import org.oddb.generika.ui.MonthYearPickerDialogFragment;
+import org.oddb.generika.ui.MonthYearPickerDialog;
 import org.oddb.generika.util.Formatter;
 import org.oddb.generika.util.Constant;
 
@@ -432,17 +432,17 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     }
     if (dateFields.length != 2) { return; }
     int month, year;
-    MonthYearPickerDialogFragment fragment;
+    MonthYearPickerDialog dialog;
     try {
       month = Integer.parseInt(dateFields[0]);
       year = Integer.parseInt(dateFields[1]);
-      fragment = MonthYearPickerDialogFragment.newInstance(month, year);
+      dialog = MonthYearPickerDialog.newInstance(month, year);
     } catch (NumberFormatException e) {
-      fragment = MonthYearPickerDialogFragment.newInstance();
+      dialog = MonthYearPickerDialog.newInstance();
     }
-    fragment.setTitle(context.getString(R.string.expiry_date));
-    fragment.setListener(
-      new MonthYearPickerDialogFragment.OnChangeListener() {
+    dialog.setTitle(context.getString(R.string.expiry_date));
+    dialog.setListener(
+      new MonthYearPickerDialog.OnChangeListener() {
       @Override
       public void onDateSet(
         DatePicker view, int year, int month, int _dayOfMonth) {
@@ -461,9 +461,8 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
         row.setHasDialog(false);
       }
     });
-    fragment.show(((MainActivity)context)
-      .getSupportFragmentManager(),
-      "MonthYearPickerDialogFragment");
+    dialog.show(((MainActivity)context)
+      .getSupportFragmentManager(), "MonthYearPickerDialog");
   }
 
   protected View generateView(int position, ViewGroup parent) {

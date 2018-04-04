@@ -36,8 +36,8 @@ import java.util.Calendar;
 import org.oddb.generika.R;
 
 
-public class MonthYearPickerDialogFragment extends DialogFragment {
-  private final static String TAG = "MonthYearPickerDialogFragment";
+public class MonthYearPickerDialog extends DialogFragment {
+  private final static String TAG = "MonthYearPickerDialog";
 
   private final static int M_MIN = 1;
   private final static int M_MAX = 12;
@@ -51,18 +51,18 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
 
   private Calendar cal;
 
-  public static MonthYearPickerDialogFragment newInstance() {
+  public static MonthYearPickerDialog newInstance() {
     Calendar cal = Calendar.getInstance();
 
-    return MonthYearPickerDialogFragment.newInstance(
+    return MonthYearPickerDialog.newInstance(
       cal.get(Calendar.MONTH), cal.get(Calendar.YEAR));
   }
 
-  public static MonthYearPickerDialogFragment newInstance(int m, int y) {
+  public static MonthYearPickerDialog newInstance(int m, int y) {
     Log.d(TAG, "(newInstance) month: " + m);
     Log.d(TAG, "(newInstance) year: " + y);
 
-    MonthYearPickerDialogFragment f = new MonthYearPickerDialogFragment();
+    MonthYearPickerDialog dialog = new MonthYearPickerDialog();
 
     int month;
     int year;
@@ -78,9 +78,9 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
     Bundle args = new Bundle();
     args.putInt("month", month);
     args.putInt("year", year);
-    f.setArguments(args);
+    dialog.setArguments(args);
 
-    return f;
+    return dialog;
   }
 
   public static int getMaxYear() {
@@ -141,7 +141,7 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
           if (listener != null) {
             listener.onCancel(null);
           }
-          MonthYearPickerDialogFragment.this.getDialog().cancel();
+          MonthYearPickerDialog.this.getDialog().cancel();
         }
       });
 
@@ -153,7 +153,8 @@ public class MonthYearPickerDialogFragment extends DialogFragment {
     builder.setCustomTitle(titleView);
     Dialog dialog = builder.create();
     dialog.setCancelable(false);
-    // https://developer.android.com/reference/android/app/DialogFragment.html#setCancelable(boolean)
+    // https://developer.android.com/reference/android/app/DialogFragment.html\
+    // #setCancelable(boolean)
     setCancelable(false);  // fix to disallow cancel by device back button tap
     dialog.setCanceledOnTouchOutside(false);
     return dialog;

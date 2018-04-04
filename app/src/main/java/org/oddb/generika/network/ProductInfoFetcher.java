@@ -238,12 +238,12 @@ public class ProductInfoFetcher extends Fragment {
   public static ProductInfoFetcher getInstance(
     FragmentManager fragmentManager, String baseUrl) {
 
-    ProductInfoFetcher fragment = (ProductInfoFetcher)
+    ProductInfoFetcher fetcher = (ProductInfoFetcher)
       fragmentManager.findFragmentByTag(ProductInfoFetcher.TAG);
-    if (fragment == null) {
-      fragment = new ProductInfoFetcher();
-    } else if (fragment.getArguments() != null) {
-      fragment.getArguments().clear();
+    if (fetcher == null) {
+      fetcher = new ProductInfoFetcher();
+    } else if (fetcher.getArguments() != null) {
+      fetcher.getArguments().clear();
     }
 
     Bundle args = new Bundle();
@@ -252,11 +252,11 @@ public class ProductInfoFetcher extends Fragment {
     args.putString(Constant.kApiKey, "");
     args.putString(Constant.kBaseUrl, baseUrl);
 
-    fragment.setArguments(args);
+    fetcher.setArguments(args);
     fragmentManager.beginTransaction().add(
-      fragment, TAG).commitAllowingStateLoss();
+      fetcher, TAG).commitAllowingStateLoss();
 
-    return fragment;
+    return fetcher;
   }
 
   @Override

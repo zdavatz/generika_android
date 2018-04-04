@@ -175,9 +175,9 @@ public class MainActivity extends BaseActivity implements
 
   private ProductInfoFetcher buildProductInfoFetcher(Context context_) {
     FragmentManager fragmentManager = getSupportFragmentManager();
-    Fragment fragment = fragmentManager.findFragmentByTag(
+    Fragment fetcher_ = fragmentManager.findFragmentByTag(
       ProductInfoFetcher.TAG);
-    if (fragment == null) {
+    if (fetcher_ == null) {
       // check search lang in preference
       SharedPreferences sharedPreferences = PreferenceManager
         .getDefaultSharedPreferences(context_);
@@ -185,9 +185,9 @@ public class MainActivity extends BaseActivity implements
         Constant.kSearchLang, Constant.LANG_DE);
       String urlBase = String.format(
         Constant.API_URL_PATH, searchLang);
-      fragment = ProductInfoFetcher.getInstance(fragmentManager, urlBase);
+      fetcher_ = ProductInfoFetcher.getInstance(fragmentManager, urlBase);
     }
-    return (ProductInfoFetcher)fragment;
+    return (ProductInfoFetcher)fetcher_;
   }
 
   private void initData() {
