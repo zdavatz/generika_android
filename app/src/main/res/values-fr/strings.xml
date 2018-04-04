@@ -71,21 +71,14 @@
     <string name="save">Enregistrer</string>
 
     <!-- [barcode reader] -->
+    <string name="barcode_reader_hover_text">Hold rear camera out over the barcode of package</string>
+
     <string name="permission_camera_rationale">
       L‘accès à la caméra est indispensable pour scanner le code-barres.</string>
     <string name="no_camera_permission">
       L‘application dépend de l‘accès à la caméra. Elle s‘arrête maintenant.</string>
     <string name="low_storage_error">
       La détection de visage ne peut être activée par manque d’espace de stockage.</string>
-    <string name="title_activity_main">Exemple barre-codes</string>
-    <string name="barcode_header">
-      Cliquez &quot;lire Barre-codes&quot; pour reconnaître le Barre-code.</string>
-    <string name="read_barcode">Read Barcode</string>
-    <string name="auto_focus">Auto Focus</string>
-    <string name="use_flash">Utiliser le flash</string>
-    <string name="barcode_success">Barre-codes reconnu</string>
-    <string name="barcode_failure">Pas de barre-codes reconnu</string>
-    <string name="barcode_error">"Erreur en lisant barre-codes: %1$s"</string>
 
     <!-- [product item] -->
     <string name="expiry_date">Date de péremption</string>

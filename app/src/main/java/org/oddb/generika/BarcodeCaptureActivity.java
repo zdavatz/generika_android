@@ -121,15 +121,13 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       requestCameraPermission();
     }
 
-    // TODO: use translate
-    Snackbar.make(
-      graphicOverlay,
-      "Hold rear camera out over the barcode of package",
-      Snackbar.LENGTH_LONG).show();
+    String description = context.getString(
+      R.string.barcode_reader_hover_text);
+    Snackbar.make(graphicOverlay, description, Snackbar.LENGTH_LONG).show();
   }
 
   private void requestCameraPermission() {
-    Log.w(TAG, "Camera permission is not granted. Requesting permission");
+    Log.w(TAG, "(requestCameraPermission) Camera permission is not granted.");
 
     final String[] permissions = new String[]{Manifest.permission.CAMERA};
 
@@ -180,7 +178,8 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       new MultiProcessor.Builder<>(barcodeFactory).build());
 
     if (!detector.isOperational()) {
-      Log.w(TAG, "Detector dependencies are not yet available.");
+      Log.w(TAG, "(createCameraSource) not operational:" +
+            "Detector dependencies are not yet available.");
 
       IntentFilter lowstorageFilter = new IntentFilter(
         Intent.ACTION_DEVICE_STORAGE_LOW);
@@ -239,14 +238,14 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     @NonNull int[] grantResults) {
 
     if (requestCode != Constant.RC_HANDLE_CAMERA_PERM) {
-      Log.d(TAG, "Got unexpected permission result: " + requestCode);
+      Log.d(TAG, "(onRequestPermissionsResult) requestCode: " + requestCode);
       super.onRequestPermissionsResult(requestCode, permissions, grantResults);
       return;
     }
 
     if (grantResults.length != 0 &&
         grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-      Log.d(TAG, "Camera permission granted - initialize the camera source");
+      Log.d(TAG, "(onRequestPermissionsResult) Camera permission granted");
       // we have permission, so create the camerasource
       boolean autoFocus = getIntent().getBooleanExtra(
         Constant.kAutoFocus, false);
@@ -257,8 +256,8 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     }
 
     Log.e(TAG,
-      "Permission not granted: results len = " + grantResults.length +
-      " Result code = " + (
+      "(onRequestPermissionsResult) results len: " + grantResults.length +
+      " result code: " + (
         grantResults.length > 0 ? grantResults[0] : "(empty)"));
 
     DialogInterface.OnClickListener listener =
@@ -271,7 +270,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     // TODO
-    builder.setTitle("Generika")
+    builder.setTitle(context.getString(R.string.app_name))
       .setMessage(R.string.no_camera_permission)
       .setPositiveButton(R.string.ok, listener)
       .show();
@@ -290,7 +289,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       try {
         preview.start(cameraSource, graphicOverlay);
       } catch (IOException e) {
-        Log.e(TAG, "Unable to start camera source.", e);
+        Log.e(TAG, "(startCameraSource) message: " + e.getMessage());
         cameraSource.release();
         this.cameraSource = null;
       }

@@ -461,12 +461,8 @@ public class MainActivity extends BaseActivity implements
           Log.d(TAG, "(onActivityResult) Barcode not found");
         }
       } else {
-        Log.d(
-          TAG,
-          String.format(
-            getString(R.string.barcode_error),
-            CommonStatusCodes.getStatusCodeString(resultCode))
-        );
+        Log.d(TAG, "(onActivityResult) status: " +
+          CommonStatusCodes.getStatusCodeString(resultCode));
       }
     } else {
       Log.d(TAG, "(onActivityResult) requestCode: " + requestCode);

@@ -68,21 +68,14 @@
     <string name="save">Speichern</string>
 
     <!-- [barcode reader] -->
+    <string name="barcode_reader_hover_text">Hold rear camera out over the barcode of package</string>
+
     <string name="permission_camera_rationale">
       Zugriff auf die Kamera ist notwendig um den Barcode zu scannen.</string>
     <string name="no_camera_permission">
       Die App kann ohne Zugriff auf die Kamera nicht funktionieren. Die App beendet sich jetzt selbst.</string>
     <string name="low_storage_error">
       Gesichtserkennungsbibliotheken können nicht heruntergeladen werden, da zu wenig Platz auf dem Gerät.</string>
-    <string name="title_activity_main">Barcodeleser Beispiel</string>
-    <string name="barcode_header">
-      Click &quot;Read Barcode&quot; to read a barcode</string>
-    <string name="read_barcode">Barcode lesen</string>
-    <string name="auto_focus">Autofocus</string>
-    <string name="use_flash">Flasch verwenden</string>
-    <string name="barcode_success">Barcode wurde erfolgreich gelesen.</string>
-    <string name="barcode_failure">Kein Barcode erkannt.</string>
-    <string name="barcode_error">"Error beim Lesen des Barcodes: %1$s"</string>
 
     <!-- [product item] -->
     <string name="expiry_date">Verfalldatum</string>
