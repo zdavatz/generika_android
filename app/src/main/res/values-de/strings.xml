@@ -54,7 +54,8 @@
     </string>
 
     <!-- [search box] -->
-    <string name="search_box_hint">Suche nach Name, GTIN (EAN-13), etc.</string>
+    <string name="product_search_box_hint">Suche nach Name, GTIN (EAN-13) usw.</string>
+    <string name="receipt_search_box_hint">Suche nach Ort, Zeit oder Name usw.</string>
 
     <!-- [sync] -->
     <!--

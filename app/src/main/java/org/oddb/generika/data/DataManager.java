@@ -126,7 +126,8 @@ public class DataManager {
     return data.getItems();
   }
 
-  public RealmResults<Product> findProductsByNameOrEan(String query) {
+  // name and ean
+  public RealmResults<Product> findProductsByProperties(String query) {
     if (data == null) { return null; }  // TOD: should raise exception
 
     RealmResults<Product> products;
@@ -231,6 +232,29 @@ public class DataManager {
     if (data == null) { return null; }  // TOD: should raise exception
 
     return data.getFiles();
+  }
+
+  // placeDate and Operator's givenName, familyName, phone and email
+  public RealmResults<Receipt> findReceiptsByProperties(String query) {
+    if (data == null) { return null; }  // TOD: should raise exception
+
+    RealmResults<Receipt> receipts;
+    realm.beginTransaction();
+    // insensitive wors only for latin-1 chars
+    receipts = data.getFiles()
+      .where()
+      .contains("placeDate", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.givenName", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.familyName", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.phone", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.email", query, Case.INSENSITIVE)
+      .findAll();
+    realm.commitTransaction();
+    return receipts;
   }
 
   public void addReceipt(

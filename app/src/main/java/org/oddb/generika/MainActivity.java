@@ -64,6 +64,7 @@ import java.util.Set;
 import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
+import org.oddb.generika.model.Receipt;
 import org.oddb.generika.network.ProductInfoFetcher;
 import org.oddb.generika.ui.list.GenerikaListAdapter;
 import org.oddb.generika.ui.list.ProductListAdapter;
@@ -154,6 +155,13 @@ public class MainActivity extends BaseActivity implements
     listAdapter.refreshAll();
 
     listView.setAdapter(listAdapter);
+
+    String hint;
+    if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+      searchBox.setHint(context.getString(R.string.receipt_search_box_hint));
+    } else {
+      searchBox.setHint(context.getString(R.string.product_search_box_hint));
+    }
   }
 
   @Override
@@ -267,14 +275,14 @@ public class MainActivity extends BaseActivity implements
             String name = getResources().getResourceEntryName(
               menuItem.getItemId());
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
-            String sourceType_;
+            String nextSourceType;
             if (name.contains("receipt")) {
-              sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
+              nextSourceType = Constant.SOURCE_TYPE_AMKJSON;
             } else {  // back to default
-              sourceType_ = Constant.SOURCE_TYPE_BARCODE;
+              nextSourceType = Constant.SOURCE_TYPE_BARCODE;
             }
             title = menuItem.getTitle(); // updated `title`
-            switchSource(sourceType_);
+            switchSource(nextSourceType);
             menuItem.setChecked(true);
           }
           drawerLayout.closeDrawers();
@@ -332,14 +340,25 @@ public class MainActivity extends BaseActivity implements
         // minimum 3 chars
         if (filterString.length() < 3) {
           if (filterString.length() == 0) { // back to all items
-            RealmResults<Product> products = dataManager.getProducts();
-            listAdapter.updateItems(products);
+            if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+              RealmResults<Receipt> receipts = dataManager.getReceipts();
+              listAdapter.updateItems(receipts);
+            } else { // barcode drugs
+              RealmResults<Product> products = dataManager.getProducts();
+              listAdapter.updateItems(products);
+            }
           }
           return;
         }
-        RealmResults<Product> products = dataManager
-          .findProductsByNameOrEan(filterString);
-        listAdapter.updateItems(products);
+        if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+          RealmResults<Receipt> receipts = dataManager
+            .findReceiptsByProperties(filterString);
+          listAdapter.updateItems(receipts);
+        } else { // barcode drugs
+          RealmResults<Product> products = dataManager
+            .findProductsByProperties(filterString);
+          listAdapter.updateItems(products);
+        }
       }
 
       @Override
