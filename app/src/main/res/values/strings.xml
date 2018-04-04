@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- [application] -->
-    <string name="app_name">Generika</string>
-    <string name="oddb_org">ODDB.org - Open Drug Database</string>
+    <string name="app_name" translatable="false">Generika</string>
+    <string name="oddb_org" translatable="false">ODDB.org - Open Drug Database</string>
 
     <string name="pv_fullname">Price Comparison</string>
     <string name="pi_fullname">Consumer information</string>
@@ -39,6 +39,11 @@
     <string name="settings_app_locale_dialog_title">Select Locale</string>
     <string name="settings_app_locale_dialog_description">Locale used for this application UI.</string>
 
+    <!-- values (search_type) -->
+    <string name="search_type_pv" translatable="false">pv</string>
+    <string name="search_type_pi" translatable="false">pi</string>
+    <string name="search_type_fi" translatable="false">fi</string>
+
     <!-- [information] -->
     <string name="information_text">
       <![CDATA[
@@ -70,13 +75,13 @@
     <string name="save">Save</string>
 
     <!-- [languages] -->
-    <string name="lang_de_name">Deutsch</string>
-    <string name="lang_fr_name">Français</string>
-    <string name="lang_en_name">English</string>
+    <string name="lang_de_name" translatable="false">Deutsch</string>
+    <string name="lang_fr_name" translatable="false">Français</string>
+    <string name="lang_en_name" translatable="false">English</string>
 
-    <string name="lang_de_abbr">de</string>
-    <string name="lang_fr_abbr">fr</string>
-    <string name="lang_en_abbr">en</string>
+    <string name="lang_de_abbr" translatable="false">de</string>
+    <string name="lang_fr_abbr" translatable="false">fr</string>
+    <string name="lang_en_abbr" translatable="false">en</string>
 
     <!-- [barcode reader] -->
     <string name="permission_camera_rationale">

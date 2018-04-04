@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- [application] -->
-    <string name="app_name">Generika</string>
-    <string name="oddb_org">ODDB.org - Open Drug Database</string>
-
     <string name="pv_fullname">Comparatif des prix de la préparation originale et du médicament générique</string>
     <string name="pi_fullname">Information des patients</string>
     <string name="fi_fullname">Information professionelle</string>
@@ -72,14 +69,6 @@
     <string name="ok">Ok</string>
     <string name="open">Ouvrir</string>
     <string name="save">Enregistrer</string>
-
-
-    <!-- [languages] -->
-    <string name="lang_de_name">Deutsch</string>
-    <string name="lang_fr_name">Français</string>
-
-    <string name="lang_de_abbr">de</string>
-    <string name="lang_fr_abbr">fr</string>
 
     <!-- [barcode reader] -->
     <string name="permission_camera_rationale">
