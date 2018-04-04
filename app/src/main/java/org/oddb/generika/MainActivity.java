@@ -64,6 +64,7 @@ import java.util.Set;
 import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
+import org.oddb.generika.model.Receipt;
 import org.oddb.generika.network.ProductInfoFetcher;
 import org.oddb.generika.ui.list.GenerikaListAdapter;
 import org.oddb.generika.ui.list.ProductListAdapter;
@@ -81,8 +82,9 @@ public class MainActivity extends BaseActivity implements
   private ActionBarDrawerToggle drawerToggle;
   private CharSequence title;
   private ListView listView;
+  private ActionBar actionBar;
   private NavigationView navigationView;
-  private FloatingActionButton fab;
+  private FloatingActionButton actionButton;
 
   private EditText searchBox;
 
@@ -104,30 +106,24 @@ public class MainActivity extends BaseActivity implements
     Intent intent = getIntent();
     Log.d(TAG, "(onCreate) intent: " + intent);
     Set<String> categories = intent.getCategories();
+    // from import activity, or back from settings etc.
     if ((categories == null ||
          !categories.contains(Intent.CATEGORY_LAUNCHER)) &&
-        !Intent.ACTION_MAIN.equals(intent.getAction())) {
-      Bundle extras = intent.getExtras();
+         !Intent.ACTION_MAIN.equals(intent.getAction())) {
       // TODO: set alert with extras
+      Bundle extras = intent.getExtras();
       Log.d(TAG, "(onCreate) extras: " + extras);
-      // from ImporterActivity
       sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
       title_ = context.getString(R.string.prescriptions);
-    } else {
+    } else { // from launcher
       sourceType_ = Constant.SOURCE_TYPE_BARCODE;
-      title_ = context.getString(R.string.medications);
+      title_ = context.getString(R.string.drugs);
     }
 
     this.title = title_;
     this.dataManager = new DataManager(sourceType_);
 
-    initViews();
-
-    // from import
-    if (sourceType_.equals(Constant.SOURCE_TYPE_AMKJSON)) {
-      navigationView.setCheckedItem(R.id.navigation_item_prescriptions);
-    }
-
+    initViews(sourceType_);
     switchSource(sourceType_);
   }
 
@@ -136,10 +132,11 @@ public class MainActivity extends BaseActivity implements
    *
    * sourceType, listAdapter and fetcher will be set.
    *
-   * @param String productName prescriptions/medications
+   * @param String sourceType amkjson/barcode
    * @return void
    */
   private void switchSource(String sourceType_) {
+    Log.d(TAG, "(switchSource) sourceType: " + sourceType_);
     this.sourceType = sourceType_;
 
     dataManager.bindDataBySourceType(sourceType);
@@ -155,7 +152,18 @@ public class MainActivity extends BaseActivity implements
 
     // change list adapter
     listAdapter.setCallback(this);
+    listAdapter.refreshAll();
+
     listView.setAdapter(listAdapter);
+
+    if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+      searchBox.setHint(context.getString(R.string.receipt_search_box_hint));
+      // TODO: set valid action for fab
+      actionButton.setVisibility(View.GONE);
+    } else {
+      searchBox.setHint(context.getString(R.string.product_search_box_hint));
+      actionButton.setVisibility(View.VISIBLE);
+    }
   }
 
   @Override
@@ -217,7 +225,7 @@ public class MainActivity extends BaseActivity implements
     });
   }
 
-  private void initViews() {
+  private void initViews(String sourceType_) {
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(title);
     setSupportActionBar(toolbar);
@@ -243,7 +251,7 @@ public class MainActivity extends BaseActivity implements
     drawerToggle.syncState();
     drawerLayout.addDrawerListener(drawerToggle);
 
-    ActionBar actionBar = getSupportActionBar();
+    this.actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setHomeButtonEnabled(true);
 
@@ -263,20 +271,20 @@ public class MainActivity extends BaseActivity implements
 
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          fab.setVisibility(View.VISIBLE);
+          actionButton.setVisibility(View.VISIBLE);
 
           if (!menuItem.isChecked()) {
             String name = getResources().getResourceEntryName(
               menuItem.getItemId());
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
-            String sourceType_;
-            if (name.contains("prescriptions")) {
-              sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
+            String nextSourceType;
+            if (name.contains("receipt")) {
+              nextSourceType = Constant.SOURCE_TYPE_AMKJSON;
             } else {  // back to default
-              sourceType_ = Constant.SOURCE_TYPE_BARCODE;
+              nextSourceType = Constant.SOURCE_TYPE_BARCODE;
             }
             title = menuItem.getTitle(); // updated `title`
-            switchSource(sourceType_);
+            switchSource(nextSourceType);
             menuItem.setChecked(true);
           }
           drawerLayout.closeDrawers();
@@ -285,8 +293,20 @@ public class MainActivity extends BaseActivity implements
         }
     });
 
-    this.fab = (FloatingActionButton)findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
+    navigationView.post(new Runnable() {
+      @Override
+      public void run() {
+        Log.d(TAG, "(initViews) sourceType: " + sourceType_);
+        if (sourceType_.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+          navigationView.setCheckedItem(R.id.navigation_item_receipts);
+        } else {
+          navigationView.setCheckedItem(R.id.navigation_item_products);
+        }
+      }
+    });
+
+    this.actionButton = (FloatingActionButton)findViewById(R.id.action_button);
+    actionButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
@@ -322,14 +342,25 @@ public class MainActivity extends BaseActivity implements
         // minimum 3 chars
         if (filterString.length() < 3) {
           if (filterString.length() == 0) { // back to all items
-            RealmResults<Product> products = dataManager.getProducts();
-            listAdapter.updateItems(products);
+            if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+              RealmResults<Receipt> receipts = dataManager.getReceipts();
+              listAdapter.updateItems(receipts);
+            } else { // barcode drugs
+              RealmResults<Product> products = dataManager.getProducts();
+              listAdapter.updateItems(products);
+            }
           }
           return;
         }
-        RealmResults<Product> products = dataManager
-          .findProductsByNameOrEan(filterString);
-        listAdapter.updateItems(products);
+        if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+          RealmResults<Receipt> receipts = dataManager
+            .findReceiptsByProperties(filterString);
+          listAdapter.updateItems(receipts);
+        } else { // barcode drugs
+          RealmResults<Product> products = dataManager
+            .findProductsByProperties(filterString);
+          listAdapter.updateItems(products);
+        }
       }
 
       @Override
@@ -349,7 +380,7 @@ public class MainActivity extends BaseActivity implements
             (actionId == EditorInfo.IME_ACTION_DONE)) { // 6
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          fab.setVisibility(View.VISIBLE);
+          actionButton.setVisibility(View.VISIBLE);
           return true;
         }
         return false;
@@ -363,7 +394,7 @@ public class MainActivity extends BaseActivity implements
         InputMethodManager keyboard = (InputMethodManager)(context)
           .getSystemService(Context.INPUT_METHOD_SERVICE);
         if (focused) {
-          fab.setVisibility(View.GONE);
+          actionButton.setVisibility(View.GONE);
           searchBox.setCursorVisible(true);
           keyboard.showSoftInput(searchBox, 0);
         } else {
@@ -439,6 +470,7 @@ public class MainActivity extends BaseActivity implements
         );
       }
     } else {
+      Log.d(TAG, "(onActivityResult) requestCode: " + requestCode);
       super.onActivityResult(requestCode, resultCode, data);
     }
   }
@@ -448,11 +480,11 @@ public class MainActivity extends BaseActivity implements
   @Override
   public void onDelete(String id) {
     // id is primary key (itemTag)
-
-    // TODO: check current sourceType
-    dataManager.deleteProduct(id);
-
-    // should check sourceType of Product at here?
+    if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+      dataManager.deleteReceipt(id);
+    } else {
+      dataManager.deleteProduct(id);
+    }
   }
 
   @Override

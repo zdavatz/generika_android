@@ -126,7 +126,8 @@ public class DataManager {
     return data.getItems();
   }
 
-  public RealmResults<Product> findProductsByNameOrEan(String query) {
+  // name and ean
+  public RealmResults<Product> findProductsByProperties(String query) {
     if (data == null) { return null; }  // TOD: should raise exception
 
     RealmResults<Product> products;
@@ -188,17 +189,26 @@ public class DataManager {
   public void deleteProduct(String productId) {
     final String id = productId;
 
-    realm.executeTransaction(new Realm.Transaction() {
-      @Override
-      public void execute(Realm _realm) {
-        Product product = data.getItems().where().equalTo(
-          "id", id).findFirst();
-        if (product != null) {
-          // TODO: create alert dialog for failure?
-          product.delete();
+    try {
+      realm.executeTransaction(new Realm.Transaction() {
+        @Override
+        public void execute(Realm _realm) {
+          Log.d(TAG, "(deleteProduct) productId: " + id);
+
+          boolean deleted = false;
+          Product product = data.getItems().where().equalTo(
+            "id", id).findFirst();
+          deleted = product.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Product"); }
         }
-      }
-    });
+      });
+
+    } catch (IllegalStateException e) {
+      Log.d(TAG, "(deleteProduct) message: " + e.getMessage());
+      e.printStackTrace();
+      // TODO: create alert dialog for failure?
+    }
   }
 
   // -- Receipt
@@ -224,6 +234,29 @@ public class DataManager {
     return data.getFiles();
   }
 
+  // placeDate and Operator's givenName, familyName, phone and email
+  public RealmResults<Receipt> findReceiptsByProperties(String query) {
+    if (data == null) { return null; }  // TOD: should raise exception
+
+    RealmResults<Receipt> receipts;
+    realm.beginTransaction();
+    // insensitive wors only for latin-1 chars
+    receipts = data.getFiles()
+      .where()
+      .contains("placeDate", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.givenName", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.familyName", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.phone", query, Case.INSENSITIVE)
+      .or()
+      .contains("operator.email", query, Case.INSENSITIVE)
+      .findAll();
+    realm.commitTransaction();
+    return receipts;
+  }
+
   public void addReceipt(
     final Receipt receipt, final Operator operator, final Patient patient,
     final Product[] medications) {
@@ -245,5 +278,44 @@ public class DataManager {
         });
       }
     });
+  }
+
+  public void deleteReceipt(String receiptId) {
+    final String id = receiptId;
+
+    try {
+      realm.executeTransaction(new Realm.Transaction() {
+        @Override
+        public void execute(Realm realm_) {
+          Log.d(TAG, "(deleteReceipt) receiptId: " + id);
+
+          Receipt receipt = data.getFiles().where().equalTo(
+            "id", id).findFirst();
+          boolean deleted = false;
+          Operator operator = receipt.getOperator();
+          deleted = operator.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Operator"); }
+
+          Patient patient = receipt.getPatient();
+          deleted = patient.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Patient"); }
+
+          RealmList<Product> medications = receipt.getMedications();
+          deleted = medications.deleteAllFromRealm();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Medications"); }
+
+          deleted = receipt.delete();
+          if (!deleted) {
+            throw new IllegalStateException("Can't delete Receipt"); }
+        }
+      });
+    } catch (IllegalStateException e) {
+      Log.d(TAG, "(deleteReceipt) message: " + e.getMessage());
+      e.printStackTrace();
+      // TODO: create alert dialog for failure?
+    }
   }
 }

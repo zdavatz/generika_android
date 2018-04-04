@@ -357,22 +357,27 @@ public class Product extends RealmObject implements Retryable {
     this.pack = getPack();
   }
 
+  // if this method returns `false`, `realm.cancelTransaction()` should be
+  // called.
   public boolean delete() {
-    boolean deleted = true;
+    boolean deleted = false;
+
+    File barcode = null;
     if (filepath != null) {
       File file = new File(filepath);
       if (file.exists()) {
-        deleted = file.delete();
+        barcode = file;
       }
     }
-    if (deleted) {
-      // this method returns nothing...
+    try {
       deleteFromRealm();
-    } else {
-      Log.d(TAG, "(delete) id: " + id);
+      deleted = true;
+    } catch (IllegalStateException e) {
+      deleted = false;
     }
-    // TODO:
-    // (for now) return image is deleted or not
+    if (barcode != null) {
+      deleted = barcode.delete();
+    }
     return deleted;
   }
 

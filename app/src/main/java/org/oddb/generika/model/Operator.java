@@ -17,7 +17,6 @@
  */
 package org.oddb.generika.model;
 
-
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.LinkingObjects;
 import io.realm.Realm;
@@ -85,7 +84,7 @@ public class Operator extends RealmObject implements Retryable {
     keyMap.put("familyName", "family_name");
     keyMap.put("title", "title");
     keyMap.put("email", "email_address");
-    keyMap.put("phone", "phone");
+    keyMap.put("phone", "phone_number");
     keyMap.put("address", "postal_address");
     keyMap.put("city", "city");
     keyMap.put("zipcode", "zip_code");
@@ -163,4 +162,20 @@ public class Operator extends RealmObject implements Retryable {
 
   public String getSignature() { return signature; }
   public void setSignature(String value) { this.signature = value; }
+
+  // if this method returns `false`, `realm.cancelTransaction()` should be
+  // called.
+  public boolean delete() {
+    boolean deleted = false;
+    try {
+      deleteFromRealm();
+      deleted = true;
+    } catch (IllegalStateException e) {
+      deleted = false;
+    }
+    if (deleted) {
+    // TODO: delete thumbnails of signature at here
+    }
+    return deleted;
+  }
 }

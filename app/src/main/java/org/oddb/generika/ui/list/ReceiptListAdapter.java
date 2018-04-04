@@ -44,12 +44,15 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.oddb.generika.R;
+import org.oddb.generika.model.Operator;
+import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
 import org.oddb.generika.util.Constant;
+import org.oddb.generika.util.Formatter;
 
 
 public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
-  implements 
+  implements
     GenerikaListAdapter,
     SwipeItemMangerInterface, SwipeAdapterInterface {
   private static final String TAG = "ReceiptListAdapter";
@@ -69,6 +72,11 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
   @Override
   public void setCallback(GenerikaListAdapter.ListItemListener callback) {
     this.itemListener = callback;
+  }
+
+  @Override
+  public void refreshAll() {
+    this.notifyDataSetChanged();
   }
 
   @Override
@@ -143,7 +151,14 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
   private static class ViewHolder {
     TextView placeDate;
 
-    // TODO
+    TextView operatorName;
+    TextView filename; // original filename
+
+    TextView operatorPhone;
+    TextView datetime; // importedAt (receipt)
+
+    TextView operatorEmail;
+    TextView medicationsCount;
 
     ImageView deleteButton;
   }
@@ -307,12 +322,50 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
     final Receipt item = (Receipt)getItem(position);
     final String itemId = item.getId();
 
+    final Operator operator = item.getOperator();
+    final RealmList<Product> medications = item.getMedications();
+
     // row for receipt
     ViewHolder viewHolder = new ViewHolder();
     // placeDate
     viewHolder.placeDate = (TextView)view.findViewById(
       R.id.receipt_item_place_date);
     viewHolder.placeDate.setText(item.getPlaceDate());
+
+    // operatorName (givenName + familyName)
+    viewHolder.operatorName = (TextView)view.findViewById(
+      R.id.receipt_item_operator_name);
+    String name = String.format(
+      "%s %s", operator.getGivenName(), operator.getFamilyName());
+    viewHolder.operatorName.setText(name);
+    // filename (original filename)
+    viewHolder.filename = (TextView)view.findViewById(
+      R.id.receipt_item_filename);
+    viewHolder.filename.setText("(TODO: original filename)");
+
+    // phone
+    viewHolder.operatorPhone = (TextView)view.findViewById(
+      R.id.receipt_item_operator_phone);
+    viewHolder.operatorPhone.setText(operator.getPhone());
+    // datetime (importedAt)
+    viewHolder.datetime = (TextView)view.findViewById(
+      R.id.receipt_item_datetime);
+    viewHolder.datetime.setText(
+      Formatter.formatAsLocalDate(item.getDatetime(), "HH:mm dd.MM.YYYY"));
+
+    // email
+    viewHolder.operatorEmail = (TextView)view.findViewById(
+      R.id.receipt_item_operator_email);
+    viewHolder.operatorEmail.setText(operator.getEmail());
+    // medications count
+    int medicationsCount = 0;
+    if (medications != null) {
+      medicationsCount = medications.size();
+    }
+    viewHolder.medicationsCount = (TextView)view.findViewById(
+      R.id.receipt_item_medications_count);
+    viewHolder.medicationsCount.setText(
+      String.format("%d Medikamente", medicationsCount));
 
     // delete button
     ImageView deleteButton = (ImageView)view.findViewById(

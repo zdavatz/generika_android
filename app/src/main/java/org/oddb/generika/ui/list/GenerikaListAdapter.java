@@ -38,6 +38,7 @@ public interface GenerikaListAdapter extends ListAdapter {
   }
 
   abstract public void setCallback(ListItemListener callback);
+  abstract public void refreshAll();
 
   // TODO: Refactor
   // USE generics

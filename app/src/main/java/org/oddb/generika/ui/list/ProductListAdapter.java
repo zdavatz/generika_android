@@ -90,6 +90,11 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
   }
 
   @Override
+  public void refreshAll() {
+    this.notifyDataSetChanged();
+  }
+
+  @Override
   public void updateItems(@Nullable Object data) {
     // NOTE:
     // This `updateData()` method invokes `notifyDataSetChanged()`, after
