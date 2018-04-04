@@ -84,7 +84,7 @@ public class MainActivity extends BaseActivity implements
   private ListView listView;
   private ActionBar actionBar;
   private NavigationView navigationView;
-  private FloatingActionButton fab;
+  private FloatingActionButton actionButton;
 
   private EditText searchBox;
 
@@ -156,11 +156,13 @@ public class MainActivity extends BaseActivity implements
 
     listView.setAdapter(listAdapter);
 
-    String hint;
     if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
       searchBox.setHint(context.getString(R.string.receipt_search_box_hint));
+      // TODO: set valid action for fab
+      actionButton.setVisibility(View.GONE);
     } else {
       searchBox.setHint(context.getString(R.string.product_search_box_hint));
+      actionButton.setVisibility(View.VISIBLE);
     }
   }
 
@@ -269,7 +271,7 @@ public class MainActivity extends BaseActivity implements
 
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          fab.setVisibility(View.VISIBLE);
+          actionButton.setVisibility(View.VISIBLE);
 
           if (!menuItem.isChecked()) {
             String name = getResources().getResourceEntryName(
@@ -303,8 +305,8 @@ public class MainActivity extends BaseActivity implements
       }
     });
 
-    this.fab = (FloatingActionButton)findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
+    this.actionButton = (FloatingActionButton)findViewById(R.id.action_button);
+    actionButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
@@ -378,7 +380,7 @@ public class MainActivity extends BaseActivity implements
             (actionId == EditorInfo.IME_ACTION_DONE)) { // 6
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          fab.setVisibility(View.VISIBLE);
+          actionButton.setVisibility(View.VISIBLE);
           return true;
         }
         return false;
@@ -392,7 +394,7 @@ public class MainActivity extends BaseActivity implements
         InputMethodManager keyboard = (InputMethodManager)(context)
           .getSystemService(Context.INPUT_METHOD_SERVICE);
         if (focused) {
-          fab.setVisibility(View.GONE);
+          actionButton.setVisibility(View.GONE);
           searchBox.setCursorVisible(true);
           keyboard.showSoftInput(searchBox, 0);
         } else {
