@@ -86,4 +86,5 @@
 
     <!-- [product item] -->
     <string name="expiry_date">Verfalldatum</string>
+    <string name="fetch_info_result_dialog_title">Generika.cc sagt</string>
 </resources>

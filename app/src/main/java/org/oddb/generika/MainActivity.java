@@ -540,8 +540,8 @@ public class MainActivity extends BaseActivity implements
               Log.d(TAG, "(updateFromFetch/onChange) product.name: " +
                     product_.getName());
               // notify result to user
-              // TODO: replace with translated string
-              String title = "Generika.cc sagt";
+              String title = context.getString(
+                R.string.fetch_info_result_dialog_title);
               String message = product_.toMessage();
               alertDialog(title, message, product_);
             }
