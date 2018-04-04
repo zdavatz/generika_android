@@ -85,7 +85,7 @@ public class Operator extends RealmObject implements Retryable {
     keyMap.put("familyName", "family_name");
     keyMap.put("title", "title");
     keyMap.put("email", "email_address");
-    keyMap.put("phone", "phone");
+    keyMap.put("phone", "phone_number");
     keyMap.put("address", "postal_address");
     keyMap.put("city", "city");
     keyMap.put("zipcode", "zip_code");

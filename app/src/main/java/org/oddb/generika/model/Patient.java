@@ -88,7 +88,7 @@ public class Patient extends RealmObject implements Retryable {
     keyMap.put("givenName", "given_name");
     keyMap.put("familyName", "family_name");
     keyMap.put("weight", "weight_kg");
-    keyMap.put("height", "height_kg");
+    keyMap.put("height", "height_cm");
     keyMap.put("birthDate", "birth_date");
     keyMap.put("gender", "gender");
     keyMap.put("email", "email_address");
