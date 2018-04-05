@@ -30,6 +30,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -653,8 +654,11 @@ public class MainActivity extends BaseActivity implements
     if (positiveTextId != none) { dialog.setPositiveTextId(positiveTextId); }
 
     dialog.setListener(listener);
-    dialog.show(((MainActivity)context)
-      .getSupportFragmentManager(), "MessageDialog");
+
+    FragmentTransaction tx = ((MainActivity)context)
+      .getSupportFragmentManager().beginTransaction();
+    tx.add(dialog, "MessageDialog");
+    tx.commitAllowingStateLoss();
   }
 
   public void openWebView(Product product) {
