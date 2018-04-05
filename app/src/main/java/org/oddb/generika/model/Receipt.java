@@ -18,6 +18,9 @@
 package org.oddb.generika.model;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.util.Log;
 
 import io.realm.annotations.PrimaryKey;
@@ -88,25 +91,18 @@ public class Receipt extends RealmObject implements Retryable {
 
   public static class Amkfile {
     private Context context;
-    private String url;
+    private Uri uri;
 
     private String originalName;
 
     private File file;
     private String content;
 
-    public Amkfile(Context context, String url) {
-      this.context = context;
-      this.url = url;
+    public Amkfile(Context context_, Uri uri_) {
+      this.context = context_;
+      this.uri = uri_;
 
-      try {
-        this.originalName = URLDecoder.decode(
-          new File(url).getName(), "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        Log.d(TAG, "(Amkfile) exception: " + e.getMessage());
-        e.printStackTrace();
-        this.originalName = "";
-      }
+      this.originalName = extractOriginalFilename();
       // local
       // e.g. /path/to/org.oddb.generika/files/amkfiles/RZ-20180404053819.amk
       String filename = String.format(
@@ -115,6 +111,57 @@ public class Receipt extends RealmObject implements Retryable {
         context.getFilesDir() + File.separator + "amkfiles");
       directory.mkdirs();
       this.file = new File(directory, filename);
+    }
+
+    // NOTE:
+    // Normally, the app can takes valid original filename via `file://` and
+    // `content://`. But, apparently, it seems that some apps have a prefixed
+    // one (renamed?) in some situations (not clear).
+    private String extractOriginalFilename() {
+      String scheme = uri.getScheme();
+      String filename = null;
+      if (scheme.equals("file")) {
+        filename = uri.getLastPathSegment();
+      } else if (scheme.equals("content")) {
+        // It seems that we can't get real file name.
+        // Its name contains a prefix in some case. (timestamp or something?).
+        Cursor cursor = context.getContentResolver().query(
+          uri, null, null, null, null);
+        try {
+          if (cursor != null && cursor.moveToFirst()) {
+            filename = cursor.getString(cursor.getColumnIndex(
+              OpenableColumns.DISPLAY_NAME));
+          }
+        } finally {
+          if (cursor != null) {
+            cursor.close();
+          }
+        }
+        // fix the filename here
+        if (filename != null) {
+          // e.g. 1522912154320_RZ_<...>.amk  -> RZ_<...>.amk
+          // TODO:
+          // consider more efficient way :'(
+          if (!filename.startsWith("RZ") && filename.contains("_RZ")) {
+            filename = filename.substring(filename.indexOf("_") + 1);
+          } else { // timestamp?
+            filename = filename.replace("^[0-9]{13}_", "");
+          }
+        }
+      }
+      if (filename == null || filename.equals("")) {
+        String url = uri.toString();
+        try {
+          filename = URLDecoder.decode(
+            new File(url).getName(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+          Log.d(TAG, "(extractOriginalFilename) exception: " + e.getMessage());
+          e.printStackTrace();
+          filename = "";
+        }
+      }
+      Log.d(TAG, "(extractOriginalFilename) filename: " + filename);
+      return filename;
     }
 
     public void setContent(String value) {

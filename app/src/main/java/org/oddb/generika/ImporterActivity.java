@@ -117,17 +117,17 @@ public class ImporterActivity extends BaseActivity
     // * https://<domain>/data/<file>.amk
     // * file:///storage/emulated/0/Download/<file>.amk
     // * content://com.android.chrome.FileProvider/downloads/<file>.amk
-    String url = uri.toString();
-    Log.d(TAG, "(doImport) url: " + url);
+    Log.d(TAG, "(doImport) uri: " + uri);
 
     int flags = 0;
     HashMap<String, String> extraMap = new HashMap<String, String>();
     try {
-      if (url.startsWith("https:")) {
+      String scheme = uri.getScheme();
+      if (scheme.equals("https")) {
         // because network access cannot run in main thread.
         FetchTask fetchTask = new FetchTask();
         fetchTask.execute(uri);
-      } else if (url.startsWith("file:") || url.startsWith("content:")) {
+      } else if (scheme.equals("file") || scheme.equals("content")) {
         String content = readFileFromUri(uri);
         if (content != null && !content.equals("")) {
           Result result = importJSON(content);
@@ -190,15 +190,14 @@ public class ImporterActivity extends BaseActivity
     }
   }
 
-  // save incominng json file into app after some validations
+  // Save incominng json file into app after some validations.
   private Result importJSON(String content) {
-    // Log.d(TAG, "(importJSON) content: " + content);
     Result result = new Result();
     try {
       // .amk (original file)
-      String url = uri.toString();
-      Receipt.Amkfile amkfile = new Receipt.Amkfile(context, url);
+      Receipt.Amkfile amkfile = new Receipt.Amkfile(context, uri);
       String filename = amkfile.getOriginalName();
+      Log.d(TAG, "(importJSON) filename: " + filename);
 
       JSONObject json = new JSONObject(content);
       String hashedKey = json.getString("prescription_hash");
