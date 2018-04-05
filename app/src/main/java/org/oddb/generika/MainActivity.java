@@ -417,7 +417,10 @@ public class MainActivity extends BaseActivity implements
             (actionId == EditorInfo.IME_ACTION_DONE)) { // 6
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          actionButton.setVisibility(View.VISIBLE);
+          // TODO: enable it also for receipt
+          if (!sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
+            actionButton.setVisibility(View.VISIBLE);
+          }
           return true;
         }
         return false;
