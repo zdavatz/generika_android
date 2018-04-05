@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:focusable="true" 
+    android:focusable="true"
     android:focusableInTouchMode="true"
     android:descendantFocusability="beforeDescendants"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -15,11 +15,22 @@
         android:id="@+id/search_box"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="0dp"
         android:imeOptions="flagNoExtractUi|actionDone"
         android:maxLines="1"
         android:inputType="text"
         android:cursorVisible="false"
-        android:hint="" />
+        android:paddingTop="13dp"
+        android:paddingRight="14.5dp"
+        android:paddingBottom="12.5dp"
+        android:paddingLeft="14.5dp"
+        android:background="@layout/search_box_border"
+        android:hint=""
+        android:textSize="12.5dp"
+        android:textColorHint="@color/gray" />
 
     <ListView
         android:id="@+id/list_view"
