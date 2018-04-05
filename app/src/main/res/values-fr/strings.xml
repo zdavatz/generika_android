@@ -70,6 +70,8 @@
     <string name="open">Ouvrir</string>
     <string name="save">Enregistrer</string>
 
+    <string name="expiry_date">Date de péremption</string>
+
     <!-- [barcode reader] -->
     <string name="barcode_reader_hover_text">Hold rear camera out over the barcode of package</string>
 
@@ -80,7 +82,17 @@
     <string name="low_storage_error">
       La détection de visage ne peut être activée par manque d’espace de stockage.</string>
 
-    <!-- [product item] -->
-    <string name="expiry_date">Date de péremption</string>
+    <!-- [product] -->
+    <!-- dialog (capture) -->
     <string name="fetch_info_result_dialog_title">Generika.cc dit</string>
+
+    <!-- [receipt] -->
+    <!-- dialog (import) -->
+    <string name="title_import_failure">Import Error</string>
+    <string name="title_import_success">Import</string>
+    <string name="message_import_failure_invalid">Invalid file\n%s</string>
+    <string name="message_import_failure_duplicated">You have been already imported\n%s</string>
+    <string name="message_import_failure_unsaved">File could not be saved\n%s</string>
+    <string name="message_import_failure_unknown">An known error occurred</string>
+    <string name="message_import_success">Successfully imported\n%s</string>
 </resources>

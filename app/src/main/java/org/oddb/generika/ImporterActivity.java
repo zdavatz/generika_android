@@ -121,7 +121,7 @@ public class ImporterActivity extends BaseActivity
     Log.d(TAG, "(doImport) url: " + url);
 
     int flags = 0;
-    HashMap<String, String> extras = new HashMap<String, String>();
+    HashMap<String, String> extraMap = new HashMap<String, String>();
     try {
       if (url.startsWith("https:")) {
         // because network access cannot run in main thread.
@@ -131,21 +131,22 @@ public class ImporterActivity extends BaseActivity
         String content = readFileFromUri(uri);
         if (content != null && !content.equals("")) {
           Result result = importJSON(content);
-          extras.put("filename", result.getFilename());
-          extras.put("message", result.getMessage());
+          if (result != null) {
+            extraMap = result.toExtraMap();
+          }
         }
-        openMainView(flags, extras);
+        openMainView(flags, extraMap);
       }
     } catch (IOException e) {
       Log.d(TAG, "(doImport) exception: " + e.getMessage());
       e.printStackTrace();
     }
     // do nothing
-    openMainView(flags, extras);
+    openMainView(flags, extraMap);
   }
 
   private void openMainView(
-    int additionalflags, HashMap<String, String> extras) {
+    int additionalflags, HashMap<String, String> extraMap) {
     int flags =
       Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
       Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_NO_ANIMATION |
@@ -154,7 +155,7 @@ public class ImporterActivity extends BaseActivity
     Intent intent = new Intent(this, MainActivity.class);
     intent.setFlags(intent.getFlags() | flags);
 
-    for (Map.Entry<String, String> entry: extras.entrySet()) {
+    for (Map.Entry<String, String> entry: extraMap.entrySet()) {
       intent.putExtra(entry.getKey(), entry.getValue());
     }
     startActivity(intent);
@@ -162,16 +163,31 @@ public class ImporterActivity extends BaseActivity
   }
 
   public class Result {
-    private String filename = null;
-    private String message = null;
+    private String hashedKey = null;
+
+    // IMPORT_FAILURE_{INVALID,DUPLICATED,UNSAVED,UNKNOWN}
+    // IMPORT_SUCCESS
+    private int status;
+    private String message;
 
     public Result() {}
 
-    public String getFilename() { return filename; }
-    public void setFilename(String filename_) { this.filename = filename_; }
+    public String getHashedKey() { return hashedKey; }
+    public void setHashedKey(String value) { this.hashedKey = value; }
+
+    public int getStatus() { return status; }
+    public void setStatus(int value) { this.status = value; }
 
     public String getMessage() { return message; }
-    public void setMessage(String message_) { this.message = message_; }
+    public void setMessage(String value) { this.message = value; }
+
+    public HashMap<String, String> toExtraMap() {
+      HashMap<String, String> extraMap = new HashMap<String, String>();
+      extraMap.put("status", String.valueOf(getStatus()));
+      extraMap.put("hashedKey", getHashedKey());
+      extraMap.put("message", getMessage());
+      return extraMap;
+    }
   }
 
   // save incominng json file into app after some validations
@@ -179,12 +195,18 @@ public class ImporterActivity extends BaseActivity
     // Log.d(TAG, "(importJSON) content: " + content);
     Result result = new Result();
     try {
-      JSONObject json = new JSONObject(content);
+      // .amk (original file)
+      String url = uri.toString();
+      Receipt.Amkfile amkfile = new Receipt.Amkfile(context, url);
+      String filename = amkfile.getOriginalName();
 
+      JSONObject json = new JSONObject(content);
       String hashedKey = json.getString("prescription_hash");
       if (hashedKey == null || hashedKey.equals("")) {
         // import error (required)
-        result.setMessage("TODO");
+        result.setMessage(String.format(context.getString(
+          R.string.message_import_failure_invalid), filename));
+        result.setStatus(Constant.IMPORT_FAILURE_INVALID);
         return result;
       }
 
@@ -192,7 +214,9 @@ public class ImporterActivity extends BaseActivity
       Receipt importedReceipt = dataManager.getReceiptByHashedKey(hashedKey);
       if (importedReceipt != null) {
         // duplicated
-        result.setMessage("TODO");
+        result.setMessage(String.format(context.getString(
+          R.string.message_import_failure_duplicated), filename));
+        result.setStatus(Constant.IMPORT_FAILURE_DUPLICATED);
         return result;
       }
 
@@ -213,22 +237,21 @@ public class ImporterActivity extends BaseActivity
         medications[i] = Product.newInstanceFromJSON(medication);
       }
 
-      // .amk (original file)
-      String url = uri.toString();
-      Receipt.Amkfile amkfile = new Receipt.Amkfile(context, url);
+      // save original .amk file
       amkfile.setContent(content);
       String filepath = amkfile.getPath();
-      String filename = amkfile.getOriginalName();
       Log.d(TAG, "(importJSON) .amk local filepath: " + filepath);
 
       boolean saved = amkfile.save();
       Log.d(TAG, "(importJSON) saved: " + saved);
       if (!saved) {
         // save error
-        result.setMessage("TODO");
+        result.setMessage(String.format(context.getString(
+          R.string.message_import_failure_unsaved), filename));
+        result.setStatus(Constant.IMPORT_FAILURE_UNSAVED);
         return result;
       } else {
-        result.setFilename(filename);
+        result.setHashedKey(hashedKey);
       }
 
       Receipt receipt = new Receipt();
@@ -238,10 +261,15 @@ public class ImporterActivity extends BaseActivity
       receipt.setFilename(filename);
 
       dataManager.addReceipt(receipt, operator, patient, medications);
+      result.setMessage(String.format(
+        context.getString(R.string.message_import_success), filename));
+      result.setStatus(Constant.IMPORT_SUCCESS);
     } catch (Exception e) {
       Log.d(TAG, "(importJSON) exception: " + e.getMessage());
       Log.d(TAG, "(importJSON) " + Log.getStackTraceString(e));
-      result.setMessage(e.getMessage());
+      result.setMessage(context.getString(
+        R.string.message_import_failure_unknown));
+      result.setStatus(Constant.IMPORT_FAILURE_UNKNOWN);
     }
     return result;
   }
@@ -286,13 +314,12 @@ public class ImporterActivity extends BaseActivity
       if (content != null && !content.equals("")) {
         result = importJSON(content);
       }
-      HashMap<String, String> extras = new HashMap<String, String>();
+      HashMap<String, String> extraMap = new HashMap<String, String>();
       int flags = Intent.FLAG_FROM_BACKGROUND;
       if (result != null) {
-        extras.put("filename", result.getFilename());
-        extras.put("message", result.getMessage());
+        extraMap = result.toExtraMap();
       }
-      openMainView(flags, extras);
+      openMainView(flags, extraMap);
     }
   }
 

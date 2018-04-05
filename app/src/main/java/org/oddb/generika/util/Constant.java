@@ -116,6 +116,14 @@ public class Constant extends Object {
       put("expiresAt", "EXPIRES AT");
     }};
 
+  // [Receipt Import]
+  // status
+  public final static int IMPORT_FAILURE_INVALID = 100;
+  public final static int IMPORT_FAILURE_DUPLICATED = 110;
+  public final static int IMPORT_FAILURE_UNSAVED = 120;
+  public final static int IMPORT_FAILURE_UNKNOWN = 130;
+  public final static int IMPORT_SUCCESS = 200;
+
   // [Shared]
   // -- sourceType (value)
   public final static String SOURCE_TYPE_BARCODE = "barcode"; // product

@@ -66,6 +66,7 @@ import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
 import org.oddb.generika.network.ProductInfoFetcher;
+import org.oddb.generika.ui.MessageDialog;
 import org.oddb.generika.ui.list.GenerikaListAdapter;
 import org.oddb.generika.ui.list.ProductListAdapter;
 import org.oddb.generika.ui.list.ReceiptListAdapter;
@@ -101,8 +102,7 @@ public class MainActivity extends BaseActivity implements
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    String sourceType_, title_;
-
+    boolean importAction = false;
     Intent intent = getIntent();
     Log.d(TAG, "(onCreate) intent: " + intent);
     Set<String> categories = intent.getCategories();
@@ -110,21 +110,58 @@ public class MainActivity extends BaseActivity implements
     if ((categories == null ||
          !categories.contains(Intent.CATEGORY_LAUNCHER)) &&
          !Intent.ACTION_MAIN.equals(intent.getAction())) {
-      // TODO: set alert with extras
-      Bundle extras = intent.getExtras();
-      Log.d(TAG, "(onCreate) extras: " + extras);
-      sourceType_ = Constant.SOURCE_TYPE_AMKJSON;
-      title_ = context.getString(R.string.prescriptions);
+      this.sourceType = Constant.SOURCE_TYPE_AMKJSON;
+      this.title = context.getString(R.string.prescriptions);
+      importAction = true;
     } else { // from launcher
-      sourceType_ = Constant.SOURCE_TYPE_BARCODE;
-      title_ = context.getString(R.string.drugs);
+      this.sourceType = Constant.SOURCE_TYPE_BARCODE;
+      this.title = context.getString(R.string.drugs);
     }
 
-    this.title = title_;
-    this.dataManager = new DataManager(sourceType_);
+    this.dataManager = new DataManager(this.sourceType);
 
-    initViews(sourceType_);
-    switchSource(sourceType_);
+    if (importAction) {
+      Bundle extras = intent.getExtras();
+      if (extras != null) {
+        handleImportResult(extras);
+      }
+    }
+
+    initViews();
+    switchSource(this.sourceType);
+  }
+
+  private void handleImportResult(Bundle extras) {
+    String message = extras.getString("message");
+    Log.d(TAG, "(handleImportResult) message: " + message);
+    if (message != null && !message.equals("")) {
+      String status = extras.getString("status");
+      Log.d(TAG, "(handleImportResult) status: " + status);
+      int result = Constant.IMPORT_FAILURE_UNKNOWN;
+      if (status != null) {
+        result = Integer.parseInt(status);
+      }
+      if (result != Constant.IMPORT_SUCCESS) {
+        alertDialog(context.getString(R.string.title_import_failure), message);
+      } else {
+        String hashedKey = extras.getString("hashedKey");
+
+        alertDialog(
+          context.getString(R.string.title_import_success),
+          message,
+          new MessageDialog.OnChangeListener() {
+            @Override
+            public void onOk() {
+              // TODO: open receipt detail view
+              if (hashedKey != null) { }
+            }
+            @Override
+            public void onCancel() {
+              // pass
+            }
+          });
+      }
+    }
   }
 
   /**
@@ -225,7 +262,7 @@ public class MainActivity extends BaseActivity implements
     });
   }
 
-  private void initViews(String sourceType_) {
+  private void initViews() {
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(title);
     setSupportActionBar(toolbar);
@@ -293,6 +330,7 @@ public class MainActivity extends BaseActivity implements
         }
     });
 
+    final String sourceType_ = this.sourceType;
     navigationView.post(new Runnable() {
       @Override
       public void run() {
@@ -539,7 +577,19 @@ public class MainActivity extends BaseActivity implements
               String title = context.getString(
                 R.string.fetch_info_result_dialog_title);
               String message = product_.toMessage();
-              alertDialog(title, message, product_);
+
+              alertDialog(
+                title, message,
+                new MessageDialog.OnChangeListener() {
+                  @Override
+                  public void onOk() {
+                    if (product_ != null) { openWebView(product_); }
+                  }
+                  @Override
+                  public void onCancel() {
+                    // pass
+                  }
+                });
             }
           }
         });
@@ -574,46 +624,29 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void alertDialog(String title, String message) {
-    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-    builder.setTitle(title);
-    builder.setMessage(message);
-    builder.setCancelable(true);
-
-    builder.setPositiveButton(
-      context.getString(R.string.ok),
-      new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int _id) {
-        dialog.cancel();
-      }
-    });
-    AlertDialog alert = builder.create();
-    alert.show();
+    alertDialog(title, message, null);
   }
 
+  // if the listener is given, dialog is going to have `ok` and `close` button
+  // with callbacks. Otherwise, single button alert will be shown.
   private void alertDialog(
-    String title, String message, final Product product) {
-    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-    builder.setTitle(title);
-    builder.setMessage(message);
-    builder.setCancelable(true);
+    String title, String message, MessageDialog.OnChangeListener listener) {
+    int none = MessageDialog.TEXT_ID_NONE;
+    int negativeTextId = none, positiveTextId = none;
+    if (listener == null) { // "ok" (single) button
+      positiveTextId = R.string.ok;
+    } else { // "close" & "ok" button for import (receipt) or capture (barcode)
+      negativeTextId = R.string.close;
+      positiveTextId = R.string.open;
+    }
 
-    builder.setPositiveButton(
-      context.getString(R.string.open),
-      new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int _id) {
-        openWebView(product);
-        dialog.cancel();
-      }
-    });
-    builder.setNegativeButton(
-      context.getString(R.string.close),
-      new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int _id) {
-        dialog.cancel();
-      }
-    });
-    AlertDialog alert = builder.create();
-    alert.show();
+    MessageDialog dialog = MessageDialog.newInstance(title, message);
+    if (negativeTextId != none) { dialog.setNegativeTextId(negativeTextId); }
+    if (positiveTextId != none) { dialog.setPositiveTextId(positiveTextId); }
+
+    dialog.setListener(listener);
+    dialog.show(((MainActivity)context)
+      .getSupportFragmentManager(), "MessageDialog");
   }
 
   public void openWebView(Product product) {
