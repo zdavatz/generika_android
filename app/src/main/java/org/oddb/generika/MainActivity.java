@@ -570,29 +570,34 @@ public class MainActivity extends BaseActivity implements
             // only once (remove self)
             product_.removeAllChangeListeners();
             if (product_.getName() != null && product_.getSize() != null) {
-              // TODO: stop redraw all items on listview
-              // redraw this row
-              listAdapter.refresh(product_, listView);
-
-              Log.d(TAG, "(updateFromFetch/onChange) product.name: " +
-                    product_.getName());
-              // notify result to user
-              String title = context.getString(
-                R.string.fetch_info_result_dialog_title);
-              String message = product_.toMessage();
-
-              alertDialog(
-                title, message,
-                new MessageDialog.OnChangeListener() {
-                  @Override
-                  public void onOk() {
-                    if (product_ != null) { openWebView(product_); }
-                  }
-                  @Override
-                  public void onCancel() {
-                    // pass
-                  }
-                });
+              // NOTE:
+              // `updateFromFetch` will be called from `postOnExecute`, so this
+              // `runOnUiThread` is not needed normally, but, it seems that
+              // prevents an issue on first boot on Android 8.0? (not sure)
+              ((MainActivity)context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                  listAdapter.refresh(product_, listView);
+                  Log.d(TAG, "(updateFromFetch/onChange) product.name: " +
+                        product_.getName());
+                  // notify result to user
+                  String title = context.getString(
+                    R.string.fetch_info_result_dialog_title);
+                  String message = product_.toMessage();
+                  alertDialog(
+                    title, message,
+                    new MessageDialog.OnChangeListener() {
+                      @Override
+                      public void onOk() {
+                        if (product_ != null) { openWebView(product_); }
+                      }
+                      @Override
+                      public void onCancel() {
+                        // pass
+                      }
+                    });
+                }
+              });
             }
           }
         });
