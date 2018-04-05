@@ -87,9 +87,9 @@
     <!-- dialog (import) -->
     <string name="title_import_failure">Import Error</string>
     <string name="title_import_success">Import</string>
-    <string name="message_import_failure_invalid">Invalid file\n%s</string>
-    <string name="message_import_failure_duplicated">You have been already imported\n%s</string>
-    <string name="message_import_failure_unsaved">File could not be saved\n%s</string>
-    <string name="message_import_failure_unknown">An known error occurred</string>
-    <string name="message_import_success">Successfully imported\n%s</string>
+    <string name="message_import_failure_invalid">Ungültige Datei\n%s</string>
+    <string name="message_import_failure_duplicated">Wurde bereits importiert.\n%s</string>
+    <string name="message_import_failure_unsaved">Datei konnte nicht gespeichert werden\n%s</string>
+    <string name="message_import_failure_unknown">Ein Fehler ist aufgetreten.</string>
+    <string name="message_import_success">Erfolgreich importiert.\n%s</string>
 </resources>
