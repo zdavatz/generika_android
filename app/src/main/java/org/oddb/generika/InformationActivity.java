@@ -49,13 +49,13 @@ public class InformationActivity extends BaseActivity {
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setDisplayShowHomeEnabled(true);
 
-    TextView text = (TextView)findViewById(R.id.information_text);
-    text.setText(Html.fromHtml(
+    TextView textView = (TextView)findViewById(R.id.information_text);
+    textView.setText(Html.fromHtml(
       context.getString(R.string.information_text),
       Html.FROM_HTML_MODE_COMPACT
     ));
-    text.setMovementMethod(LinkMovementMethod.getInstance());
-    text.setLinksClickable(true);
+    textView.setMovementMethod(LinkMovementMethod.getInstance());
+    textView.setLinksClickable(true);
   }
 
   @Override

@@ -386,8 +386,6 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
 
   private void fillValues(int position, View convertView, ViewGroup parent) {
     View view = convertView;
-    Context context = (Context)parent.getContext();
-
     final Receipt item = (Receipt)getItem(position);
     final String itemId = item.getId();
 
