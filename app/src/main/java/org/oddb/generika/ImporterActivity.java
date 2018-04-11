@@ -129,17 +129,15 @@ public class ImporterActivity extends BaseActivity
         fetchTask.execute(uri);
       } else if (scheme.equals("file") || scheme.equals("content")) {
         String content = readFileFromUri(uri);
-        if (content != null && !content.equals("")) {
-          Result result = importJSON(content);
-          if (result != null) {
-            extraMap = result.toExtraMap();
-          }
+        Result result = importJSON(content);
+        if (result != null) {
+          extraMap = result.toExtraMap();
         }
         openMainView(flags, extraMap);
       }
     } catch (IOException e) {
       Log.d(TAG, "(doImport) exception: " + e.getMessage());
-      e.printStackTrace();
+      Log.d(TAG, Log.getStackTraceString(e));
     }
     // do nothing
     openMainView(flags, extraMap);
@@ -193,16 +191,22 @@ public class ImporterActivity extends BaseActivity
   // Save incominng json file into app after some validations.
   private Result importJSON(String content) {
     Result result = new Result();
+
     try {
       // .amk (original file)
       Receipt.Amkfile amkfile = new Receipt.Amkfile(context, uri);
       String filename = amkfile.getOriginalName();
       Log.d(TAG, "(importJSON) filename: " + filename);
 
-      JSONObject json = new JSONObject(content);
-      String hashedKey = json.getString("prescription_hash");
-      if (hashedKey == null || hashedKey.equals("")) {
-        // import error (required)
+      JSONObject json = null;
+      String hashedKey = null;
+      if (content != null) {
+        json = new JSONObject(content);
+        hashedKey = json.getString("prescription_hash");
+      }
+      if (json == null ||
+          hashedKey == null || hashedKey.equals("")) {
+        // import error (required key/content is missing/invalid)
         result.setMessage(String.format(context.getString(
           R.string.message_import_failure_invalid), filename));
         result.setStatus(Constant.IMPORT_FAILURE_INVALID);
@@ -276,13 +280,12 @@ public class ImporterActivity extends BaseActivity
   private String decodeContent(String raw) {
     String content;
 
-    byte[] data = Base64.decode(raw, Base64.DEFAULT);
     try {
       // base64
+      byte[] data = Base64.decode(raw, Base64.DEFAULT);
       content = new String(data, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
+    } catch (UnsupportedEncodingException | IllegalArgumentException e) {
       Log.d(TAG, "(decodeContent) e: " + e.getMessage());
-      e.printStackTrace();
       content = null;
     }
     return content;
@@ -301,7 +304,7 @@ public class ImporterActivity extends BaseActivity
           result = fetchFileFromUri(uri);
         } catch (IOException e) {
           Log.d(TAG, "(doInBackground) e: " + e.getMessage());
-          e.printStackTrace();
+          Log.d(TAG, Log.getStackTraceString(e));
         }
       }
       return result;
@@ -309,15 +312,12 @@ public class ImporterActivity extends BaseActivity
 
     @Override
     protected void onPostExecute(String content) {
-      Result result = null;
-      if (content != null && !content.equals("")) {
-        result = importJSON(content);
-      }
       HashMap<String, String> extraMap = new HashMap<String, String>();
-      int flags = Intent.FLAG_FROM_BACKGROUND;
+      Result result = importJSON(content);
       if (result != null) {
         extraMap = result.toExtraMap();
       }
+      int flags = Intent.FLAG_FROM_BACKGROUND;
       openMainView(flags, extraMap);
     }
   }

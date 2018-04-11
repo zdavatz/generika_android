@@ -61,7 +61,7 @@ public class Constant extends Object {
   public final static String kBarcode = "kBarcode";
   public final static String kFilepath = "kFilepath";
 
-  // -- constents
+  // -- constents (Result Code)
   public final static int RC_BARCODE_CAPTURE = 9000;
   public final static int RC_HANDLE_GMS = 9001;
   public final static int RC_HANDLE_CAMERA_PERM = 2;
@@ -123,6 +123,8 @@ public class Constant extends Object {
   public final static int IMPORT_FAILURE_UNSAVED = 120;
   public final static int IMPORT_FAILURE_UNKNOWN = 130;
   public final static int IMPORT_SUCCESS = 200;
+
+  public final static int RC_FILE_PROVIDER = 8000;
 
   // [Receipt]
   // -- intent keys
