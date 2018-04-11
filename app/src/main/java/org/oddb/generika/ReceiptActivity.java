@@ -38,6 +38,7 @@ import android.widget.TextView;
 
 import io.realm.RealmList;
 import io.realm.RealmResults;
+import io.realm.Sort;
 
 import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
@@ -122,7 +123,10 @@ public class ReceiptActivity extends BaseActivity {
 
     RealmResults<Product> products = null;
     if (productList != null) { // list -> results
-      products = productList.where().findAll();
+      products = productList.where().sort(
+        new String[]{"pack", "ean"},
+        new Sort[]{Sort.ASCENDING, Sort.ASCENDING}
+      ).findAll();
     }
     ReceiptProductListAdapter listAdapter = new ReceiptProductListAdapter(
       products);
