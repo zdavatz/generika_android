@@ -18,9 +18,12 @@
 package org.oddb.generika.ui.list;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -37,6 +40,7 @@ import com.daimajia.swipe.implments.SwipeItemAdapterMangerImpl;
 import com.daimajia.swipe.interfaces.SwipeAdapterInterface;
 import com.daimajia.swipe.interfaces.SwipeItemMangerInterface;
 import com.daimajia.swipe.util.Attributes;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmList;
@@ -486,10 +490,20 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
       R.id.product_item_barcode_image);
     String filepath = item.getFilepath();
     Log.d(TAG, "(getView) filepath: " + filepath);
+
     GlideApp.with(context)
+      .asBitmap()
       .load(filepath)
-      .fitCenter()
-      .into(viewHolder.barcodeImage);
+      .centerCrop()
+      .into(new BitmapImageViewTarget(viewHolder.barcodeImage) {
+        @Override
+        protected void setResource(Bitmap resource) {
+          RoundedBitmapDrawable image = RoundedBitmapDrawableFactory.create(
+            context.getResources(), resource);
+          image.setCornerRadius(5); // slightly
+          viewHolder.barcodeImage.setImageDrawable(image);
+        }
+      });
 
     // name
     viewHolder.name = (TextView)view.findViewById(
