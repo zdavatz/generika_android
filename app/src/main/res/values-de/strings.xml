@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- [application] -->
-    <string name="pv_fullname">Preisvergleich von Original und Generikum</string>
-    <string name="pi_fullname">Patienteninformation</string>
-    <string name="fi_fullname">Fachinformation</string>
-
-    <!-- [menu/label] -->
+    <!-- activities -->
     <string name="settings">Einstellungen</string>
     <string name="information">About</string>
+    <string name="barcode_capture">Barcode Capture</string>
+    <string name="importer">Importer</string>
     <string name="receipt">Rezept</string>
-
-    <!-- [drawer] -->
-    <string name="drugs">Medikamente</string>
-    <string name="prescriptions">Rezepte</string>
+    <string name="web_view">Web View</string>
+    <!-- drawer menus/titles -->
+    <string name="barcodes">Medikamente</string>
+    <string name="amkfiles">Rezepte</string>
 
     <!-- [settings]-->
     <!-- groups -->
     <string name="settings_search">Suchen</string>
     <string name="settings_app">Applikation</string>
-    <!--
-    <string name="settings_record">Speichern</string>
-    -->
     <!-- search_type -->
     <string name="settings_search_type_name">Art der Suche</string>
     <string name="settings_search_type_dialog_title">Art der Suche wählen.</string>
@@ -36,8 +30,13 @@
     <string name="settings_app_locale_name">Gebietsschema</string>
     <string name="settings_app_locale_dialog_title">Gebietsschema wählen</string>
     <string name="settings_app_locale_dialog_description">Gebietsschema für das App UI.</string>
+    <!-- names (search_type) -->
+    <string name="pv_fullname">Preisvergleich von Original und Generikum</string>
+    <string name="pi_fullname">Patienteninformation</string>
+    <string name="fi_fullname">Fachinformation</string>
 
-    <!-- [information] -->
+    <!-- [descriptions] -->
+    <!-- information -->
     <string name="information_text">
       <![CDATA[
       <h1>Generika App für Android</h1>
@@ -53,41 +52,23 @@
       <p><a href="https://itunes.apple.com/ch/app/amiko-desitin/id687642725?mt=8">Rezepte können mit AmiKo für iOS erstellt werden</a></p>
       ]]>
     </string>
-
-    <!-- [search box] -->
+    <!-- search field -->
     <string name="product_search_box_hint">Suche nach Name, GTIN (EAN-13) usw.</string>
     <string name="receipt_search_box_hint">Suche nach Ort, Zeit oder Name usw.</string>
 
-    <!-- [sync] -->
-    <!--
-    <string name="settings_record_sync_name">Snchronisieren</string>
-    <string name="settings_record_sync_summary"></string>
-    -->
-
-    <!-- [general] -->
+    <!-- [general words] -->
     <string name="close">Schliessen</string>
     <string name="cancel">Abbrechen</string>
     <string name="ok">Ok</string>
     <string name="open">Öffnen</string>
     <string name="save">Speichern</string>
-
     <string name="expiry_date">Verfalldatum</string>
 
-    <!-- [barcode reader] -->
+    <!-- [messages] -->
+    <!-- barcode reader -->
     <string name="barcode_reader_hover_text">Hold rear camera out over the barcode of package</string>
-
-    <string name="permission_camera_rationale">
-      Zugriff auf die Kamera ist notwendig um den Barcode zu scannen.</string>
-    <string name="no_camera_permission">
-      Die App kann ohne Zugriff auf die Kamera nicht funktionieren. Die App beendet sich jetzt selbst.</string>
-    <string name="low_storage_error">
-      Gesichtserkennungsbibliotheken können nicht heruntergeladen werden, da zu wenig Platz auf dem Gerät.</string>
-
-    <!-- [product] -->
     <!-- dialog (capture) -->
     <string name="fetch_info_result_dialog_title">Generika.cc sagt</string>
-
-    <!-- [receipt] -->
     <!-- dialog (import) -->
     <string name="title_import_failure">Import Error</string>
     <string name="title_import_success">Import</string>
@@ -96,4 +77,12 @@
     <string name="message_import_failure_unsaved">Datei konnte nicht gespeichert werden\n%s</string>
     <string name="message_import_failure_unknown">Ein Fehler ist aufgetreten.</string>
     <string name="message_import_success">Erfolgreich importiert.\n%s</string>
+    <!-- permission request messages -->
+    <string name="permission_camera_rationale">
+      Zugriff auf die Kamera ist notwendig um den Barcode zu scannen.</string>
+    <string name="no_camera_permission">
+      Die App kann ohne Zugriff auf die Kamera nicht funktionieren. Die App beendet sich jetzt selbst.</string>
+    <!-- error messages -->
+    <string name="low_storage_error">
+      Gesichtserkennungsbibliotheken können nicht heruntergeladen werden, da zu wenig Platz auf dem Gerät.</string>
 </resources>

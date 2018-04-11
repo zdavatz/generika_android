@@ -112,11 +112,11 @@ public class MainActivity extends BaseActivity implements
          !categories.contains(Intent.CATEGORY_LAUNCHER)) &&
          !Intent.ACTION_MAIN.equals(intent.getAction())) {
       this.sourceType = Constant.SOURCE_TYPE_AMKJSON;
-      this.title = context.getString(R.string.prescriptions);
+      this.title = context.getString(R.string.amkfiles);
       importAction = true;
     } else { // from launcher
       this.sourceType = Constant.SOURCE_TYPE_BARCODE;
-      this.title = context.getString(R.string.drugs);
+      this.title = context.getString(R.string.barcodes);
     }
 
     this.dataManager = new DataManager(this.sourceType);
@@ -315,7 +315,8 @@ public class MainActivity extends BaseActivity implements
               menuItem.getItemId());
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
             String nextSourceType;
-            if (name.contains("receipt")) {
+            // navigation_item_{products,receipts}
+            if (name.equals("navigation_item_receipts")) {
               nextSourceType = Constant.SOURCE_TYPE_AMKJSON;
             } else {  // back to default
               nextSourceType = Constant.SOURCE_TYPE_BARCODE;

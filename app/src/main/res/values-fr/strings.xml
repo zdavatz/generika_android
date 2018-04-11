@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- [application] -->
-    <string name="pv_fullname">Comparatif des prix de la préparation originale et du médicament générique</string>
-    <string name="pi_fullname">Information des patients</string>
-    <string name="fi_fullname">Information professionelle</string>
-
-    <!-- [menu/label] -->
+    <!-- activities -->
     <string name="settings">Ajustages</string>
     <string name="information">Information</string>
+    <string name="barcode_capture">Barcode Capture</string>
+    <string name="importer">Importer</string>
     <string name="receipt">Ordonnance Médicale</string>
-
-    <!-- [drawer] -->
-    <string name="drugs">Médicaments</string>
-    <string name="prescriptions">Ordonnance Médicale</string>
+    <string name="web_view">Web View</string>
+    <!-- drawer menus/titles -->
+    <string name="barcodes">Médicaments</string>
+    <string name="amkfiles">Ordonnance Médicale</string>
 
     <!-- [settings]-->
     <!-- groups -->
     <string name="settings_search">Chercher</string>
     <string name="settings_app">Application</string>
-    <!--
-    <string name="settings_record">Record</string>
-    -->
     <!-- search_type -->
     <string name="settings_search_type_name">Type de recherche</string>
     <string name="settings_search_type_dialog_title">Choisissez le type du document: IPro, IPat, Comparaison des prix.</string>
@@ -36,8 +30,13 @@
     <string name="settings_app_locale_name">Langue</string>
     <string name="settings_app_locale_dialog_title">Choisir la langue</string>
     <string name="settings_app_locale_dialog_description">Choisir la langue de l‘interface utilisateur.</string>
+    <!-- names (search_type) -->
+    <string name="pv_fullname">Comparatif des prix de la préparation originale et du médicament générique</string>
+    <string name="pi_fullname">Information des patients</string>
+    <string name="fi_fullname">Information professionelle</string>
 
-    <!-- [information] -->
+    <!-- [descriptions] -->
+    <!-- information -->
     <string name="information_text">
       <![CDATA[
       <h1>Generika App pour Android</h1>
@@ -53,41 +52,23 @@
       <p><a href="https://itunes.apple.com/ch/app/amiko-desitin/id687642725?mt=8">Prescriptions can be generated with AmiKo for iOS</a></p>
       ]]>
     </string>
-
-    <!-- [search box] -->
+    <!-- search field -->
     <string name="product_search_box_hint">Recherche par nom, GTIN (EAN-13) etc.</string>
     <string name="receipt_search_box_hint">Recherche par endroit, date ou nom etc.</string>
 
-    <!-- [sync] -->
-    <!--
-    <string name="settings_record_sync_name">Sync</string>
-    <string name="settings_record_sync_summary"></string>
-    -->
-
-    <!-- [general] -->
+    <!-- [general words] -->
     <string name="close">Fermer</string>
     <string name="cancel">Annuler</string>
     <string name="ok">Ok</string>
     <string name="open">Ouvrir</string>
     <string name="save">Enregistrer</string>
-
     <string name="expiry_date">Date de péremption</string>
 
-    <!-- [barcode reader] -->
+    <!-- [messages] -->
+    <!-- barcode reader -->
     <string name="barcode_reader_hover_text">Hold rear camera out over the barcode of package</string>
-
-    <string name="permission_camera_rationale">
-      L‘accès à la caméra est indispensable pour scanner le code-barres.</string>
-    <string name="no_camera_permission">
-      L‘application dépend de l‘accès à la caméra. Elle s‘arrête maintenant.</string>
-    <string name="low_storage_error">
-      La détection de visage ne peut être activée par manque d’espace de stockage.</string>
-
-    <!-- [product] -->
     <!-- dialog (capture) -->
     <string name="fetch_info_result_dialog_title">Generika.cc dit</string>
-
-    <!-- [receipt] -->
     <!-- dialog (import) -->
     <string name="title_import_failure">Import Erreur</string>
     <string name="title_import_success">Import</string>
@@ -96,4 +77,12 @@
     <string name="message_import_failure_unsaved">File could not be saved\n%s</string>
     <string name="message_import_failure_unknown">An known error occurred</string>
     <string name="message_import_success">Successfully imported\n%s</string>
+    <!-- permission request messages -->
+    <string name="permission_camera_rationale">
+      L‘accès à la caméra est indispensable pour scanner le code-barres.</string>
+    <string name="no_camera_permission">
+      L‘application dépend de l‘accès à la caméra. Elle s‘arrête maintenant.</string>
+    <!-- error messages -->
+    <string name="low_storage_error">
+      La détection de visage ne peut être activée par manque d’espace de stockage.</string>
 </resources>
