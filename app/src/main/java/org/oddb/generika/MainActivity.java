@@ -25,6 +25,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -38,6 +39,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.inputmethod.EditorInfo;
@@ -196,12 +198,10 @@ public class MainActivity extends BaseActivity implements
 
     if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
       searchBox.setHint(context.getString(R.string.receipt_search_box_hint));
-      // TODO: set valid action for fab
-      actionButton.setVisibility(View.GONE);
     } else {
       searchBox.setHint(context.getString(R.string.product_search_box_hint));
-      actionButton.setVisibility(View.VISIBLE);
     }
+    actionButton.setVisibility(View.VISIBLE);
   }
 
   @Override
@@ -349,16 +349,24 @@ public class MainActivity extends BaseActivity implements
     actionButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
+        Intent intent;
         if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
-          // product
-          Intent intent = new Intent(
+          // product (barcode capture)
+          intent = new Intent(
             MainActivity.this, BarcodeCaptureActivity.class);
           intent.putExtra(Constant.kAutoFocus, true);
           intent.putExtra(Constant.kUseFlash, true);
           startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
         } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
-          // receipt
-          // TODO
+          // receipt (document provider)
+          intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+          intent.addCategory(Intent.CATEGORY_OPENABLE);
+          String[] mimeTypes = new String[]{
+            "application/amk", "application/json", "application/octet-stream",
+            "text/plain"};
+          intent.setType(TextUtils.join("|", mimeTypes));
+          intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+          startActivityForResult(intent, Constant.RC_FILE_PROVIDER);
         }
       }
     });
@@ -419,10 +427,7 @@ public class MainActivity extends BaseActivity implements
             (actionId == EditorInfo.IME_ACTION_DONE)) { // 6
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          // TODO: enable it also for receipt
-          if (!sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
-            actionButton.setVisibility(View.VISIBLE);
-          }
+          actionButton.setVisibility(View.VISIBLE);
           return true;
         }
         return false;
@@ -507,6 +512,21 @@ public class MainActivity extends BaseActivity implements
       } else {
         Log.d(TAG, "(onActivityResult) status: " +
           CommonStatusCodes.getStatusCodeString(resultCode));
+      }
+    } else if (requestCode == Constant.RC_FILE_PROVIDER) {
+      if (resultCode == RESULT_OK) {
+        Uri uri = null;
+        if (data != null) {
+          uri = data.getData();
+          Log.d(TAG, "(onActivityResult) uri: " + uri);
+
+          Intent intent = new Intent(this, ImporterActivity.class);
+          intent.setData(uri);
+          ActivityOptions options = ActivityOptions.makeBasic();
+          startActivity(intent, options.toBundle());
+        }
+      } else {
+        Log.d(TAG, "(onActivityResult) resultCode: " + resultCode);
       }
     } else {
       Log.d(TAG, "(onActivityResult) requestCode: " + requestCode);
