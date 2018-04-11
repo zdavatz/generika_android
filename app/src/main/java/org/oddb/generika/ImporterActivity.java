@@ -333,7 +333,10 @@ public class ImporterActivity extends BaseActivity
       stream.setSource(uri.toString());
 
       StreamReader reader = new StreamReader();
-      reader.setMaxReadLength(1200);
+      int length = stream.getContentLength();
+      if (length > 0) {
+        reader.setMaxReadLength(length);
+      }
       reader.setStream(stream.derive());
       raw = reader.read();
     } finally {
