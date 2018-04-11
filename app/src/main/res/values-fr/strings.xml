@@ -52,9 +52,9 @@
       <br/>
       <p><a href="http://www.ywesee.com">© ywesee GmbH, GPLv3.0.</a></p>
       <br/>
-      <p><a href="https://itunes.apple.com/ch/app/amiko-desitin/id708142753?mt=12">Prescriptions can be generated with AmiKo for macOS.</a></p>
+      <p><a href="https://itunes.apple.com/ch/app/comed-desitin/id710472327?mt=12">Créer des prescriptions avec CoMed macOS.</a></p>
       <br/>
-      <p><a href="https://itunes.apple.com/ch/app/amiko-desitin/id687642725?mt=8">Prescriptions can be generated with AmiKo for iOS</a></p>
+      <p><a href="https://itunes.apple.com/ch/app/comed-desitin/id712891884?mt=8">Créer des prescriptions avec CoMed iOS</a></p>
       ]]>
     </string>
     <!-- search field -->
@@ -75,13 +75,13 @@
     <!-- dialog (capture) -->
     <string name="fetch_info_result_dialog_title">Generika.cc dit</string>
     <!-- dialog (import) -->
-    <string name="title_import_failure">Import Erreur</string>
+    <string name="title_import_failure">Erreur d'importation</string>
     <string name="title_import_success">Import</string>
-    <string name="message_import_failure_invalid">Invalid file\n%s</string>
-    <string name="message_import_failure_duplicated">Déjà était importé.1\n%s</string>
-    <string name="message_import_failure_unsaved">File could not be saved\n%s</string>
-    <string name="message_import_failure_unknown">An known error occurred</string>
-    <string name="message_import_success">Successfully imported\n%s</string>
+    <string name="message_import_failure_invalid">Fichier non valide.\n%s</string>
+    <string name="message_import_failure_duplicated">Déjà était importé.\n%s</string>
+    <string name="message_import_failure_unsaved">La sauvegarde n'est pas possible: Mauvais fichier.\n%s</string>
+    <string name="message_import_failure_unknown">Une erreur est survenue.</string>
+    <string name="message_import_success">Importé avec succès.\n%s</string>
     <!-- permission request messages -->
     <string name="permission_camera_rationale">
       L‘accès à la caméra est indispensable pour scanner le code-barres.</string>
