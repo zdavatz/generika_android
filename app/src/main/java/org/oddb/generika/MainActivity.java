@@ -153,8 +153,7 @@ public class MainActivity extends BaseActivity implements
           new MessageDialog.OnChangeListener() {
             @Override
             public void onOk() {
-              // TODO: open receipt detail view
-              if (hashedKey != null) { }
+              if (hashedKey != null) { openReceipt(hashedKey); }
             }
             @Override
             public void onCancel() {
@@ -669,6 +668,16 @@ public class MainActivity extends BaseActivity implements
       intent.putExtra(Constant.kEan, product.getEan());
       intent.putExtra(Constant.kReg, product.getReg());
       intent.putExtra(Constant.kSeq, product.getSeq());
+    }
+    startActivity(intent);
+    overridePendingTransition(R.anim.slide_leave,
+                              R.anim.slide_enter);
+  }
+
+  public void openReceipt(String hashedKey) {
+    Intent intent = new Intent(this, ReceiptActivity.class);
+    if (hashedKey != null) {
+      intent.putExtra(Constant.kHashedKey, hashedKey);
     }
     startActivity(intent);
     overridePendingTransition(R.anim.slide_leave,

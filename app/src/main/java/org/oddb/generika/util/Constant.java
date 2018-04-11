@@ -124,6 +124,10 @@ public class Constant extends Object {
   public final static int IMPORT_FAILURE_UNKNOWN = 130;
   public final static int IMPORT_SUCCESS = 200;
 
+  // [Receipt]
+  // -- intent keys
+  public final static String kHashedKey = "kHashedKey";
+
   // [Shared]
   // -- sourceType (value)
   public final static String SOURCE_TYPE_BARCODE = "barcode"; // product

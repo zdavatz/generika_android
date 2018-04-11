@@ -5,9 +5,10 @@
     <string name="pi_fullname">Information des patients</string>
     <string name="fi_fullname">Information professionelle</string>
 
-    <!-- [menu] -->
+    <!-- [menu/label] -->
     <string name="settings">Ajustages</string>
     <string name="information">Information</string>
+    <string name="receipt">Ordonnance Médicale</string>
 
     <!-- [drawer] -->
     <string name="drugs">Médicaments</string>

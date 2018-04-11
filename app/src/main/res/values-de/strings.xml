@@ -5,9 +5,10 @@
     <string name="pi_fullname">Patienteninformation</string>
     <string name="fi_fullname">Fachinformation</string>
 
-    <!-- [menu] -->
+    <!-- [menu/label] -->
     <string name="settings">Einstellungen</string>
     <string name="information">About</string>
+    <string name="receipt">Rezept</string>
 
     <!-- [drawer] -->
     <string name="drugs">Medikamente</string>

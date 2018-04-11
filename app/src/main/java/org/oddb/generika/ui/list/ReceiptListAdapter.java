@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.oddb.generika.R;
+import org.oddb.generika.MainActivity;
 import org.oddb.generika.model.Operator;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
@@ -300,8 +301,77 @@ public class ReceiptListAdapter extends RealmBaseAdapter<Receipt>
     row.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View view, MotionEvent event) {
-        // TODO
-        return false;
+        long startedAt = row.getTouchStartedAt();
+        long duration = event.getEventTime() - startedAt;
+        int direction = row.getTouchDirection();
+
+        switch (event.getActionMasked()) {
+          case MotionEvent.ACTION_UP:
+            Log.d(TAG, "(onTouch/up) startedAt: " + startedAt);
+            Log.d(TAG, "(onTouch/up) direction: " + direction);
+            row.setTouchDirection(SwipeRow.kNone);
+            // fix consistency. This means down has been started when swipe
+            // layout state is fixed as "close", not "open".
+            if (row.getTouchDown() != 1) { return false; }
+            row.setTouchDown(0);
+            if (row.getState().equals("Close")) {
+              // it's tap (not swipe). up/down event must be fire both in
+              // closed row
+              if (duration > row.kSwipeDurationThreshold.get("max")) {
+                if (row.hasDialog()) { return false; }
+                Log.d(TAG, "(onTouch/up) long press, duration: " + duration);
+                return true;
+              }
+              Log.d(TAG, "(onTouch/up) short tap, duration: " + duration);
+              // short (single) tap
+              // TODO: re-consider it might be not good (usage: MainActivity)
+              Receipt item = (Receipt)row.getItem();
+              String hashedKey = null;
+              if (item != null) {
+                hashedKey = item.getHashedKey();
+              }
+              if (hashedKey != null && !hashedKey.equals("")) {
+                ((MainActivity)parentView.getContext()).openReceipt(hashedKey);
+              }
+              return true;
+            } else { // swipe state "middle"
+              // smooth swipe assistance, use this instead of swipelistener
+              if (duration >= row.kSwipeDurationThreshold.get("min") &&
+                  duration <= row.kSwipeDurationThreshold.get("max")) {
+                // don't use `toggle`, because it works oppositely here.
+                // just support user's intention.
+                if (direction == SwipeRow.kRighttoLeft) {
+                  row.open(true);
+                } else if (direction == SwipeRow.kLefttoRight) {
+                  row.close(true);
+                }
+                return true;
+              }
+            }
+            return false;
+          case MotionEvent.ACTION_DOWN:
+            String state = row.getState();
+            if (state.equals("Close")) {
+              row.setTouchDown(1); // swipe/click start on closed row
+              row.setTouchStartedAt(event.getEventTime());
+              row.setTouchDirection(SwipeRow.kRighttoLeft);
+            } else if (state.equals("Open")) {
+              row.setTouchDown(0);
+              row.setTouchStartedAt(event.getEventTime());
+              row.setTouchDirection(SwipeRow.kLefttoRight);
+            }
+            Log.d(TAG, "(onTouch/down) startedAt: " + row.getTouchStartedAt());
+            Log.d(TAG, "(onTouch/down) direction: " + row.getTouchDirection());
+            return false;
+          case MotionEvent.ACTION_MOVE:
+            return false;
+          default:
+            Log.d(TAG, "action: " + event.getActionMasked());
+            row.setTouchDown(0);
+            row.setTouchStartedAt(0);
+            row.setTouchDirection(SwipeRow.kNone);
+            return false;
+        }
       }
     });
 

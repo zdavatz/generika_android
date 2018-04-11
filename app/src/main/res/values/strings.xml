@@ -8,9 +8,11 @@
     <string name="pi_fullname">Consumer information</string>
     <string name="fi_fullname">Professional information</string>
 
-    <!-- [menu] -->
+    <!-- [menu/label] -->
     <string name="settings">Settings</string>
     <string name="information">About</string>
+    <string name="receipt">Prescription</string>
+
 
     <!-- [drawer] -->
     <string name="drugs">Medications</string>
