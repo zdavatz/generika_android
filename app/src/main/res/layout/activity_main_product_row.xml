@@ -45,10 +45,10 @@
               android:scaleType="fitXY"
               android:adjustViewBounds="true"
               android:focusable="false"
-              android:paddingTop="0dp"
-              android:paddingRight="3.75dp"
-              android:paddingBottom="0dp"
-              android:paddingLeft="0dp"/>
+              android:paddingTop="3.75dp"
+              android:paddingRight="5.25dp"
+              android:paddingBottom="3.75dp"
+              android:paddingLeft="5.25dp"/>
 
           <TextView
               android:id="@+id/product_item_name"

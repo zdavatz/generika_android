@@ -41,7 +41,7 @@
         android:layout_marginTop="43dp"
         android:fastScrollEnabled="true"
         android:persistentDrawingCache="scrolling"
-        android:scrollingCache="false"
+        android:scrollingCache="true"
         android:divider="@color/lightGray"
         android:dividerHeight="1px"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -19,8 +19,6 @@ package org.oddb.generika;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,6 +39,7 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 
 import org.oddb.generika.BaseActivity;
+import org.oddb.generika.GlideApp;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Operator;
 import org.oddb.generika.model.Patient;
@@ -170,8 +169,9 @@ public class ReceiptActivity extends BaseActivity {
     ImageView signature = (ImageView)findViewById(
       R.id.receipt_view_operator_signature);
     byte[] bytes = Base64.decode(operator.getSignature(), Base64.DEFAULT);
-    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-    signature.setImageBitmap(bitmap);
+    GlideApp.with(context)
+      .load(bytes)
+      .into(signature);
   }
 
   private void fillPatientFields(Patient patient) {
