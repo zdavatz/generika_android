@@ -75,11 +75,11 @@
     <!-- dialog (capture) -->
     <string name="fetch_info_result_dialog_title">Generika.cc dit</string>
     <!-- dialog (import) -->
-    <string name="title_import_failure">Erreur d'importation</string>
+    <string name="title_import_failure">Erreur d\'importation</string>
     <string name="title_import_success">Import</string>
     <string name="message_import_failure_invalid">Fichier non valide.\n%s</string>
     <string name="message_import_failure_duplicated">Déjà était importé.\n%s</string>
-    <string name="message_import_failure_unsaved">La sauvegarde n'est pas possible: Mauvais fichier.\n%s</string>
+    <string name="message_import_failure_unsaved">La sauvegarde n\'est pas possible: Mauvais fichier.\n%s</string>
     <string name="message_import_failure_unknown">Une erreur est survenue.</string>
     <string name="message_import_success">Importé avec succès.\n%s</string>
     <!-- permission request messages -->
