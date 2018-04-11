@@ -54,6 +54,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.oddb.generika.MainActivity;
+import org.oddb.generika.GlideApp;
 import org.oddb.generika.R;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.ui.MonthYearPickerDialog;
@@ -484,14 +485,11 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     viewHolder.barcodeImage = (ImageView)view.findViewById(
       R.id.product_item_barcode_image);
     String filepath = item.getFilepath();
-    if (filepath != null) {
-      File imageFile = new File(filepath);
-      if (imageFile.exists()) {
-        Log.d(TAG, "(getView) filepath: " + filepath);
-        viewHolder.barcodeImage.setImageResource(0);
-        viewHolder.barcodeImage.setImageURI(Uri.fromFile(imageFile));
-      }
-    }
+    Log.d(TAG, "(getView) filepath: " + filepath);
+    GlideApp.with(context)
+      .load(filepath)
+      .fitCenter()
+      .into(viewHolder.barcodeImage);
 
     // name
     viewHolder.name = (TextView)view.findViewById(
