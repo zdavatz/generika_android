@@ -17,6 +17,7 @@
  */
 package org.oddb.generika;
 
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.Intent;
@@ -461,6 +462,7 @@ public class MainActivity extends BaseActivity implements
   public boolean onOptionsItemSelected(MenuItem item) {
     int id = item.getItemId();
 
+    ActivityOptions options = ActivityOptions.makeBasic();
     Intent intent;
     switch (id) {
       case android.R.id.home:
@@ -468,11 +470,11 @@ public class MainActivity extends BaseActivity implements
         return true;
       case R.id.settings:
         intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+        startActivity(intent, options.toBundle());
         return true;
       case R.id.information:
         intent = new Intent(this, InformationActivity.class);
-        startActivity(intent);
+        startActivity(intent, options.toBundle());
         return true;
     }
 
@@ -670,9 +672,9 @@ public class MainActivity extends BaseActivity implements
       intent.putExtra(Constant.kReg, product.getReg());
       intent.putExtra(Constant.kSeq, product.getSeq());
     }
-    startActivity(intent);
-    overridePendingTransition(R.anim.slide_leave,
-                              R.anim.slide_enter);
+    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+      MainActivity.this);
+    startActivity(intent, options.toBundle());
   }
 
   public void openReceipt(String hashedKey) {
@@ -680,8 +682,8 @@ public class MainActivity extends BaseActivity implements
     if (hashedKey != null) {
       intent.putExtra(Constant.kHashedKey, hashedKey);
     }
-    startActivity(intent);
-    overridePendingTransition(R.anim.slide_leave,
-                              R.anim.slide_enter);
+    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+      MainActivity.this);
+    startActivity(intent, options.toBundle());
   }
 }

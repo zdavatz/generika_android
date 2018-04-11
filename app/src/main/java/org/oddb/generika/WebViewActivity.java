@@ -168,7 +168,7 @@ public class WebViewActivity extends BaseActivity {
         if (webView.canGoBack()) {
           webView.goBack();
         } else {
-          finish();
+          finishAfterTransition();
         }
         return true;
       }
@@ -199,7 +199,7 @@ public class WebViewActivity extends BaseActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      finish();
+      finishAfterTransition();
     }
     return super.onOptionsItemSelected(item);
   }

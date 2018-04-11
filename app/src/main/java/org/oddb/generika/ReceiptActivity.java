@@ -286,7 +286,7 @@ public class ReceiptActivity extends BaseActivity {
     // on tap `◁` (device back button)
     if (event.getAction() == KeyEvent.ACTION_DOWN) {
       if (keyCode == KeyEvent.KEYCODE_BACK) {
-        finish();
+        finishAfterTransition();
         return true;
       }
     }
@@ -325,7 +325,7 @@ public class ReceiptActivity extends BaseActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      finish();
+      finishAfterTransition();
     }
     return super.onOptionsItemSelected(item);
   }

@@ -66,7 +66,7 @@ public class InformationActivity extends BaseActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      finish();
+      finishAfterTransition();
     }
     return super.onOptionsItemSelected(item);
   }
