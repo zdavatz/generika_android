@@ -41,12 +41,12 @@ public class Data extends RealmObject {
     this.sourceType = sourceType; }
 
   public RealmList<Product> getItems() {
-    // scanned drugs, prescribed medications
+    // scanned drugs items
     return items;
   }
 
   public RealmList<Receipt> getFiles() {
-    // prescription docs
+    // prescription .amk files
     return files;
   }
 }

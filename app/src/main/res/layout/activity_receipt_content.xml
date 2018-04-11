@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="org.oddb.generika.ReceiptActivity"
+    tools:showIn="@layout/activity_receipt">
+
+    <android.widget.ScrollView
+        android:id="@+id/receipt_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:orientation="vertical"
+        android:scrollbars="vertical">
+
+        <android.widget.LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <android.widget.TextView
+                android:id="@+id/receipt_view_place_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="left|top"
+                android:editable="false"
+                android:paddingTop="11dp"
+                android:paddingRight="16dp"
+                android:paddingBottom="3dp"
+                android:paddingLeft="21dp"
+                android:textColor="@color/titleColor"
+                android:textSize="13sp" />
+
+            <!-- operator -->
+            <android.widget.LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="7dp"
+                android:paddingRight="16dp"
+                android:paddingBottom="9dp"
+                android:paddingLeft="21dp">
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_operator_section_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/gray"
+                    android:textSize="13.5sp" />
+
+                <android.widget.FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/receipt_view_operator_signature"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_gravity="top|right"
+                        android:adjustViewBounds="true"
+                        android:maxWidth="110dp"
+                        android:maxHeight="80dp"
+                        android:focusable="false"
+                        android:scaleType="fitXY"
+                        android:paddingTop="0dp"
+                        android:paddingRight="3.5dp" />
+
+                    <android.widget.LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentLeft="true"
+                        android:orientation="vertical">
+
+                        <android.widget.TextView
+                            android:id="@+id/receipt_view_operator_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left|top"
+                            android:editable="false"
+                            android:textColor="@color/black"
+                            android:textSize="11.5sp" />
+
+                        <android.widget.TextView
+                            android:id="@+id/receipt_view_operator_address"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left|top"
+                            android:editable="false"
+                            android:textColor="@color/black"
+                            android:textSize="11.5sp" />
+
+                        <android.widget.TextView
+                            android:id="@+id/receipt_view_operator_region"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left|top"
+                            android:editable="false"
+                            android:textColor="@color/black"
+                            android:textSize="11.5sp" />
+
+                        <android.widget.TextView
+                            android:id="@+id/receipt_view_operator_phone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left|top"
+                            android:editable="false"
+                            android:textColor="@color/black"
+                            android:textSize="11.5sp" />
+
+                        <android.widget.TextView
+                            android:id="@+id/receipt_view_operator_email"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left|top"
+                            android:editable="false"
+                            android:textColor="@color/black"
+                            android:textSize="11.5sp" />
+
+                      </android.widget.LinearLayout>
+
+                </android.widget.FrameLayout>
+
+            </android.widget.LinearLayout>
+
+            <!-- patient -->
+            <android.widget.LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="7dp"
+                android:paddingRight="16dp"
+                android:paddingBottom="9dp"
+                android:paddingLeft="21dp">
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_patient_section_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/gray"
+                    android:textSize="13.5sp" />
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_patient_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/black"
+                    android:textSize="11.5sp" />
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_patient_personal_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/black"
+                    android:textSize="11.5sp" />
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_patient_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/black"
+                    android:textSize="11.5sp" />
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_patient_region"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/black"
+                    android:textSize="11.5sp" />
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_patient_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/black"
+                    android:textSize="11.5sp" />
+
+                <android.widget.TextView
+                    android:id="@+id/receipt_view_patient_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:editable="false"
+                    android:textColor="@color/black"
+                    android:textSize="11.5sp" />
+
+            </android.widget.LinearLayout>
+
+            <!-- products (medications) -->
+            <android.widget.TextView
+                android:id="@+id/receipt_view_products_section_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="9dp"
+                android:layout_marginRight="0dp"
+                android:layout_marginBottom="0dp"
+                android:layout_marginLeft="0dp"
+                android:paddingTop="4.5dp"
+                android:paddingRight="13dp"
+                android:paddingBottom="5.5dp"
+                android:paddingLeft="21dp"
+                android:gravity="left|top"
+                android:editable="false"
+                android:textSize="13.5sp"
+                android:background="@color/lightGray" />
+
+            <ListView
+                android:id="@+id/receipt_view_products_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left|top"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="12dp"
+                android:paddingTop="3dp"
+                android:paddingRight="0dp"
+                android:paddingBottom="9dp"
+                android:paddingLeft="0dp"
+                android:scrollingCache="false"
+                android:divider="@color/lightGray"
+                android:dividerHeight="1px"
+                android:scrollbars="none" />
+
+        </android.widget.LinearLayout>
+
+    </android.widget.ScrollView>
+
+</android.support.constraint.ConstraintLayout>

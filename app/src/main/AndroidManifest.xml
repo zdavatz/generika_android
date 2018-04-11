@@ -29,7 +29,7 @@
 
         <activity
             android:name=".ImporterActivity"
-            android:label="@string/app_name"
+            android:label="@string/importer"
             android:theme="@style/AppTheme.Translucent"
             android:windowSoftInputMode="stateHidden">
 
@@ -161,7 +161,7 @@
 
         <activity
             android:name=".BarcodeCaptureActivity"
-            android:label="Scan Barcode" />
+            android:label="@string/barcode_capture" />
 
         <activity
             android:name=".SettingsActivity"
@@ -175,9 +175,19 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:configChanges="orientation|screenSize" />
 
+        <!--
+        NOTE:
+        Instance state for this ReceiptActivity is managed in the code to
+        restore the scroll position after rotation. (instead of configChanges)
+        -->
+        <activity
+            android:name=".ReceiptActivity"
+            android:label="@string/receipt"
+            android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".WebViewActivity"
-            android:label="@string/app_name"
+            android:label="@string/web_view"
             android:theme="@style/AppTheme.NoActionBar"
             android:configChanges="orientation|screenSize" />
     </application>

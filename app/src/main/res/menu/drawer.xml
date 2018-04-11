@@ -6,10 +6,10 @@
             android:id="@+id/navigation_item_products"
             android:icon="@drawable/ic_insert_photo_black_24dp"
             android:checked="true"
-            android:title="@string/drugs" />
+            android:title="@string/barcodes" />
         <item
             android:id="@+id/navigation_item_receipts"
             android:icon="@drawable/ic_move_to_inbox_black_24dp"
-            android:title="@string/prescriptions" />
+            android:title="@string/amkfiles" />
     </group>
 </menu>

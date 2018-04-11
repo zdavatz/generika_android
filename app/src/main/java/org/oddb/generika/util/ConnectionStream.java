@@ -46,6 +46,8 @@ public class ConnectionStream {
   private URL sourceUrl;
   private HttpsURLConnection connection;
 
+  private int contentLength = -1;
+
   public void setSource(String urlString) {
     try {
       this.sourceUrl = new URL(urlString);
@@ -53,6 +55,10 @@ public class ConnectionStream {
       Log.d(TAG, "(setSource) e: " + e.getMessage());
       this.sourceUrl = null;
     }
+  }
+
+  public int getContentLength() {
+    return contentLength;
   }
 
   public InputStream derive() throws IOException {
@@ -73,6 +79,12 @@ public class ConnectionStream {
       }
       throw new IOException("HTTP error code: " + responseCode);
     }
+    int length = connection.getContentLength();
+    if (length > 0) {
+      this.contentLength = length;
+    }
+    Log.d(TAG, "(derive) content-length: " + contentLength);
+
     InputStream stream = connection.getInputStream();
     return stream;
   }

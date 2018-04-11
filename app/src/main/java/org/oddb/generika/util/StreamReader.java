@@ -84,20 +84,18 @@ public class StreamReader {
   }
 
   // read with maxReadLength
-  private String readStream(InputStream stream, int maxLength)
+  private String readStream(InputStream stream, final int maxLength)
     throws IOException, UnsupportedEncodingException {
-    Reader reader = null;
-    reader = new InputStreamReader(stream, "UTF-8");
+    Reader reader = new InputStreamReader(stream, "UTF-8");
     char[] rawBuffer = new char[maxLength];
     int length;
-
     StringBuffer buffer = new StringBuffer();
-    while (((length = reader.read(rawBuffer)) != -1) && maxLength > 0) {
-      if (length > maxLength) {
-        length = maxLength;
+    while (true) {
+      length = reader.read(rawBuffer, 0, maxLength);
+      if (length == -1) {
+        break;
       }
       buffer.append(rawBuffer, 0, length);
-      maxLength -= length;
     }
     return buffer.toString();
   }

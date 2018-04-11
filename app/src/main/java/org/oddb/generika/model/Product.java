@@ -268,7 +268,7 @@ public class Product extends RealmObject implements Retryable {
   }
 
   public void setReg(String reg) {
-  // used only for prescribed product
+  // used only for receipt product (medication)
     this.reg = reg;
   }
 
@@ -286,8 +286,8 @@ public class Product extends RealmObject implements Retryable {
   }
 
   public void setPack(String pack) {
-    // used only for prescribed product
-    this.reg = pack;
+    // used only for receipt product (medication)
+    this.pack = pack;
   }
 
   public String getDatetime() { return datetime; }
