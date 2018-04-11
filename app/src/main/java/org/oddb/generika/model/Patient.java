@@ -160,6 +160,14 @@ public class Patient extends RealmObject implements Retryable {
   public String getGender() { return gender; }
   public void setGender(String value) { this.gender = value; }
 
+  public String getGenderSign() {
+    if (gender == null || gender.equals("")) { return ""; }
+    char c = Character.toUpperCase(gender.charAt(0));
+    if (c == 'F' || c == 'W') { return "F"; } // female, woman, frau
+    if (c == 'M') { return "M"; } // male, man, mann
+    return Character.toString(c);
+  }
+
   public String getEmail() { return email; }
   public void setEmail(String value) { this.email = value; }
 

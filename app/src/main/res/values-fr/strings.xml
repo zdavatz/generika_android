@@ -35,6 +35,11 @@
     <string name="pi_fullname">Information des patients</string>
     <string name="fi_fullname">Information professionelle</string>
 
+    <!-- [receipt] -->
+    <string name="receipt_operator_section_title">Docteur</string>
+    <string name="receipt_patient_section_title">Patient</string>
+    <string name="receipt_products_section_title">Médicaments (%d)</string>
+
     <!-- [descriptions] -->
     <!-- information -->
     <string name="information_text">

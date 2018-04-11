@@ -41,6 +41,11 @@
     <string name="search_type_pi" translatable="false">pi</string>
     <string name="search_type_fi" translatable="false">fi</string>
 
+    <!-- [receipt] -->
+    <string name="receipt_operator_section_title">Doctor</string>
+    <string name="receipt_patient_section_title">Patient</string>
+    <string name="receipt_products_section_title">Medications (%d)</string>
+
     <!-- [descriptions] -->
     <!-- information -->
     <string name="information_text">
