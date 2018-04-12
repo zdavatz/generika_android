@@ -456,7 +456,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
         if (itemListener != null && item != null) {
           Calendar cal = Calendar.getInstance();  // local time zone
           cal.set(Calendar.YEAR, year);
-          cal.set(Calendar.MONTH, month - 1);
+          cal.set(Calendar.MONTH, month - 1); // fix for picker's index
           cal.set(Calendar.DAY_OF_MONTH, 1);
           itemListener.onExpiresAtChange(item.getId(), cal.getTime());
         }

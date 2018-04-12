@@ -55,7 +55,8 @@ public class MonthYearPickerDialog extends DialogFragment {
     Calendar cal = Calendar.getInstance();
 
     return MonthYearPickerDialog.newInstance(
-      cal.get(Calendar.MONTH), cal.get(Calendar.YEAR));
+      cal.get(Calendar.MONTH) + 1, // fix for picker's index
+      cal.get(Calendar.YEAR));
   }
 
   public static MonthYearPickerDialog newInstance(int m, int y) {
