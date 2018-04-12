@@ -17,7 +17,9 @@
  */
 package org.oddb.generika.util;
 
+import android.content.Context;
 import android.util.Log;
+import android.webkit.WebSettings;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -43,10 +45,16 @@ import org.oddb.generika.util.Constant;
 public class ConnectionStream {
   private static final String TAG = "ConnectionStream";
 
+  private Context context;
+
   private URL sourceUrl;
   private HttpsURLConnection connection;
 
   private int contentLength = -1;
+
+  public ConnectionStream(Context context_) {
+    this.context = context_;
+  }
 
   public void setSource(String urlString) {
     try {
@@ -64,12 +72,19 @@ public class ConnectionStream {
   public InputStream derive() throws IOException {
     if (sourceUrl == null) { return null; };
 
-    // TODO: set user-agent
+
     this.connection = (HttpsURLConnection)sourceUrl.openConnection();
     connection.setReadTimeout(Constant.HUC_READ_TIMEOUT);
     connection.setConnectTimeout(Constant.HUC_CONNECT_TIMEOUT);
     connection.setRequestMethod("GET");
     connection.setDoInput(true);
+
+    // user-agent
+    String userAgent = WebSettings.getDefaultUserAgent(context);
+    userAgent = String.format("%s %s", userAgent, Constant.HUC_USER_AGENT);
+    Log.d(TAG, "(derive) user-agent: " + userAgent);
+    connection.setRequestProperty("User-Agent", userAgent);
+
     connection.connect();
     int responseCode = connection.getResponseCode();
     Log.d(TAG, "(derive) responseCode: " + responseCode);

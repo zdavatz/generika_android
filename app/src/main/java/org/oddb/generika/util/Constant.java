@@ -75,11 +75,13 @@ public class Constant extends Object {
   public final static String kApiKey = "kApiKey";
   public final static String kBaseUrl = "kBaseUrl";
 
-  // -- http client (HttpsURLConnection)
+  // -- api client
   public final static String API_URL_PATH =
     "https://" + URL_HOST + "/de/" + URL_FLAVOR + "/api_search/ean/";
+  // (HttpsURLConnection)
   public final static int HUC_READ_TIMEOUT = 9000;
   public final static int HUC_CONNECT_TIMEOUT = 6000;
+  public final static String HUC_USER_AGENT = "org.oddb.generikacc";
 
   // [Network/WebView]
   // -- intent keys

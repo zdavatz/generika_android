@@ -17,38 +17,38 @@
  */
 package org.oddb.generika;
 
-import android.content.pm.PackageManager;
-import android.content.Intent;
 import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
-
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
-import org.oddb.generika.model.Receipt;
 import org.oddb.generika.model.Operator;
 import org.oddb.generika.model.Patient;
 import org.oddb.generika.model.Product;
-import org.oddb.generika.util.Constant;
+import org.oddb.generika.model.Receipt;
 import org.oddb.generika.util.ConnectionStream;
+import org.oddb.generika.util.Constant;
 import org.oddb.generika.util.StreamReader;
 
 
@@ -329,7 +329,7 @@ public class ImporterActivity extends BaseActivity
 
     ConnectionStream stream = null;
     try {
-      stream = new ConnectionStream();
+      stream = new ConnectionStream(context);
       stream.setSource(uri.toString());
 
       StreamReader reader = new StreamReader();

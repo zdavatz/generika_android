@@ -42,6 +42,7 @@ import org.oddb.generika.util.StreamReader;
 public class ProductInfoFetcher extends Fragment {
   public static final String TAG = "ProductInfoFetcher";
 
+  private Context context;
   private FetchCallback<FetchResult> fetchCallback;
   private FetchTask fetchTask;
   private String baseUrl;
@@ -211,7 +212,7 @@ public class ProductInfoFetcher extends Fragment {
       String response = null;
       ConnectionStream stream = null;
       try {
-        stream = new ConnectionStream();
+        stream = new ConnectionStream(context);
         stream.setSource(urlString);
 
         StreamReader reader = new StreamReader();
@@ -277,6 +278,7 @@ public class ProductInfoFetcher extends Fragment {
 
   @Override
   public void onAttach(Context context) {
+    this.context = context;
     super.onAttach(context);
 
     this.fetchCallback = (FetchCallback)context;
