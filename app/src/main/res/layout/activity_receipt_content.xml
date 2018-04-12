@@ -32,7 +32,7 @@
                 android:paddingTop="11dp"
                 android:paddingRight="16dp"
                 android:paddingBottom="3dp"
-                android:paddingLeft="21dp"
+                android:paddingLeft="12.5dp"
                 android:textColor="@color/titleColor"
                 android:textSize="13sp" />
 
@@ -44,7 +44,7 @@
                 android:paddingTop="7dp"
                 android:paddingRight="16dp"
                 android:paddingBottom="9dp"
-                android:paddingLeft="21dp">
+                android:paddingLeft="12.5dp">
 
                 <android.widget.TextView
                     android:id="@+id/receipt_view_operator_section_title"
@@ -142,7 +142,7 @@
                 android:paddingTop="7dp"
                 android:paddingRight="16dp"
                 android:paddingBottom="9dp"
-                android:paddingLeft="21dp">
+                android:paddingLeft="12.5dp">
 
                 <android.widget.TextView
                     android:id="@+id/receipt_view_patient_section_title"
@@ -223,7 +223,7 @@
                 android:paddingTop="4.5dp"
                 android:paddingRight="13dp"
                 android:paddingBottom="5.5dp"
-                android:paddingLeft="21dp"
+                android:paddingLeft="12.5dp"
                 android:gravity="left|top"
                 android:editable="false"
                 android:textSize="13.5sp"
