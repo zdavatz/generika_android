@@ -414,7 +414,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
             }
             return false;
           default:
-            Log.d(TAG, "action: " + event.getActionMasked());
+            Log.d(TAG, "(onTouch/move) action: " + event.getActionMasked());
             row.setTouchDown(0);
             row.setTouchStartedAt(0);
             row.setTouchDirection(SwipeRow.kNone);

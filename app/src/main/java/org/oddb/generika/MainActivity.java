@@ -22,7 +22,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.content.DialogInterface;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -42,12 +44,14 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.DisplayMetrics;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -428,7 +432,6 @@ public class MainActivity extends BaseActivity implements
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
           actionButton.setVisibility(View.VISIBLE);
-          return true;
         }
         return false;
       }
@@ -449,6 +452,56 @@ public class MainActivity extends BaseActivity implements
         }
       }
     });
+
+    // NOTE:
+    // this is a fix for cursor and button visibility in delay (
+    // for device close button)
+    //
+    // ratio: assumed ratio for minimum keyboard height against the screen
+    // delay: action will be invoked after the time
+    final float ratio = (float)0.15;
+    final long delay = 250;
+    searchBox.getViewTreeObserver().addOnGlobalLayoutListener(
+      new ViewTreeObserver.OnGlobalLayoutListener() {
+        private boolean isKeyboardVisible() {
+          View rootView = searchBox.getRootView();
+          Rect r = new Rect();
+          rootView.getWindowVisibleDisplayFrame(r);
+          int rootViewHeight = rootView.getHeight();
+          int keyboardHeight = rootViewHeight - r.bottom;
+          return keyboardHeight > rootViewHeight * ratio;
+        }
+
+        @Override
+        public void onGlobalLayout() {
+          final Handler handler = new Handler();
+          handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+              if (isKeyboardVisible()) {
+                // Log.d(TAG, "(onGlobalLayout) keyboard: shown");
+                if (actionButton.getVisibility() == View.VISIBLE &&
+                    searchBox.hasFocus() &&
+                    !searchBox.isCursorVisible()) {
+                  // focused, but cursor and button visibility is not back
+                  searchBox.setCursorVisible(true);
+                  actionButton.setVisibility(View.GONE);
+                }
+              } else {
+                // Log.d(TAG, "(onGlobalLayout) keyboard: hidden");
+                if (actionButton.getVisibility() == View.GONE &&
+                    searchBox.hasFocus() &&
+                    searchBox.isCursorVisible()) {
+                  // focus is remained, button is not back
+                  searchBox.clearFocus();
+                  actionButton.setVisibility(View.VISIBLE);
+                }
+              }
+            }
+          }, delay);
+        }
+      }
+    );
   }
 
   @Override
