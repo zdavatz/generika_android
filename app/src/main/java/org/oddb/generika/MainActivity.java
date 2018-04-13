@@ -198,6 +198,7 @@ public class MainActivity extends BaseActivity implements
 
     listView.setAdapter(listAdapter);
 
+    searchBox.setText("");
     if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
       searchBox.setHint(context.getString(R.string.receipt_search_box_hint));
     } else {
