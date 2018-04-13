@@ -19,54 +19,36 @@ package org.oddb.generika.network;
 
 import android.app.Activity;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 
-import org.json.JSONObject;
-import org.json.JSONException;
-
-import java.util.HashMap;
-
-import org.oddb.generika.model.Product;
-import org.oddb.generika.util.Constant;
+import java.io.IOException;
 
 
-public class ProductInfoFetcher extends BaseFetcher implements
-  FetchTask.Finalizer<ProductInfoFetcher.FetchResult> {
-  public static final String TAG = "ProductInfoFetcher";
+public class ReceiptFileFetcher extends BaseFetcher implements
+  FetchTask.Finalizer<ReceiptFileFetcher.FetchResult> {
+  public static final String TAG = "ReceiptFileFetcher";
 
   private FetchTaskCallback<FetchResult> fetchTaskCallback;
   private FetchTask<FetchResult> fetchTask;
 
   // target
-  private String baseUrl;
-  private Product product;
+  private Uri uri;
 
   public class FetchResult {
-    public String id = null;
+    public String url = null;
 
-    public HashMap<String, String> map;
+    public String content;
     public String errorMessage;
 
-    public FetchResult(FetchTask.Result result)
-      throws JSONException {
-      Log.d(TAG, "(FetchResult) result: " + result);
+    public FetchResult(FetchTask<FetchResult>.Result result)
+      throws IOException {
       if (result != null) {
         if (result.object != null) {
-          JSONObject object = new JSONObject(result.object);
-          // just map all values as string, here
-          HashMap<String, String> map = new HashMap<String, String>();
-          map.put("seq", object.getString("seq"));
-          map.put("name", object.getString("name"));
-          // (pack is extracted from ean)
-          // map.put("pack", object.getString("pack"));
-          map.put("size", object.getString("size"));
-          map.put("deduction", object.getString("deduction"));
-          map.put("price", object.getString("price"));
-          map.put("category", object.getString("category"));
-          this.map = map;
+          this.content = result.object;
         }
         if (result.exception != null) {
           this.errorMessage = result.exception.getMessage();
@@ -77,29 +59,24 @@ public class ProductInfoFetcher extends BaseFetcher implements
 
   @Override
   public FetchResult finalize(FetchResult result) {
-    result.id = product.getId();
+    result.url = uri.toString();
     return result;
   }
 
-  public static ProductInfoFetcher getInstance(
-    FragmentManager fragmentManager, Activity activity, String baseUrl) {
+  public static ReceiptFileFetcher getInstance(
+    FragmentManager fragmentManager, Activity activity) {
 
-    ProductInfoFetcher fetcher = (ProductInfoFetcher)
-      fragmentManager.findFragmentByTag(ProductInfoFetcher.TAG);
+    ReceiptFileFetcher fetcher = (ReceiptFileFetcher)
+      fragmentManager.findFragmentByTag(ReceiptFileFetcher.TAG);
     if (fetcher == null) {
-      fetcher = new ProductInfoFetcher();
+      fetcher = new ReceiptFileFetcher();
     } else if (fetcher.getArguments() != null) {
       fetcher.getArguments().clear();
     }
 
-    Bundle args = new Bundle();
-    args.putString(Constant.kApiKey, "");
-    args.putString(Constant.kBaseUrl, baseUrl);
-
     fetcher.fetchTaskCallback = (FetchTaskCallback)activity;
     fetcher.context = (Context)activity;
 
-    fetcher.setArguments(args);
     fragmentManager.beginTransaction().add(
       fetcher, TAG).commitAllowingStateLoss();
 
@@ -109,9 +86,6 @@ public class ProductInfoFetcher extends BaseFetcher implements
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    this.baseUrl = getArguments().getString(Constant.kBaseUrl);
-    Log.d(TAG, "(onCreate) baseUrl: " + baseUrl);
 
     // retain fragment, even if situation changes
     setRetainInstance(true);
@@ -125,26 +99,22 @@ public class ProductInfoFetcher extends BaseFetcher implements
     super.onDestroy();
   }
 
-  public void invokeFetch(Product product_) {
+  public void invokeFetch(Uri uri_) {
     cancelFetch();
-
     this.fetchTask = new FetchTask(FetchResult.class, this.fetchTaskCallback);
     fetchTask.setFinalizer(this);
     fetchTask.setContext(context);
 
     // not found
     int stringId = context.getResources().getIdentifier(
-      "product_not_found", "string", context.getPackageName()
+      "receipt_not_found", "string", context.getPackageName()
     );
-    String errorMessage = String.format(
-      context.getString(stringId), product_.getEan());
+    String errorMessage = context.getString(stringId);
     fetchTask.setNotFoundMessage(errorMessage);
 
-    this.product = product_;
+    this.uri = uri_;
 
-    String urlString = baseUrl;
-    urlString += product.getEan();
-
+    String urlString = uri.toString();
     Log.d(TAG, "(invokeFetch) urlString: " + urlString);
     fetchTask.execute(urlString);
   }

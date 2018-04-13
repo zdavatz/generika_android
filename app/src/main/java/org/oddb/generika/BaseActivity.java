@@ -20,6 +20,8 @@ package org.oddb.generika;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import java.util.Locale;
@@ -74,5 +76,13 @@ public class BaseActivity extends AppCompatActivity {
   private void forceLocale(Locale locale) {
     AppLocale.setLocale(context, locale);
     currentLocale = locale;
+  }
+
+  public NetworkInfo getActiveNetworkInfo() {
+    // it seems that this cast is not redundant :'(
+    ConnectivityManager connectivityManager =
+      (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo networkinfo = connectivityManager.getActiveNetworkInfo();
+    return networkinfo;
   }
 }

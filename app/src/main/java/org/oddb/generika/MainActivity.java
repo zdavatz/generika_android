@@ -25,8 +25,6 @@ import android.content.DialogInterface;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -83,7 +81,7 @@ import org.oddb.generika.util.Constant;
 
 public class MainActivity extends BaseActivity implements
   GenerikaListAdapter.ListItemListener,
-  ProductInfoFetcher.FetchCallback<ProductInfoFetcher.FetchResult> {
+  ProductInfoFetcher.FetchTaskCallback<ProductInfoFetcher.FetchResult> {
   private static final String TAG = "MainActivity";
 
   // view
@@ -188,7 +186,7 @@ public class MainActivity extends BaseActivity implements
 
     if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
       this.listAdapter = new ProductListAdapter(dataManager.getProducts());
-      this.fetcher = buildProductInfoFetcher(context);
+      this.fetcher = buildProductInfoFetcher();
     } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
       this.listAdapter = new ReceiptListAdapter(dataManager.getReceipts());
       this.fetcher = null;
@@ -215,19 +213,21 @@ public class MainActivity extends BaseActivity implements
     dataManager.release();
   }
 
-  private ProductInfoFetcher buildProductInfoFetcher(Context context_) {
+  private ProductInfoFetcher buildProductInfoFetcher() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     Fragment fetcher_ = fragmentManager.findFragmentByTag(
       ProductInfoFetcher.TAG);
     if (fetcher_ == null) {
       // check search lang in preference
       SharedPreferences sharedPreferences = PreferenceManager
-        .getDefaultSharedPreferences(context_);
+        .getDefaultSharedPreferences(context);
       String searchLang = sharedPreferences.getString(
         Constant.kSearchLang, Constant.LANG_DE);
       String urlBase = String.format(
         Constant.API_URL_PATH, searchLang);
-      fetcher_ = ProductInfoFetcher.getInstance(fragmentManager, urlBase);
+
+      fetcher_ = ProductInfoFetcher.getInstance(
+        fragmentManager, this, urlBase);
     }
     return (ProductInfoFetcher)fetcher_;
   }
@@ -587,6 +587,59 @@ public class MainActivity extends BaseActivity implements
     }
   }
 
+  private void alertDialog(String title, String message) {
+    alertDialog(title, message, null);
+  }
+
+  // if the listener is given, dialog is going to have `ok` and `close` button
+  // with callbacks. Otherwise, single button alert will be shown.
+  private void alertDialog(
+    String title, String message, MessageDialog.OnChangeListener listener) {
+    int none = MessageDialog.TEXT_ID_NONE;
+    int negativeTextId = none, positiveTextId = none;
+    if (listener == null) { // "ok" (single) button
+      positiveTextId = R.string.ok;
+    } else { // "close" & "ok" button for import (receipt) or capture (barcode)
+      negativeTextId = R.string.close;
+      positiveTextId = R.string.open;
+    }
+
+    MessageDialog dialog = MessageDialog.newInstance(title, message);
+    if (negativeTextId != none) { dialog.setNegativeTextId(negativeTextId); }
+    if (positiveTextId != none) { dialog.setPositiveTextId(positiveTextId); }
+
+    dialog.setListener(listener);
+
+    FragmentTransaction tx = ((MainActivity)context)
+      .getSupportFragmentManager().beginTransaction();
+    tx.add(dialog, "MessageDialog");
+    tx.commitAllowingStateLoss();
+  }
+
+  public void openWebView(Product product) {
+    // WebView reads type and lang from shared preferences
+    // So, just puts arguments here.
+    Intent intent = new Intent(this, WebViewActivity.class);
+    if (product != null) {
+      intent.putExtra(Constant.kEan, product.getEan());
+      intent.putExtra(Constant.kReg, product.getReg());
+      intent.putExtra(Constant.kSeq, product.getSeq());
+    }
+    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+      MainActivity.this);
+    startActivity(intent, options.toBundle());
+  }
+
+  public void openReceipt(String hashedKey) {
+    Intent intent = new Intent(this, ReceiptActivity.class);
+    if (hashedKey != null) {
+      intent.putExtra(Constant.kHashedKey, hashedKey);
+    }
+    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+      MainActivity.this);
+    startActivity(intent, options.toBundle());
+  }
+
   // -- GenerikaListAdapter.ListItemListener
 
   @Override
@@ -610,14 +663,14 @@ public class MainActivity extends BaseActivity implements
     dataManager.updateProduct(id, properties);
   }
 
+  // -- ProductInfoFetcher.FetchTaskCallback
+
   private void startFetching(Product product) {
     if (!fetching && fetcher != null) {
       fetcher.invokeFetch(product);
       this.fetching = true;
     }
   }
-
-  // -- ProductInfoFetcher.FetchCallback
 
   @Override
   public void updateFromFetch(ProductInfoFetcher.FetchResult result) {
@@ -686,15 +739,6 @@ public class MainActivity extends BaseActivity implements
   }
 
   @Override
-  public NetworkInfo getActiveNetworkInfo() {
-    // it seems that this cast is not redundant :'(
-    ConnectivityManager connectivityManager =
-      (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-    NetworkInfo networkinfo = connectivityManager.getActiveNetworkInfo();
-    return networkinfo;
-  }
-
-  @Override
   public void onProgressUpdate(int progressCode, int percentComplete) {
     // pass
   }
@@ -705,58 +749,5 @@ public class MainActivity extends BaseActivity implements
     if (fetcher != null) {
       fetcher.cancelFetch();
     }
-  }
-
-  private void alertDialog(String title, String message) {
-    alertDialog(title, message, null);
-  }
-
-  // if the listener is given, dialog is going to have `ok` and `close` button
-  // with callbacks. Otherwise, single button alert will be shown.
-  private void alertDialog(
-    String title, String message, MessageDialog.OnChangeListener listener) {
-    int none = MessageDialog.TEXT_ID_NONE;
-    int negativeTextId = none, positiveTextId = none;
-    if (listener == null) { // "ok" (single) button
-      positiveTextId = R.string.ok;
-    } else { // "close" & "ok" button for import (receipt) or capture (barcode)
-      negativeTextId = R.string.close;
-      positiveTextId = R.string.open;
-    }
-
-    MessageDialog dialog = MessageDialog.newInstance(title, message);
-    if (negativeTextId != none) { dialog.setNegativeTextId(negativeTextId); }
-    if (positiveTextId != none) { dialog.setPositiveTextId(positiveTextId); }
-
-    dialog.setListener(listener);
-
-    FragmentTransaction tx = ((MainActivity)context)
-      .getSupportFragmentManager().beginTransaction();
-    tx.add(dialog, "MessageDialog");
-    tx.commitAllowingStateLoss();
-  }
-
-  public void openWebView(Product product) {
-    // WebView reads type and lang from shared preferences
-    // So, just puts arguments here.
-    Intent intent = new Intent(this, WebViewActivity.class);
-    if (product != null) {
-      intent.putExtra(Constant.kEan, product.getEan());
-      intent.putExtra(Constant.kReg, product.getReg());
-      intent.putExtra(Constant.kSeq, product.getSeq());
-    }
-    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-      MainActivity.this);
-    startActivity(intent, options.toBundle());
-  }
-
-  public void openReceipt(String hashedKey) {
-    Intent intent = new Intent(this, ReceiptActivity.class);
-    if (hashedKey != null) {
-      intent.putExtra(Constant.kHashedKey, hashedKey);
-    }
-    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-      MainActivity.this);
-    startActivity(intent, options.toBundle());
   }
 }

@@ -17,6 +17,7 @@
  */
 package org.oddb.generika;
 
+import android.content.Context;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,6 +25,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Base64;
 import android.util.Log;
 import org.json.JSONArray;
@@ -47,18 +50,25 @@ import org.oddb.generika.model.Operator;
 import org.oddb.generika.model.Patient;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
+import org.oddb.generika.network.ReceiptFileFetcher;
 import org.oddb.generika.util.ConnectionStream;
 import org.oddb.generika.util.Constant;
 import org.oddb.generika.util.StreamReader;
 
 
 public class ImporterActivity extends BaseActivity
-  implements ActivityCompat.OnRequestPermissionsResultCallback {
+  implements
+    ActivityCompat.OnRequestPermissionsResultCallback,
+    ReceiptFileFetcher.FetchTaskCallback<ReceiptFileFetcher.FetchResult> {
   private static final String TAG = "ImporterActivity";
 
   private static final int PERMISSION_REQUEST_CODE = 100;
 
   private Uri uri;
+
+  // network (headless fragment)
+  private boolean fetching = false;
+  private ReceiptFileFetcher fetcher;
 
   private String[] permissions = new String[]{
     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -68,7 +78,9 @@ public class ImporterActivity extends BaseActivity
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    this.fetcher = buildReceiptFileFetcher();
     this.uri = getIntent().getData();
+
     if (Build.VERSION.SDK_INT >= Constant.VERSION_23__6_0) {
       if (checkPermissions()) {
         doImport();
@@ -88,7 +100,9 @@ public class ImporterActivity extends BaseActivity
           doImport();
         } else {
           // cancel because it is denied
-          // TODO: close or just start MainActivity
+          int flags = 0;
+          HashMap<String, String> extraMap = new HashMap<String, String>();
+          openMainView(flags, extraMap);
         }
         break;
     }
@@ -125,8 +139,7 @@ public class ImporterActivity extends BaseActivity
       String scheme = uri.getScheme();
       if (scheme.equals("https")) {
         // because network access cannot run in main thread.
-        FetchTask fetchTask = new FetchTask();
-        fetchTask.execute(uri);
+        startFetching(uri);
       } else if (scheme.equals("file") || scheme.equals("content")) {
         String content = readFileFromUri(uri);
         Result result = importJSON(content);
@@ -138,26 +151,20 @@ public class ImporterActivity extends BaseActivity
     } catch (IOException e) {
       Log.d(TAG, "(doImport) exception: " + e.getMessage());
       Log.d(TAG, Log.getStackTraceString(e));
+
+      // do nothing
+      openMainView(flags, extraMap);
     }
-    // do nothing
-    openMainView(flags, extraMap);
   }
 
-  private void openMainView(
-    int additionalflags, HashMap<String, String> extraMap) {
-    int flags =
-      Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
-      Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_NO_ANIMATION |
-      additionalflags;
-
-    Intent intent = new Intent(this, MainActivity.class);
-    intent.setFlags(intent.getFlags() | flags);
-
-    for (Map.Entry<String, String> entry: extraMap.entrySet()) {
-      intent.putExtra(entry.getKey(), entry.getValue());
+  private ReceiptFileFetcher buildReceiptFileFetcher() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    Fragment fetcher_ = fragmentManager.findFragmentByTag(
+      ReceiptFileFetcher.TAG);
+    if (fetcher_ == null) {
+      fetcher_ = ReceiptFileFetcher.getInstance(fragmentManager, this);
     }
-    startActivity(intent);
-    finish();
+    return (ReceiptFileFetcher)fetcher_;
   }
 
   public class Result {
@@ -198,10 +205,9 @@ public class ImporterActivity extends BaseActivity
       String filename = amkfile.getOriginalName();
       Log.d(TAG, "(importJSON) filename: " + filename);
 
-      JSONObject json = null;
+      JSONObject json = new JSONObject(content);
       String hashedKey = null;
-      if (content != null) {
-        json = new JSONObject(content);
+      if (json != null) {
         hashedKey = json.getString("prescription_hash");
       }
       if (json == null ||
@@ -291,62 +297,6 @@ public class ImporterActivity extends BaseActivity
     return content;
   }
 
-  private class FetchTask extends
-    AsyncTask<Uri, Integer, String> {
-
-    @Override
-    protected String doInBackground(Uri... uris) {
-      String result = null;
-
-      if (!isCancelled() && uris != null && uris.length > 0) {
-        Uri uri = uris[0];
-        try {
-          result = fetchFileFromUri(uri);
-        } catch (IOException e) {
-          Log.d(TAG, "(doInBackground) e: " + e.getMessage());
-          Log.d(TAG, Log.getStackTraceString(e));
-        }
-      }
-      return result;
-    }
-
-    @Override
-    protected void onPostExecute(String content) {
-      HashMap<String, String> extraMap = new HashMap<String, String>();
-      Result result = importJSON(content);
-      if (result != null) {
-        extraMap = result.toExtraMap();
-      }
-      int flags = Intent.FLAG_FROM_BACKGROUND;
-      openMainView(flags, extraMap);
-    }
-  }
-
-  /// https
-  private String fetchFileFromUri(Uri uri) throws IOException {
-    Log.d(TAG, "(fetchFileFromUri) uri: " + uri);
-    String raw;
-
-    ConnectionStream stream = null;
-    try {
-      stream = new ConnectionStream(context);
-      stream.setSource(uri.toString());
-
-      StreamReader reader = new StreamReader();
-      int length = stream.getContentLength();
-      if (length > 0) {
-        reader.setMaxReadLength(length);
-      }
-      reader.setStream(stream.derive());
-      raw = reader.read();
-    } finally {
-      if (stream != null) {
-        stream.close();
-      }
-    }
-    return decodeContent(raw);
-  }
-
   /// file
   private String readFileFromUri(Uri uri) throws FileNotFoundException {
     Log.d(TAG, "(readFileFromUri) uri: " + uri);
@@ -360,5 +310,58 @@ public class ImporterActivity extends BaseActivity
   @Override
   protected void onDestroy() {
     super.onDestroy();
+  }
+
+  private void openMainView(
+    int additionalflags, HashMap<String, String> extraMap) {
+    int flags =
+      Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+      Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_NO_ANIMATION |
+      additionalflags;
+
+    Intent intent = new Intent(this, MainActivity.class);
+    intent.setFlags(intent.getFlags() | flags);
+
+    for (Map.Entry<String, String> entry: extraMap.entrySet()) {
+      intent.putExtra(entry.getKey(), entry.getValue());
+    }
+    startActivity(intent);
+    finish();
+  }
+
+  // -- ReceiptFileFetcher.FetchCallback
+
+  private void startFetching(Uri uri_) {
+    if (!fetching && fetcher != null) {
+      fetcher.invokeFetch(uri);
+      this.fetching = true;
+    }
+  }
+
+  @Override
+  public void onProgressUpdate(int progressCode, int percentComplete) {
+    // pass
+  }
+
+  @Override
+  public void updateFromFetch(ReceiptFileFetcher.FetchResult result) {
+    String content = decodeContent(result.content);
+    Log.d(TAG, "(updateFromFetch) content: " + content);
+
+    HashMap<String, String> extraMap = new HashMap<String, String>();
+    Result importResult = importJSON(content);
+    if (importResult != null) {
+      extraMap = importResult.toExtraMap();
+    }
+    int flags = Intent.FLAG_FROM_BACKGROUND;
+    openMainView(flags, extraMap);
+  }
+
+  @Override
+  public void finishFetching() {
+    this.fetching = false;
+    if (fetcher != null) {
+      fetcher.cancelFetch();
+    }
   }
 }
