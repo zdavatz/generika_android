@@ -111,7 +111,7 @@
     <string name="no_internet_connection">
       Keine Verbindung zum Internet!</string>
     <string name="product_not_found">
-      Kein Medikament gefunden auf Generika.cc mit dem folgenden EAN-Code:\n%s</string>
+      Kein Medikament gefunden auf Generika.cc mit dem folgenden GTIN-Code:\n%s</string>
     <string name="receipt_not_found">
       Kein .amk File gefunden</string>
 </resources>
