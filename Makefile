@@ -63,7 +63,7 @@ stop:
 # -- testing targets
 
 test:
-	./bin/gradlew test -PisTest=true $(ARGS)
+	./bin/gradlew testDebug -PisTest=true $(ARGS)
 .PHONY: test
 
 

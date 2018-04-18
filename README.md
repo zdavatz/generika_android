@@ -132,6 +132,8 @@ Run JUnit Tests.
 % make test
 % make test ARGS="--debug"
 % make test ARGS="--stacktrace"
+
+% make test ARGS="--tests \"*Barcode*\""
 ```
 
 
