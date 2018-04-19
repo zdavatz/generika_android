@@ -2,6 +2,10 @@
 
 Generika App for Android, based on the Generikacc App for iOS.
 
+## Screenshots
+
+<img src="/img/medikamente-20180419.jpg?raw=true" alt="Medikamente" width="160px"> <img src="/img/rezept-20180419.jpg?raw=true" alt="Rezept" width="160px"> <img src="/img/settings-20180419.jpg?raw=true" alt="Einstellungen" width="160px"> <img src="/img/about-20180419.jpg?raw=true" alt="About" width="160px">
+
 
 ## Repository
 
