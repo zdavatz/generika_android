@@ -17,6 +17,7 @@
  */
 package org.oddb.generika;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.support.v7.app.ActionBar;
@@ -27,6 +28,7 @@ import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
 
 import org.oddb.generika.BaseActivity;
+import org.oddb.generika.util.Constant;
 
 
 public class InformationActivity extends BaseActivity {
@@ -50,10 +52,15 @@ public class InformationActivity extends BaseActivity {
     actionBar.setDisplayShowHomeEnabled(true);
 
     TextView textView = (TextView)findViewById(R.id.information_text);
-    textView.setText(Html.fromHtml(
-      context.getString(R.string.information_text),
-      Html.FROM_HTML_MODE_COMPACT
-    ));
+    if (Build.VERSION.SDK_INT < Constant.VERSION_24__7_0) {
+      textView.setText(Html.fromHtml(
+        context.getString(R.string.information_text)));
+    } else {
+      textView.setText(Html.fromHtml(
+        context.getString(R.string.information_text),
+        Html.FROM_HTML_MODE_COMPACT
+      ));
+    }
     textView.setMovementMethod(LinkMovementMethod.getInstance());
     textView.setLinksClickable(true);
   }
