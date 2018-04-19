@@ -60,7 +60,7 @@ https://play.google.com/store/apps/details?id=com.google.android.gms&hl=en
 # create apk (debug)
 % make archive
 # or
-% gradle assemble
+% gradle assembleDebug
 
 # create apk (release)
 % make release
