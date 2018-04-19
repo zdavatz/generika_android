@@ -8,7 +8,7 @@ build:
 
 archive:
 	# generate apk with buildType:debug
-	./bin/gradlew assemble $(ARGS)
+	./bin/gradlew assembleDebug $(ARGS)
 .PHONY: archive
 
 release:
