@@ -11,7 +11,10 @@ Generika App for Android, based on the Generikacc App for iOS.
 
 https://github.com/zdavatz/generika_android
 
-
+## Uplad APK from commandline
+* Install Playup from https://github.com/jeduan/playup
+* setup your json File with the security credentials
+* In the Console type: `playup -a generika.json ~/.software/generika_android/app/build/outputs/apk/release/app-release.apk`
 
 ## Setup
 
