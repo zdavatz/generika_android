@@ -19,55 +19,65 @@ package org.oddb.generika;
 
 import android.app.ActivityOptions;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.Intent;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.net.Uri;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.preference.PreferenceManager;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.DisplayMetrics;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.TextView;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+
+import android.support.v4.view.GravityCompat;
+
+import android.support.v4.widget.DrawerLayout;
+
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.Toolbar;
+
+import android.support.v7.preference.PreferenceManager;
+
 import com.google.android.gms.common.api.CommonStatusCodes;
+
 import com.google.android.gms.vision.barcode.Barcode;
+
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
-import io.realm.OrderedRealmCollectionChangeListener;
-import io.realm.OrderedCollectionChangeSet;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Set;
 
 import org.oddb.generika.BaseActivity;
+import org.oddb.generika.barcode.BarcodeExtractor;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
@@ -258,8 +268,16 @@ public class MainActivity extends BaseActivity implements
           int i = insertions[0];
           Log.d(TAG, "(addChangeListener) inserttion: " + i);
           Product product = (Product)items.get(i);
-          if (product.getEan().equals(Constant.INIT_DATA.get("ean"))) {
+          String ean = product.getEan();
+          if (ean.equals(Constant.INIT_DATA.get("ean"))) {
             return; // do nothing for placeholder row
+          }
+          if (ean.length() != 13) {
+            // GTIN (via GS1 DataMatrix) is saved as EAN
+            String errorMessage = String.format(
+              context.getString(R.string.product_not_found_gtin), ean);
+            alertDialog("", errorMessage);
+            return;
           }
           // invoke async api call
           startFetching(product);
@@ -550,15 +568,40 @@ public class MainActivity extends BaseActivity implements
         if (data != null) {
           Barcode barcode = data.getParcelableExtra(Constant.kBarcode);
           String filepath = data.getStringExtra(Constant.kFilepath);
+          String value = barcode.displayValue;
           Log.d(TAG, "(onActivityResult) filepath: " + filepath);
+          if (value == null || value.equals("")) {
+            // TODO: remove file
+            return;
+          }
+          int length = value.length();
 
-          if (barcode.displayValue.length() == 13) {
-            // use Product's Barcode
-            Product.Barcode barcode_ = new Product.Barcode();
-            barcode_.setValue(barcode.displayValue);
+          Product.Barcode barcode_ = null;
+          if (length == 13) { // EAN 13
+            Log.d(TAG, "(onActivityResult/EAN-13) barcode: " + value);
+            barcode_ = new Product.Barcode();
+            barcode_.setValue(value);
             barcode_.setFilepath(filepath);
-            // save record into realm (next: changeset listener)
+          } else { // GS1 DataMatrix (GTIN)
+            HashMap<String, String> result = BarcodeExtractor.extract(value);
+            Log.d(TAG, "(onActivityResult/GS1 DataMatrix) result: " + result);
+            String gtin = result.get(Constant.GS1_DM_AI_GTIN);
+            if (result != null && gtin != null && gtin.length() == 14) {
+              barcode_ = new Product.Barcode(result);
+              barcode_.setFilepath(filepath);
+            }
+          }
+          if (barcode_ != null) {
             dataManager.addProduct(barcode_);
+          } else {
+            File file = new File(filepath);
+            if (file.exists()) {
+              file.delete();
+            }
+            // wrong barcode is detected
+            String errorMessage = String.format(
+              context.getString(R.string.invalid_barcode_found), value);
+            alertDialog("", "");
           }
         } else {
           Log.d(TAG, "(onActivityResult) Barcode not found");

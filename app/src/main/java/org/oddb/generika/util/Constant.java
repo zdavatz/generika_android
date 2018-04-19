@@ -66,6 +66,14 @@ public class Constant extends Object {
   public final static int RC_HANDLE_GMS = 9001;
   public final static int RC_HANDLE_CAMERA_PERM = 2;
 
+  public final static String GS1_DM_AI_GTIN = "01";
+  public final static String GS1_DM_AI_BATCH_LOT = "10";
+  public final static String GS1_DM_AI_PROD_DATE = "11";
+  public final static String GS1_DM_AI_BEFORE_DATE = "15";
+  public final static String GS1_DM_AI_EXPIRY_DATE = "17";
+  public final static String GS1_DM_AI_SPECIAL_NUMBER = "21";
+  public final static String GS1_DM_AI_AMOUNT = "30";
+
   // [Network]
   public final static String URL_HOST = "i.ch.oddb.org";
   public final static String URL_FLAVOR = "mobile";
