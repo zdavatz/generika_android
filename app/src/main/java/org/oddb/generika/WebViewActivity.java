@@ -17,6 +17,7 @@
  */
 package org.oddb.generika;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -25,6 +26,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.KeyEvent;
@@ -96,8 +98,14 @@ public class WebViewActivity extends BaseActivity {
   }
 
   private void loadSettings() {
-    this.searchType = sharedPreferences.getString(
-      Constant.kSearchType, Constant.TYPE_PV);
+    Intent intent = getIntent();
+    String ean = intent.getStringExtra(Constant.kEan);
+    if (ean != null && !ean.equals("")) {
+      // ignore if an EAN is not given
+      this.searchType = sharedPreferences.getString(
+        Constant.kSearchType, Constant.TYPE_PV);
+    }
+
     this.searchLang = sharedPreferences.getString(
       Constant.kSearchLang, Constant.LANG_DE);
   }
@@ -213,6 +221,9 @@ public class WebViewActivity extends BaseActivity {
    * Returns R.string.{pv|pi|fi}_fullname
    */
   private String buildSearchTypeName() {
+    if (searchType == null) {
+      return context.getString(R.string.interaction);
+    }
     String[] s = {Constant.TYPE_PV, Constant.TYPE_PI, Constant.TYPE_FI};
     if (Arrays.asList(s).contains(searchType)) {
       try {
@@ -241,15 +252,25 @@ public class WebViewActivity extends BaseActivity {
 
     String urlString = String.format("https://%s/", Constant.WEB_URL_HOST);
 
-    String ean = getIntent().getStringExtra(Constant.kEan);
-    if (ean == null || ean.equals("") ||
-        ean.equals(Constant.INIT_DATA.get("ean"))) {  // placeholder
-      urlString += String.format("%s/%s/", searchLang, Constant.URL_FLAVOR);
-      Log.d(TAG, "(buildUrl) urlString: " + urlString);
+    Intent intent = getIntent();
+    String ean = intent.getStringExtra(Constant.kEan);
+    if (ean != null && !ean.equals("")) {
+      if (ean.equals(Constant.INIT_DATA.get("ean"))) {  // placeholder
+        urlString += String.format("%s/%s/", searchLang, Constant.URL_FLAVOR);
+        Log.d(TAG, "(buildUrl) urlString: " + urlString);
+        return urlString;
+      }
+    } else { // interaction
+      String[] uniqueEans = intent.getStringArrayExtra(Constant.kEans);
+      urlString += String.format(
+        Constant.WEB_URL_PATH_INTERACTION,
+        searchLang,
+        TextUtils.join(",", uniqueEans));
       return urlString;
     }
-    String reg = getIntent().getStringExtra(Constant.kReg);
-    String seq = getIntent().getStringExtra(Constant.kSeq);
+
+    String reg = intent.getStringExtra(Constant.kReg);
+    String seq = intent.getStringExtra(Constant.kSeq);
 
     if (searchType.equals(Constant.TYPE_PV)) {  // preisvergleich
       if (ean != null && !ean.equals("")) {

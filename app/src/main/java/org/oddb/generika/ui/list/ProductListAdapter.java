@@ -356,7 +356,8 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
               if ((item == null || item.getEan() == null) ||
                   (item.getEan().equals(Constant.INIT_DATA.get("ean")))) {
                 // placeholder row
-                ((MainActivity)parentView.getContext()).openWebView(null);
+                Product dummy = null;
+                ((MainActivity)parentView.getContext()).openWebView(dummy);
               } else {
                 ((MainActivity)parentView.getContext()).openWebView(item);
               }
