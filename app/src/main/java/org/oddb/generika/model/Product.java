@@ -193,8 +193,13 @@ public class Product extends RealmObject implements Retryable {
 
     // See BarcodeExtractor
     public Barcode(HashMap<String, String> parseResult) {
-      this.value = parseResult.get(Constant.GS1_DM_AI_GTIN);
 
+      // e.g. 0768.... (GTIN 14) -> 768 (EAN 13)
+      String barcodeValue = parseResult.get(Constant.GS1_DM_AI_GTIN);
+      barcodeValue = barcodeValue.replaceAll("^0768", "768");
+      this.value = barcodeValue;
+
+      // e.g. 210600 -> 210601
       String expiryDate = parseResult.get(
         Constant.GS1_DM_AI_EXPIRY_DATE);
       expiryDate = expiryDate.replaceAll("00$", "01");

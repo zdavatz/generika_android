@@ -278,7 +278,7 @@ public class MainActivity extends BaseActivity implements
             return; // do nothing for placeholder row
           }
           if (ean.length() != 13) {
-            // GTIN (via GS1 DataMatrix) is saved as EAN
+            // GTIN (via GS1 DataMatrix) is saved directly as EAN
             String errorMessage = String.format(
               context.getString(R.string.product_not_found_gtin), ean);
             alertDialog("", errorMessage);
@@ -592,6 +592,7 @@ public class MainActivity extends BaseActivity implements
             Log.d(TAG, "(onActivityResult/GS1 DataMatrix) result: " + result);
             String gtin = result.get(Constant.GS1_DM_AI_GTIN);
             if (result != null && gtin != null && gtin.length() == 14) {
+              // product.Barcode reduces GTIN into EAN 13
               barcode_ = new Product.Barcode(result);
               barcode_.setFilepath(filepath);
             }
