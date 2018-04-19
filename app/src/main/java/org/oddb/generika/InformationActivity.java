@@ -64,6 +64,11 @@ public class InformationActivity extends BaseActivity {
   }
 
   @Override
+  protected void onResume() {
+    super.onResume();
+  }
+
+  @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
       finishAfterTransition();

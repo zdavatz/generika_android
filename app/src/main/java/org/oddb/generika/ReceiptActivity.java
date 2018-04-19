@@ -282,6 +282,11 @@ public class ReceiptActivity extends BaseActivity {
   }
 
   @Override
+  protected void onResume() {
+    super.onResume();
+  }
+
+  @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     // on tap `◁` (device back button)
     if (event.getAction() == KeyEvent.ACTION_DOWN) {

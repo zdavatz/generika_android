@@ -90,6 +90,11 @@ public class WebViewActivity extends BaseActivity {
     super.onDestroy();
   }
 
+  @Override
+  protected void onResume() {
+    super.onResume();
+  }
+
   private void loadSettings() {
     this.searchType = sharedPreferences.getString(
       Constant.kSearchType, Constant.TYPE_PV);
