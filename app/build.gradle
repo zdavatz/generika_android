@@ -15,7 +15,8 @@ android {
 
     versionName "1.0.42"
 
-    minSdkVersion 16
+    // Android 6.0 - 8.1
+    minSdkVersion 23
     targetSdkVersion 27
 
     // junit4
