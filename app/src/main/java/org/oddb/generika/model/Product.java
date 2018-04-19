@@ -36,6 +36,7 @@ import java.lang.NoSuchMethodException;
 import java.lang.SecurityException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -44,6 +45,8 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.TimeZone;
 import java.util.UUID;
+
+import org.oddb.generika.util.Constant;
 
 
 /**
@@ -184,9 +187,37 @@ public class Product extends RealmObject implements Retryable {
     String value;
     String filepath;
 
+    String expiresAt; // GS1 DataMatrix only
+
+    public Barcode() {}
+
+    // See BarcodeExtractor
+    public Barcode(HashMap<String, String> parseResult) {
+      this.value = parseResult.get(Constant.GS1_DM_AI_GTIN);
+
+      String expiryDate = parseResult.get(
+        Constant.GS1_DM_AI_EXPIRY_DATE);
+      expiryDate = expiryDate.replaceAll("00$", "01");
+
+      if (expiryDate != null) {
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd");
+        try {
+          cal.setTime(formatter.parse(expiryDate));
+          this.expiresAt = makeExpiresAt(cal.getTime());
+        } catch (ParseException e) {
+          // skip
+          Log.d(TAG, "(Barcode) exception: " + e.getMessage());
+        }
+      }
+      Log.d(TAG, "(Barcode) value: " + value);
+      Log.d(TAG, "(Barcode) expiresAt: " + expiresAt);
+    }
+
     public void setValue(String value_) {
       this.value = value_;
     }
+
     public void setFilepath(String filepath_) {
       this.filepath = filepath_;
     }
@@ -232,6 +263,12 @@ public class Product extends RealmObject implements Retryable {
     item.setEan(barcode.value);
     item.setFilepath(barcode.filepath);
     item.setDatetime(makeScannedAt(barcode.filepath));
+
+    // GS1 DataMatrix
+    Log.d(TAG, "(insertNewBarcodeIntoSource) expiresAt: " + barcode.expiresAt);
+    if (barcode.expiresAt != null) {
+      item.setExpiresAt(barcode.expiresAt);
+    }
 
     // insert item to first on list as source
     items.add(0, item);

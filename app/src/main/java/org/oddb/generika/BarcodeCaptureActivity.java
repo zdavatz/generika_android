@@ -163,9 +163,13 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
 
   @SuppressLint("InlinedApi")
   private void createCameraSource(boolean autoFocus, boolean useFlash) {
-    // TODO: Enable support DATA_MATRIX and QR_CODE
+    // NOTE:
+    // About barcode formats, see below.
+    //
+    // https://developers.google.com/android/reference/com/google/android/\
+    //   gms/vision/barcode/Barcode
     BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context)
-      .setBarcodeFormats(Barcode.EAN_13)
+      .setBarcodeFormats(Barcode.EAN_13 | Barcode.DATA_MATRIX)
       .build();
     // wrap barcode detector to capture image
     BarcodeImageCapturingDetector detector = new BarcodeImageCapturingDetector(
