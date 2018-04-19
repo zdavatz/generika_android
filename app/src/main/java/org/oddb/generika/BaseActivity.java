@@ -19,6 +19,7 @@ package org.oddb.generika;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -54,11 +55,21 @@ public class BaseActivity extends AppCompatActivity {
   @Override
   protected void onRestart() {
     super.onRestart();
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
 
     Locale oldLocale = currentLocale;
     enforceLocale();
     if (!currentLocale.equals(oldLocale)) {
-      recreate();
+      new Handler().postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          recreate();
+        }
+      }, 1000);
     }
   }
 
