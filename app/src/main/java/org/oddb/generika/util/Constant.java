@@ -97,6 +97,8 @@ public class Constant extends Object {
   public final static String kReg = "kReg";
   public final static String kSeq = "kSeq";
 
+  public final static String kEans = "kEans"; // for interaction link
+
   // -- web view client (WebViewClient)
   public final static String WEB_USER_AGENT = "org.oddb.generikacc";
   public final static String WEB_URL_HOST = URL_HOST;
@@ -106,6 +108,8 @@ public class Constant extends Object {
     "%s/" + URL_FLAVOR + "/patinfo/reg/%s/seq/%s";
   public final static String WEB_URL_PATH_FACHINFO =
     "%s/" + URL_FLAVOR + "/fachinfo/reg/%s";
+  public final static String WEB_URL_PATH_INTERACTION =
+    "%s/" + URL_FLAVOR + "/home_interactions/%s";
 
   // [Product/Receipt ListView]
   // -- swipe on row

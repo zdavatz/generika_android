@@ -2,6 +2,7 @@
 <resources>
     <!-- activities -->
     <string name="settings">Einstellungen</string>
+    <string name="interaction">Interaktion</string>
     <string name="information">About</string>
     <string name="barcode_capture">Barcode Capture</string>
     <string name="importer">Importer</string>

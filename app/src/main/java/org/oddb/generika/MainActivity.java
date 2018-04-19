@@ -72,8 +72,10 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.oddb.generika.BaseActivity;
@@ -530,7 +532,19 @@ public class MainActivity extends BaseActivity implements
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
-    // TODO: set options menu by selected item (drawer)
+    int itemCount = listAdapter.getCount();
+    boolean interactionEnabled = true;
+    if (itemCount == 0) {
+      interactionEnabled = false;
+    } else if (itemCount < 2) {
+      // placeholder (first position)
+      Product product = (Product)listAdapter.getItem(0);
+      if (product != null &&
+          product.getEan().equals(Constant.INIT_DATA.get("ean"))) {
+        interactionEnabled = false;
+      }
+    }
+    menu.findItem(R.id.interaction).setEnabled(interactionEnabled);
     return super.onPrepareOptionsMenu(menu);
   }
 
@@ -553,6 +567,13 @@ public class MainActivity extends BaseActivity implements
       case R.id.settings:
         intent = new Intent(this, SettingsActivity.class);
         startActivity(intent, options.toBundle());
+        return true;
+      case R.id.interaction:
+        RealmResults<Product> productResults = dataManager.getProducts();
+        ArrayList<Product> productList = new ArrayList(productResults);
+        Product[] products = new Product[productList.size()];
+        products = productList.toArray(products);
+        openWebView(products);
         return true;
       case R.id.information:
         intent = new Intent(this, InformationActivity.class);
@@ -674,6 +695,21 @@ public class MainActivity extends BaseActivity implements
       intent.putExtra(Constant.kEan, product.getEan());
       intent.putExtra(Constant.kReg, product.getReg());
       intent.putExtra(Constant.kSeq, product.getSeq());
+    }
+    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+      MainActivity.this);
+    startActivity(intent, options.toBundle());
+  }
+
+  public void openWebView(Product[] products) {
+    Intent intent = new Intent(this, WebViewActivity.class);
+    if (products.length > 0) {
+      HashSet<String> uniqueEans = new HashSet<String>();
+      for (int i = 0; i < products.length; i++) {
+        uniqueEans.add(products[i].getEan());
+      }
+      Log.d(TAG, "(openWebView) uniqueEans: " + uniqueEans);
+      intent.putExtra(Constant.kEans, uniqueEans.toArray(new String[0]));
     }
     ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
       MainActivity.this);
