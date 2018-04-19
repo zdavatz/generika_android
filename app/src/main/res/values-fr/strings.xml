@@ -91,13 +91,13 @@
     <string name="low_storage_error">
       La détection de visage ne peut être activée par manque d’espace de stockage.</string>
     <string name="no_internet_connection">
-      Keine Verbindung zum Internet!</string>
+      Pad des connection avec l'internet.</string>
     <string name="product_not_found">
-      Kein Medikament gefunden auf Generika.cc mit dem folgenden EAN-Code:\n%s</string>
+      Pas de produit dans la base des données avec GTIN:\n%s</string>
     <string name="product_not_found_gtin">
-      Kein Medikament gefunden auf Generika.cc mit dem folgenden GTIN:\n%s</string>
+      Pas de produit dans la base des données avec GTIN:\n%s</string>
     <string name="receipt_not_found">
-      Kein .amk File gefunden</string>
+      Fichier .amk n'est pas valide.</string>
     <string name="invalid_barcode_found">
-      Invalid barcode has been detected, please try again:\n%s</string>
+      Barcode invalid. Essayer encore une fois s.v.p.:\n%s</string>
 </resources>
