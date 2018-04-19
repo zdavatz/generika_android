@@ -99,5 +99,5 @@
     <string name="receipt_not_found">
       Kein .amk File gefunden</string>
     <string name="invalid_barcode_found">
-      Invalid barcode has been detected, please try again:\n%s</string>
+      Kein gültiger Barcode gefunden. Bitte nochmals versuchen:\n%s</string>
 </resources>
