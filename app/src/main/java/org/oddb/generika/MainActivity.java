@@ -347,13 +347,21 @@ public class MainActivity extends BaseActivity implements
 
           if (name.equals("navigation_item_interactions")) {
             menuItem.setChecked(false); // don't set as checked
-            if (sourceType != Constant.SOURCE_TYPE_BARCODE) {
-              dataManager.bindDataBySourceType(sourceType);
+            RealmResults<Product> results;
+            if (!sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
+              DataManager dataManager_ = new DataManager(
+                Constant.SOURCE_TYPE_BARCODE);
+              results = dataManager_.getProducts();
+            } else {
+              results = dataManager.getProducts();
             }
-            RealmResults<Product> productResults = dataManager.getProducts();
-            ArrayList<Product> productList = new ArrayList(productResults);
-            Product[] products = new Product[productList.size()];
-            products = productList.toArray(products);
+            Product[] products = null;
+            if (results != null) {
+              Log.d(TAG, "(productResults) results: " + results.size());
+              ArrayList<Product> productList = new ArrayList(results);
+              products = new Product[productList.size()];
+              products = productList.toArray(products);
+            }
 
             drawerLayout.closeDrawers();
 
