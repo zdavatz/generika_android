@@ -63,7 +63,7 @@
               android:paddingLeft="1.75dp"
               android:paddingBottom="1.05dp"
               android:textColor="@color/titleColor"
-              android:textSize="13.5sp"/>
+              android:textSize="13sp"/>
 
           <TextView
               android:id="@+id/product_item_size"

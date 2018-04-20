@@ -47,7 +47,7 @@
               android:paddingLeft="6.75dp"
               android:paddingBottom="1.05dp"
               android:textColor="@color/titleColor"
-              android:textSize="12.5sp"/>
+              android:textSize="12sp"/>
 
           <TextView
               android:id="@+id/receipt_item_operator_name"
@@ -62,7 +62,7 @@
               android:paddingLeft="6.75dp"
               android:paddingBottom="1.05dp"
               android:textColor="@color/subtitleColor"
-              android:textSize="12sp"/>
+              android:textSize="11.5sp"/>
 
           <TextView
               android:id="@+id/receipt_item_filename"

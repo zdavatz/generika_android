@@ -187,23 +187,24 @@ public class Product extends RealmObject implements Retryable {
     String value;
     String filepath;
 
-    String expiresAt; // GS1 DataMatrix only
+    // GS1 DataMatrix only
+    String batchOrLot = "";
+    String expiresAt;
 
     public Barcode() {}
 
     // See BarcodeExtractor
     public Barcode(HashMap<String, String> parseResult) {
 
-      // e.g. 0768.... (GTIN 14) -> 768 (EAN 13)
+      // e.g. GTIN 0768.... (GTIN 14) -> 768 (EAN 13)
       String barcodeValue = parseResult.get(Constant.GS1_DM_AI_GTIN);
       barcodeValue = barcodeValue.replaceAll("^0768", "768");
       this.value = barcodeValue;
 
-      // e.g. 210600 -> 210601
+      // e.g. Expiry date 210600 -> 210601
       String expiryDate = parseResult.get(
         Constant.GS1_DM_AI_EXPIRY_DATE);
       expiryDate = expiryDate.replaceAll("00$", "01");
-
       if (expiryDate != null) {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd");
@@ -215,7 +216,15 @@ public class Product extends RealmObject implements Retryable {
           Log.d(TAG, "(Barcode) exception: " + e.getMessage());
         }
       }
+      // lot
+      String batchOrLot_ = parseResult.get(
+        Constant.GS1_DM_AI_BATCH_LOT);
+      if (batchOrLot_ != null) {
+        this.batchOrLot = batchOrLot_;
+      }
+
       Log.d(TAG, "(Barcode) value: " + value);
+      Log.d(TAG, "(Barcode) batchOrLot: " + batchOrLot);
       Log.d(TAG, "(Barcode) expiresAt: " + expiresAt);
     }
 
@@ -270,9 +279,16 @@ public class Product extends RealmObject implements Retryable {
     item.setDatetime(makeScannedAt(barcode.filepath));
 
     // GS1 DataMatrix
-    Log.d(TAG, "(insertNewBarcodeIntoSource) expiresAt: " + barcode.expiresAt);
-    if (barcode.expiresAt != null) {
-      item.setExpiresAt(barcode.expiresAt);
+    String batchOrLot = barcode.batchOrLot;
+    String expiresAt = barcode.expiresAt;
+    Log.d(TAG, "(insertNewBarcodeIntoSource) batchOrLot: " + batchOrLot);
+    Log.d(TAG, "(insertNewBarcodeIntoSource) expiresAt: " + expiresAt);
+    if (batchOrLot != null) {
+      // name must be updated in `updateProperties` (after api request)
+      item.setName(batchOrLot);
+    }
+    if (expiresAt != null) {
+      item.setExpiresAt(expiresAt);
     }
 
     // insert item to first on list as source
@@ -388,6 +404,15 @@ public class Product extends RealmObject implements Retryable {
     for (String key: keys) {
       String value = properties.get(key);
       if (value != null && value != "" && value != "null")  {
+        switch (key) {
+          case "name":
+            String name = getName();
+            if (name != null && !name.equals("") &&
+                value != null && !value.equals("")) { // pretend
+              value = String.format("%s, %s", value, name);
+            }
+            break;
+        }
         String methodName = "set" +
           key.substring(0, 1).toUpperCase() + key.substring(1);
         Method method = c.getDeclaredMethod(methodName, parameterTypes);
@@ -434,7 +459,7 @@ public class Product extends RealmObject implements Retryable {
     if (name == null) { name = ""; }
     String size = getSize();
     if (size == null) { size = ""; }
-    return String.format("%s,\n%s\n%s", name, size, priceString);
+    return String.format("%s\n%s\n%s", name, size, priceString);
   }
 
   @Override
