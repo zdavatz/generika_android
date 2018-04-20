@@ -373,7 +373,8 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
       // e.g. 7680529860526-20180223210923.jpg
       String dateString = Product.makeScannedAt(null);
       String filename = String.format(
-        "%s-%s.jpg", data.barcodeValue, dateString);
+        "%s-%s.jpg", data.barcodeValue.replaceAll("[^0-9A-z-]*", ""),
+        dateString);
       Log.d(TAG, "(doInBackground) filename: " + filename);
 
       String path = null;
