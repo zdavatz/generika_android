@@ -100,6 +100,7 @@ public class FetchTask<T> extends AsyncTask<String, Integer,
     try {
       Log.d(TAG, "(newResultInstance) innerResult: " + innerResult);
       Log.d(TAG, "(newResultInstance) type: " + type);
+      T result;
       // These lines are little bit ugly, but we need to instantiate inner
       // class (FetchResult)
       String outerName = type.getCanonicalName().subSequence(
@@ -108,12 +109,22 @@ public class FetchTask<T> extends AsyncTask<String, Integer,
       ).toString();
       Class outer = Class.forName(outerName);
       Log.d(TAG, "(newResultInstance) outer: " + outer); // fetcher
-      T result = type.getConstructor(outer, Result.class).newInstance(
-        outer.newInstance(), innerResult);
+      try {
+        result = type.getConstructor(outer, Result.class).newInstance(
+          outer.newInstance(), innerResult);
+      } catch (Exception e) {
+        // not found
+        FetchTask.Result errorResult = new FetchTask.Result(
+          new Exception(notFoundMessage));
+        result = type.getConstructor(outer, Result.class).newInstance(
+          outer.newInstance(), errorResult);
+        return result;
+      }
       return result;
     } catch(ClassNotFoundException | NoSuchMethodException |
             InstantiationException | IllegalAccessException |
             InvocationTargetException e) {
+      // somthing wrong
       Log.d(TAG, "(newResultInstance) " + Log.getStackTraceString(e));
       return null;
     }
@@ -140,7 +151,8 @@ public class FetchTask<T> extends AsyncTask<String, Integer,
       Log.d(TAG, "(doInBackground) urlString: " + urlString);
       try {
         String response = fetch(urlString);
-        if (response != null) {
+        if (response != null && !response.equals("[]")) {
+          // api returns array (not expected)
           Log.d(TAG, "(doInBackground) response.length: " + response.length());
           result = new Result(response);  // inner result
         } else {

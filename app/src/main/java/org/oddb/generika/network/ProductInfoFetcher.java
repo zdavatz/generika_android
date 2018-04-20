@@ -27,6 +27,7 @@ import android.util.Log;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import org.oddb.generika.model.Product;
@@ -50,26 +51,31 @@ public class ProductInfoFetcher extends BaseFetcher implements
     public HashMap<String, String> map;
     public String errorMessage;
 
-    public FetchResult(FetchTask.Result result)
-      throws JSONException {
+    public FetchResult(FetchTask<FetchResult>.Result result)
+      throws IOException {
       Log.d(TAG, "(FetchResult) result: " + result);
       if (result != null) {
-        if (result.object != null) {
-          JSONObject object = new JSONObject(result.object);
-          // just map all values as string, here
-          HashMap<String, String> map = new HashMap<String, String>();
-          map.put("seq", object.getString("seq"));
-          map.put("name", object.getString("name"));
-          // (pack is extracted from ean)
-          // map.put("pack", object.getString("pack"));
-          map.put("size", object.getString("size"));
-          map.put("deduction", object.getString("deduction"));
-          map.put("price", object.getString("price"));
-          map.put("category", object.getString("category"));
-          this.map = map;
-        }
         if (result.exception != null) {
           this.errorMessage = result.exception.getMessage();
+          return;
+        }
+        if (result.object != null) {
+          HashMap<String, String> map = new HashMap<String, String>();
+          try {
+            JSONObject object = new JSONObject(result.object);
+            // just map all values as string, here
+            map.put("seq", object.getString("seq"));
+            map.put("name", object.getString("name"));
+            // (pack is extracted from ean)
+            // map.put("pack", object.getString("pack"));
+            map.put("size", object.getString("size"));
+            map.put("deduction", object.getString("deduction"));
+            map.put("price", object.getString("price"));
+            map.put("category", object.getString("category"));
+          } catch (JSONException e) {
+            throw new IOException();
+          }
+          this.map = map;
         }
       }
     }
