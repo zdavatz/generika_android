@@ -222,7 +222,7 @@ public class WebViewActivity extends BaseActivity {
    */
   private String buildSearchTypeName() {
     if (searchType == null) {
-      return context.getString(R.string.interaction);
+      return context.getString(R.string.interactions);
     }
     String[] s = {Constant.TYPE_PV, Constant.TYPE_PI, Constant.TYPE_FI};
     if (Arrays.asList(s).contains(searchType)) {

@@ -2,7 +2,6 @@
 <resources>
     <!-- activities -->
     <string name="settings">Ajustages</string>
-    <string name="interaction">Interaction</string>
     <string name="information">Information</string>
     <string name="barcode_capture">Barcode Capture</string>
     <string name="importer">Importer</string>
@@ -11,6 +10,7 @@
     <!-- drawer menus/titles -->
     <string name="barcodes">Médicaments</string>
     <string name="amkfiles">Ordonnance Médicale</string>
+    <string name="interactions">Interaktions</string>
 
     <!-- [settings]-->
     <!-- groups -->

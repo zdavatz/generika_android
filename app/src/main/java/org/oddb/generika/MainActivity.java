@@ -269,6 +269,7 @@ public class MainActivity extends BaseActivity implements
       public void onChange(
         RealmList<Product> items, OrderedCollectionChangeSet changeSet) {
         Log.d(TAG, "(addChangeListener) items.size: " + items.size());
+        setInteractionsMenuState();
 
         int insertions[] = changeSet.getInsertions();
         if (insertions != null && insertions.length == 1) {  // new scan
@@ -341,9 +342,23 @@ public class MainActivity extends BaseActivity implements
           searchBox.clearFocus();
           actionButton.setVisibility(View.VISIBLE);
 
-          if (!menuItem.isChecked()) {
-            String name = getResources().getResourceEntryName(
-              menuItem.getItemId());
+          String name = getResources().getResourceEntryName(
+            menuItem.getItemId());
+
+          if (name.equals("navigation_item_interactions")) {
+            menuItem.setChecked(false); // don't set as checked
+            if (sourceType != Constant.SOURCE_TYPE_BARCODE) {
+              dataManager.bindDataBySourceType(sourceType);
+            }
+            RealmResults<Product> productResults = dataManager.getProducts();
+            ArrayList<Product> productList = new ArrayList(productResults);
+            Product[] products = new Product[productList.size()];
+            products = productList.toArray(products);
+
+            drawerLayout.closeDrawers();
+
+            openWebView(products);
+          } else if (!menuItem.isChecked()) { // drugs/prescriptions
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
             String nextSourceType;
             // navigation_item_{products,receipts}
@@ -355,9 +370,11 @@ public class MainActivity extends BaseActivity implements
             title = menuItem.getTitle(); // updated `title`
             switchSource(nextSourceType);
             menuItem.setChecked(true);
+
+            drawerLayout.closeDrawers();
+            Toast.makeText(MainActivity.this,
+              title, Toast.LENGTH_SHORT).show();
           }
-          drawerLayout.closeDrawers();
-          Toast.makeText(MainActivity.this, title, Toast.LENGTH_LONG).show();
           return true;
         }
     });
@@ -372,6 +389,8 @@ public class MainActivity extends BaseActivity implements
         } else {
           navigationView.setCheckedItem(R.id.navigation_item_products);
         }
+
+        setInteractionsMenuState();
       }
     });
 
@@ -400,6 +419,33 @@ public class MainActivity extends BaseActivity implements
         }
       }
     });
+  }
+
+  private void setInteractionsMenuState() {
+    RealmList<Product> products;
+    if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
+      products = dataManager.getProductsList();
+    } else {
+      DataManager dataManager_ = new DataManager(
+        Constant.SOURCE_TYPE_BARCODE);
+      products = dataManager_.getProductsList();
+    }
+    int drugsCount = 0;
+    if (products != null) {
+      drugsCount = products.where().notEqualTo(
+        "ean", Constant.INIT_DATA.get("ean")).findAll().size();
+    }
+    Log.d(TAG, "(setInteractionsMenuState drugsCount: " + drugsCount);
+
+    Menu menu = navigationView.getMenu();
+    MenuItem item = menu.findItem(R.id.navigation_item_interactions);
+    if (item != null) {
+      if (drugsCount < 2) {
+        item.setEnabled(false);
+      } else {
+        item.setEnabled(true);
+      }
+    }
   }
 
   private void setupSearchBox() {
@@ -532,19 +578,6 @@ public class MainActivity extends BaseActivity implements
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
-    int itemCount = listAdapter.getCount();
-    boolean interactionEnabled = true;
-    if (itemCount == 0) {
-      interactionEnabled = false;
-    } else if (itemCount < 2) {
-      // placeholder (first position)
-      Product product = (Product)listAdapter.getItem(0);
-      if (product != null &&
-          product.getEan().equals(Constant.INIT_DATA.get("ean"))) {
-        interactionEnabled = false;
-      }
-    }
-    menu.findItem(R.id.interaction).setEnabled(interactionEnabled);
     return super.onPrepareOptionsMenu(menu);
   }
 
@@ -567,13 +600,6 @@ public class MainActivity extends BaseActivity implements
       case R.id.settings:
         intent = new Intent(this, SettingsActivity.class);
         startActivity(intent, options.toBundle());
-        return true;
-      case R.id.interaction:
-        RealmResults<Product> productResults = dataManager.getProducts();
-        ArrayList<Product> productList = new ArrayList(productResults);
-        Product[] products = new Product[productList.size()];
-        products = productList.toArray(products);
-        openWebView(products);
         return true;
       case R.id.information:
         intent = new Intent(this, InformationActivity.class);
@@ -707,7 +733,8 @@ public class MainActivity extends BaseActivity implements
       HashSet<String> uniqueEans = new HashSet<String>();
       for (int i = 0; i < products.length; i++) {
         String ean = products[i].getEan();
-        if (ean != null && !ean.equals("")) {
+        if (ean != null && !ean.equals("") &&
+            !ean.equals(Constant.INIT_DATA.get("ean"))) {
           uniqueEans.add(ean);
         }
       }
