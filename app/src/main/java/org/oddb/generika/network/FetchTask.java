@@ -208,11 +208,11 @@ public class FetchTask<T> extends AsyncTask<String, Integer,
       }
       reader.setStream(stream.derive());
       publishProgress(
-        BaseFetcher.FetchTaskCallback.Progress.CONNECT_SUCCESS);
+        (Integer)BaseFetcher.FetchTaskCallback.Progress.CONNECT_SUCCESS);
 
       response = reader.read();
       publishProgress(
-        BaseFetcher.FetchTaskCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
+        (Integer)BaseFetcher.FetchTaskCallback.Progress.GET_INPUT_STREAM_SUCCESS);
     } catch (IOException e) {
       Log.d(TAG, "(fetch) e: " + e.getMessage());
       e.printStackTrace();

@@ -269,17 +269,16 @@ public class MainActivity extends BaseActivity implements
       public void onChange(
         RealmList<Product> items, OrderedCollectionChangeSet changeSet) {
         Log.d(TAG, "(addChangeListener) items.size: " + items.size());
-        setInteractionsMenuState();
-
         int insertions[] = changeSet.getInsertions();
         if (insertions != null && insertions.length == 1) {  // new scan
           int i = insertions[0];
-          Log.d(TAG, "(addChangeListener) inserttion: " + i);
+          Log.d(TAG, "(addChangeListener) insertion: " + i);
           Product product = (Product)items.get(i);
           String ean = product.getEan();
           if (ean.equals(Constant.INIT_DATA.get("ean"))) {
             return; // do nothing for placeholder row
           }
+          Log.d(TAG, "(addChangeListener) ean: " + ean);
           if (ean.length() != 13) {
             // GTIN (via GS1 DataMatrix) is saved directly as EAN
             String errorMessage = String.format(
@@ -290,6 +289,7 @@ public class MainActivity extends BaseActivity implements
           // invoke async api call
           startFetching(product);
         }
+        setInteractionsMenuState();
       }
     });
   }
@@ -792,6 +792,7 @@ public class MainActivity extends BaseActivity implements
   // -- ProductInfoFetcher.FetchTaskCallback
 
   private void startFetching(Product product) {
+    Log.d(TAG, "(startFetching) fetching: " + fetching);
     if (!fetching && fetcher != null) {
       fetcher.invokeFetch(product);
       this.fetching = true;
@@ -865,13 +866,14 @@ public class MainActivity extends BaseActivity implements
   }
 
   @Override
-  public void onProgressUpdate(int progressCode, int percentComplete) {
+  public void onProgressUpdate(Integer ...progress) {
     // pass
   }
 
   @Override
   public void finishFetching() {
     this.fetching = false;
+    Log.d(TAG, "(finishFetching) fetching: " + fetching);
     if (fetcher != null) {
       fetcher.cancelFetch();
     }

@@ -41,7 +41,7 @@ public class BaseFetcher extends Fragment {
     // activity
     NetworkInfo getActiveNetworkInfo();
 
-    void onProgressUpdate(int progressCode, int percentComplete);
+    void onProgressUpdate(Integer ...progress);
 
     void updateFromFetch(T result);
 

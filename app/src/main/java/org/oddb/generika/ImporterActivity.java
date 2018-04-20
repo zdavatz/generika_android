@@ -339,7 +339,7 @@ public class ImporterActivity extends BaseActivity
   }
 
   @Override
-  public void onProgressUpdate(int progressCode, int percentComplete) {
+  public void onProgressUpdate(Integer...progress) {
     // pass
   }
 
