@@ -703,13 +703,18 @@ public class MainActivity extends BaseActivity implements
 
   public void openWebView(Product[] products) {
     Intent intent = new Intent(this, WebViewActivity.class);
-    if (products.length > 0) {
+    if (products != null && products.length > 0) {
       HashSet<String> uniqueEans = new HashSet<String>();
       for (int i = 0; i < products.length; i++) {
-        uniqueEans.add(products[i].getEan());
+        String ean = products[i].getEan();
+        if (ean != null && !ean.equals("")) {
+          uniqueEans.add(ean);
+        }
       }
       Log.d(TAG, "(openWebView) uniqueEans: " + uniqueEans);
-      intent.putExtra(Constant.kEans, uniqueEans.toArray(new String[0]));
+      String[] eans = new String[products.length];
+      eans = uniqueEans.toArray(eans);
+      intent.putExtra(Constant.kEans, eans);
     }
     ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
       MainActivity.this);

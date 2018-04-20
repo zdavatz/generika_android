@@ -262,10 +262,15 @@ public class WebViewActivity extends BaseActivity {
       }
     } else { // interaction
       String[] uniqueEans = intent.getStringArrayExtra(Constant.kEans);
+      if (uniqueEans == null) {
+        Log.d(TAG, "(buildUrl) urlString: " + urlString);
+        return urlString;
+      }
       urlString += String.format(
         Constant.WEB_URL_PATH_INTERACTION,
         searchLang,
         TextUtils.join(",", uniqueEans));
+      Log.d(TAG, "(buildUrl) urlString: " + urlString);
       return urlString;
     }
 
