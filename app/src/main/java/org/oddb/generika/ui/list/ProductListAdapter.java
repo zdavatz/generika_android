@@ -132,8 +132,6 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
           item = (Product)listView.getItemAtPosition(i);
         } catch (ArrayIndexOutOfBoundsException ignore) {
           Log.d(TAG, "(refresh) startPosition: " + startPosition);
-          Log.d(TAG, "(refresh) i: " + i);
-          Log.d(TAG, "(refresh) j: " + j);
           break;  // listView has already changed?
         }
         if (product.equals(item)) {
@@ -490,7 +488,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     viewHolder.barcodeImage = (ImageView)view.findViewById(
       R.id.product_item_barcode_image);
     String filepath = item.getFilepath();
-    Log.d(TAG, "(getView) filepath: " + filepath);
+    // Log.d(TAG, "(getView) filepath: " + filepath);
 
     GlideApp.with(context)
       .asBitmap()
@@ -600,8 +598,8 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
       SimpleDateFormat formatter = new SimpleDateFormat(
         "dd." + expiresAtFormat);
       Date expiresAt = formatter.parse("01." + value);
-      Log.d(TAG, "(composeDeductionTextColor) now: " + now);
-      Log.d(TAG, "(composeDeductionTextColor) expiresAt: " + expiresAt);
+      // Log.d(TAG, "(composeDeductionTextColor) now: " + now);
+      // Log.d(TAG, "(composeDeductionTextColor) expiresAt: " + expiresAt);
       if (expiresAt.before(now) || expiresAt.equals(now)) {
         color = ContextCompat.getColor(context, R.color.colorAccent);
       } else {
