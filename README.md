@@ -11,11 +11,6 @@ Generika App for Android, based on the Generikacc App for iOS.
 
 https://github.com/zdavatz/generika_android
 
-## Upload APK from commandline
-* Install Playup from https://github.com/jeduan/playup
-* setup your json File with the security credentials
-* In the Console type: `playup -a generika.json ~/.software/generika_android/app/build/outputs/apk/release/app-release.apk`
-
 ## Setup
 
 ### Requirements
@@ -142,6 +137,12 @@ Run JUnit Tests.
 
 % make test ARGS="--tests \"*Barcode*\""
 ```
+
+## Upload APK from commandline
+
+* Install Playup from https://github.com/jeduan/playup
+* Setup your json File with the security credentials
+* In the Console type: `playup -a generika.json /path/to/app-release.apk`
 
 
 ## License
