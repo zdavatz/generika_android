@@ -660,7 +660,7 @@ public class MainActivity extends BaseActivity implements
             // wrong barcode is detected
             String errorMessage = String.format(
               context.getString(R.string.invalid_barcode_found), value);
-            alertDialog("", "");
+            alertDialog("", errorMessage);
           }
         } else {
           Log.d(TAG, "(onActivityResult) Barcode not found");
