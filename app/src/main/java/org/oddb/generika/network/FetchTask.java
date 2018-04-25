@@ -169,6 +169,7 @@ public class FetchTask<T> extends AsyncTask<String, Integer,
 
   @Override
   public void onPostExecute(Result innerResult) {
+    Log.d(TAG, "(onPostExecute) inner result: " + innerResult);
     // main ui thread
     if (fetchTaskCallback != null) {
       try {
@@ -190,8 +191,11 @@ public class FetchTask<T> extends AsyncTask<String, Integer,
   }
 
   @Override
-  protected void onCancelled(Result result) {
-    // TODO
+  protected void onCancelled(Result innerResult) {
+    Log.d(TAG, "(onCancelled) inner result: " + innerResult);
+    if (fetchTaskCallback != null) {
+      fetchTaskCallback.finishFetching();
+    }
   }
 
   private String fetch(String urlString) throws IOException {

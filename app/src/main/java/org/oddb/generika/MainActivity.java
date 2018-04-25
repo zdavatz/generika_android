@@ -112,7 +112,6 @@ public class MainActivity extends BaseActivity implements
   private GenerikaListAdapter listAdapter; // Product / Receipt
 
   // network (headless fragment)
-  private boolean fetching = false;
   private ProductInfoFetcher fetcher;
 
   @Override
@@ -286,8 +285,7 @@ public class MainActivity extends BaseActivity implements
             alertDialog("", errorMessage);
             return;
           }
-          // invoke async api call
-          startFetching(product);
+          startFetching(product);  // invoke async api call
         }
         setInteractionsMenuState();
       }
@@ -700,6 +698,7 @@ public class MainActivity extends BaseActivity implements
   // with callbacks. Otherwise, single button alert will be shown.
   private void alertDialog(
     String title, String message, MessageDialog.OnChangeListener listener) {
+    Log.d(TAG, "(alertDialog) listener: " + listener);
     int none = MessageDialog.TEXT_ID_NONE;
     int negativeTextId = none, positiveTextId = none;
     if (listener == null) { // "ok" (single) button
@@ -792,10 +791,9 @@ public class MainActivity extends BaseActivity implements
   // -- ProductInfoFetcher.FetchTaskCallback
 
   private void startFetching(Product product) {
-    Log.d(TAG, "(startFetching) fetching: " + fetching);
-    if (!fetching && fetcher != null) {
+    if (fetcher != null) {
       fetcher.invokeFetch(product);
-      this.fetching = true;
+      Log.d(TAG, "(startFetching) fetching: " + fetcher.isFetching());
     }
   }
 
@@ -826,16 +824,13 @@ public class MainActivity extends BaseActivity implements
             // only once (remove self)
             product_.removeAllChangeListeners();
             if (product_.getName() != null && product_.getSize() != null) {
-              // NOTE:
-              // `updateFromFetch` will be called from `postOnExecute`, so this
-              // `runOnUiThread` is not needed normally, but, it seems that
-              // prevents an issue on first boot on Android 8.0? (not sure)
-              ((MainActivity)context).runOnUiThread(new Runnable() {
+              listAdapter.refresh(product_, listView);
+              Log.d(TAG, "(updateFromFetch/onChange) product.name: " +
+                    product_.getName());
+
+              new Handler().post(new Runnable() {
                 @Override
                 public void run() {
-                  listAdapter.refresh(product_, listView);
-                  Log.d(TAG, "(updateFromFetch/onChange) product.name: " +
-                        product_.getName());
                   // notify result to user
                   String title = context.getString(
                     R.string.fetch_info_result_dialog_title);
@@ -872,10 +867,9 @@ public class MainActivity extends BaseActivity implements
 
   @Override
   public void finishFetching() {
-    this.fetching = false;
-    Log.d(TAG, "(finishFetching) fetching: " + fetching);
     if (fetcher != null) {
       fetcher.cancelFetch();
+      Log.d(TAG, "(finishFetching) fetching: " + fetcher.isFetching());
     }
   }
 }

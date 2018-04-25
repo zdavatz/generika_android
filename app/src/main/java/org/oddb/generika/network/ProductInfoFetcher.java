@@ -133,6 +133,7 @@ public class ProductInfoFetcher extends BaseFetcher implements
 
   public void invokeFetch(Product product_) {
     cancelFetch();
+    this.fetching = true;
 
     this.fetchTask = new FetchTask(FetchResult.class, this.fetchTaskCallback);
     fetchTask.setFinalizer(this);

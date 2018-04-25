@@ -29,6 +29,8 @@ public class BaseFetcher extends Fragment {
 
   protected Context context;
 
+  protected boolean fetching = false;
+
   public interface FetchTaskCallback<T> {
     interface Progress {
       int ERROR = -1;
@@ -65,12 +67,17 @@ public class BaseFetcher extends Fragment {
 
   @Override
   public void onDetach() {
+    cancelFetch();
     this.context = null;
 
     super.onDetach();
   }
 
   public void cancelFetch() {
-    // TODO
+    this.fetching = false;
+  }
+
+  public boolean isFetching() {
+    return this.fetching;
   }
 }
