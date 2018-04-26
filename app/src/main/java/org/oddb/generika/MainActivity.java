@@ -230,6 +230,17 @@ public class MainActivity extends BaseActivity implements
     dataManager.release();
   }
 
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    Log.d(TAG, "(onSaveInstanceState) outState: " + outState);
+    // Do nothing here. Because `super.onSaveInstanceState(outState)` is going
+    // to be a problem for alert dialog (fragment) on >= 8.0
+    //
+    // See below:
+    // https://issuetracker.google.com/issues/36932872
+    // https://stackoverflow.com/a/10261438
+  }
+
   private ProductInfoFetcher buildProductInfoFetcher() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     Fragment fetcher_ = fragmentManager.findFragmentByTag(
@@ -698,9 +709,9 @@ public class MainActivity extends BaseActivity implements
   // with callbacks. Otherwise, single button alert will be shown.
   private void alertDialog(
     String title, String message, MessageDialog.OnChangeListener listener) {
-    Log.d(TAG, "(alertDialog) listener: " + listener);
     int none = MessageDialog.TEXT_ID_NONE;
     int negativeTextId = none, positiveTextId = none;
+    Log.d(TAG, "(alertDialog) listener: " + listener);
     if (listener == null) { // "ok" (single) button
       positiveTextId = R.string.ok;
     } else { // "close" & "ok" button for import (receipt) or capture (barcode)
@@ -714,10 +725,13 @@ public class MainActivity extends BaseActivity implements
 
     dialog.setListener(listener);
 
-    FragmentTransaction tx = ((MainActivity)context)
-      .getSupportFragmentManager().beginTransaction();
-    tx.add(dialog, "MessageDialog");
-    tx.commitAllowingStateLoss();
+    // See also `onSaveInstanceState`
+    FragmentManager manager;
+    manager = getSupportFragmentManager();
+    Log.d(TAG, "(alertDialog) isStateSaved: " + manager.isStateSaved());
+    FragmentTransaction transaction = manager.beginTransaction();
+    transaction.add(dialog, "MessageDialog");
+    transaction.commitAllowingStateLoss();
   }
 
   public void openWebView(Product product) {
