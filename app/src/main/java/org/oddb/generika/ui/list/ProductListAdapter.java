@@ -19,6 +19,8 @@ package org.oddb.generika.ui.list;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -494,6 +496,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     GlideApp.with(context)
       .asBitmap()
       .load(filepath)
+      .placeholder(new ColorDrawable(Color.LTGRAY))
       .centerCrop()
       .into(new BitmapImageViewTarget(viewHolder.barcodeImage) {
         @Override
