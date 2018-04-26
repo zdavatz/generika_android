@@ -99,6 +99,10 @@ public class Constant extends Object {
 
   public final static String kEans = "kEans"; // for interaction link
 
+  public final static int PAGE_ACTION_TOP = 1;
+  public final static int PAGE_ACTION_SEARCH = 2;
+  public final static int PAGE_ACTION_INTERACTIONS = 3;
+
   // -- web view client (WebViewClient)
   public final static String WEB_USER_AGENT = "org.oddb.generikacc";
   public final static String WEB_URL_HOST = URL_HOST;

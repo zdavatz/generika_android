@@ -52,6 +52,8 @@ public class WebViewActivity extends BaseActivity {
   private ProgressBar progressBar;
 
   private SharedPreferences sharedPreferences;
+  private int pageAction = Constant.PAGE_ACTION_TOP;
+
   private String searchType;
   private String searchLang;
 
@@ -101,9 +103,17 @@ public class WebViewActivity extends BaseActivity {
     Intent intent = getIntent();
     String ean = intent.getStringExtra(Constant.kEan);
     if (ean != null && !ean.equals("")) {
-      // ignore if an EAN is not given
       this.searchType = sharedPreferences.getString(
         Constant.kSearchType, Constant.TYPE_PV);
+
+      if (!ean.equals(Constant.INIT_DATA.get("ean"))) {
+        this.pageAction = Constant.PAGE_ACTION_SEARCH;
+      }
+    }
+
+    String[] uniqueEans = intent.getStringArrayExtra(Constant.kEans);
+    if (uniqueEans != null) {
+      this.pageAction = Constant.PAGE_ACTION_INTERACTIONS;
     }
 
     this.searchLang = sharedPreferences.getString(
@@ -113,8 +123,11 @@ public class WebViewActivity extends BaseActivity {
   private void initViews() {
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     toolbar.setTitle(context.getString(R.string.oddb_org));
-    toolbar.setSubtitle(String.format(
-        "%s - %s", searchLang, buildSearchTypeName()));
+    if (pageAction == Constant.PAGE_ACTION_SEARCH ||
+        pageAction == Constant.PAGE_ACTION_INTERACTIONS) {
+      toolbar.setSubtitle(String.format(
+          "%s - %s", searchLang, buildSearchTypeName()));
+    }
     setSupportActionBar(toolbar);
 
     ActionBar actionBar = getSupportActionBar();
@@ -254,13 +267,14 @@ public class WebViewActivity extends BaseActivity {
 
     Intent intent = getIntent();
     String ean = intent.getStringExtra(Constant.kEan);
-    if (ean != null && !ean.equals("")) {
-      if (ean.equals(Constant.INIT_DATA.get("ean"))) {  // placeholder
+    if (pageAction == Constant.PAGE_ACTION_TOP) {
+      if (ean != null && ean.equals(Constant.INIT_DATA.get("ean"))) {
+        // placeholder
         urlString += String.format("%s/%s/", searchLang, Constant.URL_FLAVOR);
-        Log.d(TAG, "(buildUrl) urlString: " + urlString);
-        return urlString;
       }
-    } else { // interaction
+      Log.d(TAG, "(buildUrl) urlString: " + urlString);
+      return urlString;
+    } else if (pageAction == Constant.PAGE_ACTION_INTERACTIONS) {
       String[] uniqueEans = intent.getStringArrayExtra(Constant.kEans);
       if (uniqueEans == null) {
         Log.d(TAG, "(buildUrl) urlString: " + urlString);
