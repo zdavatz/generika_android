@@ -18,8 +18,8 @@
 package org.oddb.generika.ui.list;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -493,16 +493,18 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     String filepath = item.getFilepath();
     // Log.d(TAG, "(getView) filepath: " + filepath);
 
+    final Resources resources = context.getResources();
+
     GlideApp.with(context)
       .asBitmap()
       .load(filepath)
-      .placeholder(new ColorDrawable(Color.LTGRAY))
+      .placeholder(new ColorDrawable(resources.getColor(R.color.lightGray)))
       .centerCrop()
       .into(new BitmapImageViewTarget(viewHolder.barcodeImage) {
         @Override
         protected void setResource(Bitmap resource) {
           RoundedBitmapDrawable image = RoundedBitmapDrawableFactory.create(
-            context.getResources(), resource);
+            resources, resource);
           image.setCornerRadius(5); // slightly
           viewHolder.barcodeImage.setImageDrawable(image);
         }
