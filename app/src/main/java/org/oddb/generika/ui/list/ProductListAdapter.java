@@ -519,7 +519,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
     viewHolder.size.setText(item.getSize());
     // datetime
     String datetime = item.getDatetime();
-    if (datetime != null && 
+    if (datetime != null &&
         !datetime.equals(Constant.INIT_DATA.get("datetime"))) {
       datetime = Formatter.formatAsLocalDate(
         datetime, datetimeFormat);
