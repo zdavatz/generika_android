@@ -78,6 +78,7 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
   private final Pattern deduction10 = Pattern.compile("\\A\\s*10\\s*%\\z");
   private final Pattern deduction20 = Pattern.compile("\\A\\s*20\\s*%\\z");
 
+  protected final String datetimeFormat = "HH:mm dd.MM.YYYY";
   protected final String expiresAtFormat = "MM.yyyy";
 
   public ProductListAdapter(RealmResults<Product> products) {
@@ -514,10 +515,15 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
       R.id.product_item_size);
     viewHolder.size.setText(item.getSize());
     // datetime
+    String datetime = item.getDatetime();
+    if (datetime != null && 
+        !datetime.equals(Constant.INIT_DATA.get("datetime"))) {
+      datetime = Formatter.formatAsLocalDate(
+        datetime, datetimeFormat);
+    }
     viewHolder.datetime = (TextView)view.findViewById(
       R.id.product_item_datetime);
-    viewHolder.datetime.setText(
-      Formatter.formatAsLocalDate(item.getDatetime(), "HH:mm dd.MM.YYYY"));
+    viewHolder.datetime.setText(datetime);
 
     // price
     viewHolder.price = (TextView)view.findViewById(
@@ -540,13 +546,17 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
       R.id.product_item_ean);
     viewHolder.ean.setText(item.getEan());
     // expiresAt
-    String expiresAtValue = Formatter.formatAsLocalDate(
-      item.getExpiresAt(), expiresAtFormat);
+    String expiresAt = item.getExpiresAt();
+    if (expiresAt != null &&
+        !expiresAt.equals(Constant.INIT_DATA.get("expiresAt"))) {
+      expiresAt = Formatter.formatAsLocalDate(
+        expiresAt, expiresAtFormat);
+    }
     viewHolder.expiresAt = (TextView)view.findViewById(
       R.id.product_item_expires_at);
-    viewHolder.expiresAt.setText(expiresAtValue);
+    viewHolder.expiresAt.setText(expiresAt);
     viewHolder.expiresAt.setTextColor(
-      composeExpiresAtTextColor(expiresAtValue, context));
+      composeExpiresAtTextColor(expiresAt, context));
 
     // delete button
     ImageView deleteButton = (ImageView)view.findViewById(

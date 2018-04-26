@@ -67,7 +67,7 @@
 
           <TextView
               android:id="@+id/product_item_size"
-              android:layout_width="138dp"
+              android:layout_width="139dp"
               android:layout_height="wrap_content"
               android:layout_below="@+id/product_item_name"
               android:layout_toRightOf="@+id/product_item_barcode_image"
@@ -95,7 +95,7 @@
               android:paddingLeft="1.75dp"
               android:paddingBottom="0.75dp"
               android:textColor="@color/textColor"
-              android:textSize="12sp"/>
+              android:textSize="11sp"/>
 
           <TextView
               android:id="@+id/product_item_price"
@@ -139,12 +139,12 @@
               android:layout_marginBottom="2.5dp"
               android:layout_marginLeft="1.25dp"
               android:singleLine="true"
-              android:paddingTop="0.75dp"
+              android:paddingTop="0.70dp"
               android:paddingRight="1.75dp"
               android:paddingLeft="1.75dp"
               android:paddingBottom="0.75dp"
               android:textColor="@color/textColor"
-              android:textSize="10.5sp"/>
+              android:textSize="10.25sp"/>
 
           <TextView
               android:id="@+id/product_item_ean"
