@@ -1,15 +1,24 @@
 # Generika Android
 
-Generika App for Android, based on the Generikacc App for iOS.
+Generika App for Android, based on the [Generikacc App for iOS](https://github.com/zdavatz/generikacc).
+
 
 ## Screenshots
 
-<img src="/img/medikamente-20180419.jpg?raw=true" alt="Medikamente" width="160px"> <img src="/img/rezept-20180419.jpg?raw=true" alt="Rezept" width="160px"> <img src="/img/settings-20180419.jpg?raw=true" alt="Einstellungen" width="160px"> <img src="/img/about-20180419.jpg?raw=true" alt="About" width="160px">
+<img src="/img/medikamente-20180419.jpg?raw=true" alt="Medikamente" width="174px"> <img src="/img/drawer-menu-20180419.jpg?raw=true" alt="Drawer" width="174px"> <img src="/img/rezept-20180419.jpg?raw=true" alt="Rezept" width="174px"> <img src="/img/settings-20180419.jpg?raw=true" alt="Einstellungen" width="174px"> <img src="/img/about-20180419.jpg?raw=true" alt="About" width="174px">
 
 
 ## Repository
 
 https://github.com/zdavatz/generika_android
+
+It's available on [Google Play](https://play.google.com/store/apps/details?id=org.oddb.generika).
+
+
+## Platform
+
+`>= Android 6.0` (M, API Level 23)
+
 
 ## Setup
 
