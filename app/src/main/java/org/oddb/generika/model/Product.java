@@ -195,17 +195,17 @@ public class Product extends RealmObject implements Retryable {
 
     // See BarcodeExtractor
     public Barcode(HashMap<String, String> parseResult) {
-
       // e.g. GTIN 0768.... (GTIN 14) -> 768 (EAN 13)
       String barcodeValue = parseResult.get(Constant.GS1_DM_AI_GTIN);
+      if (barcodeValue == null) { barcodeValue = ""; }
       barcodeValue = barcodeValue.replaceAll("^0768", "768");
       this.value = barcodeValue;
 
       // e.g. Expiry date 210600 -> 210601
       String expiryDate = parseResult.get(
         Constant.GS1_DM_AI_EXPIRY_DATE);
-      expiryDate = expiryDate.replaceAll("00$", "01");
       if (expiryDate != null) {
+        expiryDate = expiryDate.replaceAll("00$", "01");
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd");
         try {
@@ -217,10 +217,10 @@ public class Product extends RealmObject implements Retryable {
         }
       }
       // lot
-      String batchOrLot_ = parseResult.get(
+      String batchOrLotValue = parseResult.get(
         Constant.GS1_DM_AI_BATCH_LOT);
-      if (batchOrLot_ != null) {
-        this.batchOrLot = batchOrLot_;
+      if (batchOrLotValue != null) {
+        this.batchOrLot = batchOrLotValue;
       }
 
       Log.d(TAG, "(Barcode) value: " + value);
