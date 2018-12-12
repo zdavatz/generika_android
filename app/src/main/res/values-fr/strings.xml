@@ -92,13 +92,13 @@
     <string name="low_storage_error">
       La détection de visage ne peut être activée par manque d’espace de stockage.</string>
     <string name="no_internet_connection">
-      Pas des connection avec l'internet.</string>
+      Pas des connection avec l\'internet.</string>
     <string name="product_not_found">
       Pas de produit dans la base des données avec GTIN:\n%s</string>
     <string name="product_not_found_gtin">
       Pas de produit dans la base des données avec GTIN:\n%s</string>
     <string name="receipt_not_found">
-      Fichier .amk n'est pas valide.</string>
+      Fichier .amk n\'est pas valide.</string>
     <string name="invalid_barcode_found">
       Barcode invalid. Essayer encore une fois s.v.p.:\n%s</string>
 </resources>
