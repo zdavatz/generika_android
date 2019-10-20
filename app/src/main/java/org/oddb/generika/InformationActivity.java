@@ -20,14 +20,13 @@ package org.oddb.generika;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
 
-import org.oddb.generika.BaseActivity;
 import org.oddb.generika.util.Constant;
 
 

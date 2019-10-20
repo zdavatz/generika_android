@@ -17,15 +17,14 @@
  */
 package org.oddb.generika;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.ImageView;
@@ -38,7 +37,6 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
-import org.oddb.generika.BaseActivity;
 import org.oddb.generika.GlideApp;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Operator;

@@ -22,12 +22,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.support.v7.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 
 import java.util.Locale;
-
-import org.oddb.generika.util.Constant;
 
 
 public class AppLocale extends Object {

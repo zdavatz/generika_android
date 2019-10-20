@@ -20,7 +20,7 @@ package org.oddb.generika;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;

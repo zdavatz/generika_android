@@ -1,29 +1,17 @@
 package org.oddb.generika;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
-
-import org.mockito.Mockito;
 
 import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 import static org.robolectric.Shadows.shadowOf;
 
-import android.content.Context;
-import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.widget.Toolbar;
-
-import org.oddb.generika.CustomTestRunner;
-
-import org.oddb.generika.BuildConfig;
-import org.oddb.generika.R;
+import androidx.appcompat.widget.Toolbar;
 
 
 @RunWith(CustomTestRunner.class)

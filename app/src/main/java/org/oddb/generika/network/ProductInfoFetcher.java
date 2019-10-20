@@ -20,8 +20,8 @@ package org.oddb.generika.network;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentManager;
 import android.util.Log;
 
 import org.json.JSONObject;

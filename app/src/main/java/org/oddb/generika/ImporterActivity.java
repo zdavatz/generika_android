@@ -17,24 +17,21 @@
  */
 package org.oddb.generika;
 
-import android.content.Context;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import android.util.Base64;
 import android.util.Log;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,14 +41,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.oddb.generika.BaseActivity;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Operator;
 import org.oddb.generika.model.Patient;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
 import org.oddb.generika.network.ReceiptFileFetcher;
-import org.oddb.generika.util.ConnectionStream;
 import org.oddb.generika.util.Constant;
 import org.oddb.generika.util.StreamReader;
 

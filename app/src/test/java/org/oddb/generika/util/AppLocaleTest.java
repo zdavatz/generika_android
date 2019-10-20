@@ -12,14 +12,10 @@ import org.robolectric.shadows.ShadowLog;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.v7.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 
 import java.util.Locale;
 
-import org.oddb.generika.CustomTestRunner;
-
-import org.oddb.generika.BuildConfig;
-import org.oddb.generika.R;
 import org.oddb.generika.util.AppLocale;
 import org.oddb.generika.util.Constant;
 
