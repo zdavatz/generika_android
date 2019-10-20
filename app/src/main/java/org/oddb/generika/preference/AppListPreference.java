@@ -18,9 +18,9 @@
 package org.oddb.generika.preference;
 
 import android.content.Context;
-import android.support.v7.preference.Preference;
-import android.support.v7.preference.Preference.OnPreferenceChangeListener;
-import android.support.v7.preference.ListPreference;
+import androidx.preference.Preference;
+import androidx.preference.Preference.OnPreferenceChangeListener;
+import androidx.preference.ListPreference;
 import android.util.AttributeSet;
 
 import java.lang.CharSequence;

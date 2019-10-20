@@ -22,17 +22,16 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.preference.Preference;
-import android.support.v7.preference.Preference.OnPreferenceChangeListener;
-import android.support.v7.preference.PreferenceFragmentCompat;
-import android.support.v7.preference.PreferenceManager;
+import androidx.preference.Preference;
+import androidx.preference.Preference.OnPreferenceChangeListener;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import android.util.Log;
 
 import java.lang.Boolean;
 import java.lang.Object;
 import java.util.Locale;
 
-import org.oddb.generika.SettingsActivity;
 import org.oddb.generika.preference.AppListPreference;
 import org.oddb.generika.util.AppLocale;
 import org.oddb.generika.util.Constant;

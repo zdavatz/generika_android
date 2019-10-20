@@ -17,12 +17,9 @@
  */
 package org.oddb.generika.ui.list;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-
-import io.realm.RealmModel;
-import io.realm.RealmResults;
 
 import java.util.Date;
 

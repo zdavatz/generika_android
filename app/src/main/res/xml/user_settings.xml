@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.preference.PreferenceScreen
+<androidx.preference.PreferenceScreen
 		xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <!-- web search -->
-    <android.support.v7.preference.PreferenceCategory
+    <androidx.preference.PreferenceCategory
         android:title="@string/settings_search">
 
 				<org.oddb.generika.preference.AppListPreference
@@ -24,10 +24,10 @@
             android:entryValues="@array/settings_search_lang_values"
             android:defaultValue="de"/>
 
-    </android.support.v7.preference.PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
     <!-- application -->
-    <android.support.v7.preference.PreferenceCategory
+    <androidx.preference.PreferenceCategory
         android:title="@string/settings_app">
 
 				<android.support.v7.preference.SwitchPreferenceCompat
@@ -44,7 +44,7 @@
             android:entryValues="@array/settings_app_locale_values"
             android:defaultValue="de" />
 
-    </android.support.v7.preference.PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
     <!-- cloud sync -->
     <!---
@@ -60,4 +60,4 @@
     </android.support.v7.preference.PreferenceCategory>
     -->
 
-</android.support.v7.preference.PreferenceScreen>
+</androidx.preference.PreferenceScreen>
