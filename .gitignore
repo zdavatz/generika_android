@@ -1,7 +1,6 @@
 *.iml
 
-.gradle
-/gradle.properties
+.gradle/
 /local.properties
 
 .env

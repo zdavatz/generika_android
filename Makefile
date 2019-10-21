@@ -3,17 +3,17 @@ identifier="org.oddb.generika"
 # -- build targes
 
 build:
-	./bin/gradlew build -x test $(ARGS)
+	./gradlew build -x test $(ARGS)
 .PHONY: build
 
 archive:
 	# generate apk with buildType:debug
-	./bin/gradlew assembleDebug $(ARGS)
+	./gradlew assembleDebug $(ARGS)
 .PHONY: archive
 
 release:
 	# generate apk with buildType:release
-	./bin/gradlew assembleRelease $(ARGS)
+	./gradlew assembleRelease $(ARGS)
 .PHONY: release
 
 
@@ -63,14 +63,14 @@ stop:
 # -- testing targets
 
 test:
-	./bin/gradlew testDebug -PisTest=true $(ARGS)
+	./gradlew testDebug -PisTest=true $(ARGS)
 .PHONY: test
 
 
 # -- other targets
 
 clean:
-	./bin/gradlew clean
+	./gradlew clean
 .PHONY: clean
 
 .DEFAULT_GOAL = test
