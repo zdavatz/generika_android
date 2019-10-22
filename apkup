@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+make clean
+make release
+
+apkup --key generika.json --apk ~/.software/generika_android/app/build/outputs/apk/release/app-release.apk
