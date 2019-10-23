@@ -30,7 +30,7 @@
     <androidx.preference.PreferenceCategory
         android:title="@string/settings_app">
 
-				<android.support.v7.preference.SwitchPreferenceCompat
+				<androidx.preference.SwitchPreference
             android:key="kAppUseSystemLocale"
             android:title="@string/settings_app_use_system_locale_name"
             android:summary="@string/settings_app_use_system_locale_summary"
