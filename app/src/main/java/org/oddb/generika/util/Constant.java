@@ -75,7 +75,7 @@ public class Constant extends Object {
   public final static String GS1_DM_AI_AMOUNT = "30";
 
   // [Network]
-  public final static String URL_HOST = "i.ch.oddb.org";
+  public final static String URL_HOST = "ch.oddb.org";
   public final static String URL_FLAVOR = "mobile";
 
   // [Network/DataFetch]

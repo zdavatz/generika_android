@@ -31,6 +31,7 @@
             android:name=".ImporterActivity"
             android:label="@string/importer"
             android:theme="@style/AppTheme.Translucent"
+            android:exported="true"
             android:windowSoftInputMode="stateHidden">
 
             <!-- these two sections below are needed for some apps can't handle
@@ -179,6 +180,7 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden"
+            android:exported="true"
             android:configChanges="orientation|screenSize">
 
             <intent-filter>

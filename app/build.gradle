@@ -6,8 +6,8 @@ android {
     release
   }
 
-  compileSdkVersion 29
-  buildToolsVersion '29.0.2'
+  compileSdkVersion 31
+  buildToolsVersion '33.0.1'
 
   defaultConfig {
     applicationId "org.oddb.generika"
@@ -16,8 +16,8 @@ android {
     versionName "1.0.53"
 
     // Android 6.0 - 8.1
-    minSdkVersion 23
-    targetSdkVersion 27
+    minSdkVersion 31
+    targetSdkVersion 31
 
     // junit4
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
