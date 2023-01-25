@@ -17,7 +17,7 @@ It's available on [Google Play](https://play.google.com/store/apps/details?id=or
 
 ## Platform
 
-`>= Android 6.0` (M, API Level 23)
+`>= Android 12.0` (API Level 31)
 
 
 ## Setup
