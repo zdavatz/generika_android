@@ -607,20 +607,18 @@ public class MainActivity extends BaseActivity implements
 
     ActivityOptions options = ActivityOptions.makeBasic();
     Intent intent;
-    switch (id) {
-      case android.R.id.home:
-        drawerLayout.openDrawer(GravityCompat.START);
-        return true;
-      case R.id.settings:
-        intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent, options.toBundle());
-        return true;
-      case R.id.information:
-        intent = new Intent(this, InformationActivity.class);
-        startActivity(intent, options.toBundle());
-        return true;
+    if (id == android.R.id.home) {
+      drawerLayout.openDrawer(GravityCompat.START);
+      return true;
+    } else if (id == R.id.settings) {
+      intent = new Intent(this, SettingsActivity.class);
+      startActivity(intent, options.toBundle());
+      return true;
+    } else if (id == R.id.information) {
+      intent = new Intent(this, InformationActivity.class);
+      startActivity(intent, options.toBundle());
+      return true;
     }
-
     return super.onOptionsItemSelected(item);
   }
 

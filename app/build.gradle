@@ -1,3 +1,24 @@
+buildscript {
+  /**
+   * The nested repositories{} block declares that this build uses the
+   * jcenter repository.
+   */
+  repositories {
+    jcenter()
+    google()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+  }
+
+  /**
+   * This block declares a dependency on the 3.2.1 version
+   * of the Gradle plugin for the buildscript.
+   */
+  dependencies {
+    classpath 'com.android.tools.build:gradle:8.1.1'
+    classpath "io.realm:realm-gradle-plugin:10.15.1"
+  }
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 
@@ -5,9 +26,9 @@ android {
   signingConfigs {
     release
   }
+  namespace "org.oddb.generika"
 
-  compileSdkVersion 31
-  buildToolsVersion '33.0.1'
+  compileSdkVersion 33
 
   defaultConfig {
     applicationId "org.oddb.generika"
@@ -17,7 +38,7 @@ android {
 
     // Android 6.0 - 8.1
     minSdkVersion 23
-    targetSdkVersion 31
+    targetSdkVersion 33
 
     // junit4
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -29,6 +50,10 @@ android {
     // check but allow bulding for warnings
     checkReleaseBuilds true
     abortOnError false
+  }
+
+  buildFeatures {
+    buildConfig = true
   }
 
   buildTypes {
@@ -88,15 +113,16 @@ dependencies {
   implementation 'com.daimajia.swipelayout:library:1.2.0@aar'
   implementation 'com.google.android.gms:play-services-vision:11.8.0'
   implementation 'com.github.bumptech.glide:glide:4.10.0'
-  implementation 'io.realm:android-adapters:2.1.1'
+  implementation 'io.realm:realm-gradle-plugin:10.15.1'
+  implementation 'io.realm:android-adapters:4.0.0'
+  annotationProcessor 'io.realm:android-adapters:4.0.0'
 
   annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
 
   // -- testing
   // src/test
   testImplementation 'junit:junit:4.12'
-  testImplementation 'org.robolectric:robolectric:3.7.1'
-  testImplementation 'org.robolectric:shadows-support-v4:3.0'
+  testImplementation "org.robolectric:robolectric:4.10.3"
   testImplementation 'org.mockito:mockito-core:1.10.19'
   testImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
 
