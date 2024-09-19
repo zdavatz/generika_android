@@ -8,7 +8,7 @@
   </string-array>
 
   <string-array name="settings_search_type_values">
-    <!-- NOTE: use same abbr (FI/PI) as value with ch.oddb.org (in german) -->
+    <!-- NOTE: use same abbr (FI/PI) as value with generika.cc (in german) -->
     <!-- NOTE: [p]reis [v]ergleich -->
     <item>@string/search_type_pv</item>
     <item>@string/search_type_pi</item>

@@ -254,9 +254,9 @@ public class WebViewActivity extends BaseActivity {
   }
 
   /**
-   * Builds url for ch.oddb.org using search{Type|Lang} instance vars, like:
+   * Builds url for generika.cc using search{Type|Lang} instance vars, like:
    *
-   * https://ch.oddb.org/{de|fr}/mobile/{compare|patinfo|fachinfo}/<args>...
+   * https://generika.cc/{de|fr}/generika/{compare|patinfo|fachinfo}/<args>...
    */
   private String buildUrl() {
     Log.d(TAG, "(buildUrl) searchType: " + searchType);

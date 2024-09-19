@@ -75,8 +75,8 @@ public class Constant extends Object {
   public final static String GS1_DM_AI_AMOUNT = "30";
 
   // [Network]
-  public final static String URL_HOST = "ch.oddb.org";
-  public final static String URL_FLAVOR = "mobile";
+  public final static String URL_HOST = "generika.cc";
+  public final static String URL_FLAVOR = "generika";
 
   // [Network/DataFetch]
   // -- intent keys
