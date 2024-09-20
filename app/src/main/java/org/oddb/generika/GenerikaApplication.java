@@ -70,6 +70,7 @@ public class GenerikaApplication extends Application {
           }
         }
       })
+      .allowWritesOnUiThread(true)
       .build();
 
     // enable this, if delete all items at boot

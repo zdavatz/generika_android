@@ -28,17 +28,17 @@ android {
   }
   namespace "org.oddb.generika"
 
-  compileSdkVersion 33
+  compileSdkVersion 34
 
   defaultConfig {
     applicationId "org.oddb.generika"
-    versionCode 58
+    versionCode 60
 
-    versionName "1.0.58"
+    versionName "1.0.60"
 
     // Android 6.0 - 8.1
     minSdkVersion 23
-    targetSdkVersion 33
+    targetSdkVersion 34
 
     // junit4
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
