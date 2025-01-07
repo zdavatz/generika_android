@@ -70,13 +70,16 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.json.JSONException;
 import org.oddb.generika.barcode.BarcodeExtractor;
+import org.oddb.generika.barcode.EPrescription;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
@@ -641,12 +644,12 @@ public class MainActivity extends BaseActivity implements
           int length = value.length();
 
           Product.Barcode barcode_ = null;
-          if (length == 13) { // EAN 13
+          if (barcode.format == Barcode.EAN_13 && length == 13) { // EAN 13
             Log.d(TAG, "(onActivityResult/EAN-13) barcode: " + value);
             barcode_ = new Product.Barcode();
             barcode_.setValue(value);
             barcode_.setFilepath(filepath);
-          } else { // GS1 DataMatrix (GTIN)
+          } else if (barcode.format == Barcode.DATA_MATRIX) { // GS1 DataMatrix (GTIN)
             HashMap<String, String> result = BarcodeExtractor.extract(value);
             Log.d(TAG, "(onActivityResult/GS1 DataMatrix) result: " + result);
             String gtin = result.get(Constant.GS1_DM_AI_GTIN);
@@ -655,6 +658,20 @@ public class MainActivity extends BaseActivity implements
               barcode_ = new Product.Barcode(result);
               barcode_.setFilepath(filepath);
             }
+          } else if (barcode.format == Barcode.QR_CODE) {
+            File file = new File(filepath);
+            if (file.exists()) {
+              file.delete();
+            }
+              try {
+                  EPrescription e = new EPrescription(barcode.rawValue);
+                  Log.d(TAG, "ok");
+              } catch (IOException ex) {
+                  throw new RuntimeException(ex);
+              } catch (JSONException ex) {
+                  throw new RuntimeException(ex);
+              }
+              return;
           }
           if (barcode_ != null) {
             dataManager.addProduct(barcode_);
