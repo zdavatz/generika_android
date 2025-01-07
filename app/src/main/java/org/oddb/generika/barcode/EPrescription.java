@@ -6,6 +6,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.oddb.generika.util.Hash;
 import org.oddb.generika.util.StreamReader;
 
 import java.io.BufferedReader;
@@ -16,6 +17,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -240,5 +242,66 @@ public class EPrescription {
         }
 
         return null;
+    }
+
+    public JSONObject amkJSON() throws JSONException {
+        SimpleDateFormat birthDateDateFormatter = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat placeDateFormatter = new SimpleDateFormat("dd.MM.yyyy (HH:mm:ss)");
+
+        JSONObject result = new JSONObject();
+        JSONArray medicaments = new JSONArray();
+        for (Medicament medicament : this.medicaments) {
+            JSONObject mDict = new JSONObject();
+            mDict.put("eancode", medicament.medicamentId);
+            medicaments.put(mDict);
+        }
+        result.put("medications", medicaments);
+
+        result.put("prescription_hash", UUID.randomUUID().toString());
+
+        // Normally place_date is composed with doctor's name or city,
+        // however it's not available in ePrescription, instead we put the ZSR nummber here
+        result.put("place_date", String.format("%s,%s", this.zsr, placeDateFormatter.format(this.date)));
+
+        JSONObject operator = new JSONObject();
+        operator.put("gln", this.auth); // when null?
+        operator.put("zsr_number", this.zsr); // when null?
+        result.put("operator", operator);
+
+        JSONObject patient = new JSONObject();
+        patient.put("patient_id", generatePatientUniqueID());
+        patient.put("given_name", this.patientFirstName);
+        patient.put("family_name", this.patientLastName);
+        patient.put("birth_date", birthDateDateFormatter.format(this.patientBirthdate));
+        patient.put("gender", this.patientGender == 1 ? "M" : "F");
+        patient.put("email_address", this.patientEmail);
+        patient.put("phone_number", this.patientPhone);
+        patient.put("postal_address", this.patientStreet);
+        patient.put("city", this.patientCity);
+        patient.put("zip_code", this.patientZip);
+        patient.put("insurance_gln", this.patientReceiverGLN);
+        result.put("patient", patient);
+
+        return result;
+    }
+
+    private String generatePatientUniqueID() {
+        String birthdayString = "";
+        SimpleDateFormat birthDateDateFormatter = new SimpleDateFormat("dd.MM.yyyy");
+        String[] parts = birthDateDateFormatter.format(this.patientBirthdate).split("\\.");
+        for (String part : parts) {
+            if (birthdayString.length() > 0) {
+                birthdayString += ".";
+            }
+            birthdayString += Integer.valueOf(part).toString(); // remove leading 0
+        }
+
+        String str = String.format("%s.%s.%s", this.patientLastName.toLowerCase(), this.patientFirstName.toLowerCase(), birthdayString);
+        try {
+            return Hash.sha256(str);
+        } catch (Exception e) {
+            Log.e("Amiko.Patient", e.toString());
+            return  "";
+        }
     }
 }
