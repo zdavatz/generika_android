@@ -277,7 +277,7 @@ public class EPrescription {
         patient.put("patient_id", generatePatientUniqueID());
         patient.put("given_name", this.patientFirstName);
         patient.put("family_name", this.patientLastName);
-        patient.put("birth_date", birthDateDateFormatter.format(this.patientBirthdate));
+        patient.put("birth_date", this.patientBirthdate == null ? "" : birthDateDateFormatter.format(this.patientBirthdate));
         patient.put("gender", this.patientGender == 1 ? "M" : "F");
         patient.put("email_address", this.patientEmail);
         patient.put("phone_number", this.patientPhone);
@@ -401,7 +401,7 @@ public class EPrescription {
     private String generatePatientUniqueID() {
         String birthdayString = "";
         SimpleDateFormat birthDateDateFormatter = new SimpleDateFormat("dd.MM.yyyy");
-        String[] parts = birthDateDateFormatter.format(this.patientBirthdate).split("\\.");
+        String[] parts = this.patientBirthdate == null ? new String[0] : birthDateDateFormatter.format(this.patientBirthdate).split("\\.");
         for (String part : parts) {
             if (birthdayString.length() > 0) {
                 birthdayString += ".";
