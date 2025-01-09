@@ -666,6 +666,7 @@ public class MainActivity extends BaseActivity implements
               try {
                   EPrescription e = new EPrescription(barcode.rawValue);
                   Log.d(TAG, "ok");
+                  e.importReceipt(this);
               } catch (IOException ex) {
                   throw new RuntimeException(ex);
               } catch (JSONException ex) {

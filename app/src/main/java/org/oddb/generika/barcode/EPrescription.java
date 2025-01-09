@@ -285,6 +285,20 @@ public class EPrescription {
         return result;
     }
 
+    public void importReceipt(Context context) throws IOException, JSONException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm.ss");
+        String dateString = format.format(new Date());
+        String filename = "RZ_" + dateString.replace(":", "").replace(".", "");
+        File f = File.createTempFile(filename, ".amk");
+        String p = f.getPath();
+        FileOutputStream outputStream = new FileOutputStream(f);
+        JSONObject json = this.amkJSON();
+        byte[] encoded = Base64.encode(json.toString().getBytes(StandardCharsets.UTF_8), 0);
+        outputStream.write(encoded);
+        outputStream.close();
+        Receipt.importFromFileAndJson(context, Uri.parse(f.toURI().toString()), json);
+    }
+
     private String generatePatientUniqueID() {
         String birthdayString = "";
         SimpleDateFormat birthDateDateFormatter = new SimpleDateFormat("dd.MM.yyyy");
