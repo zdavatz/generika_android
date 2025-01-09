@@ -318,4 +318,14 @@ public class EPrescription {
             return  "";
         }
     }
+
+    private String swissKantonFromZip(Context context, String zip) throws IOException, JSONException {
+        if (context == null || zip == null) return null;
+        InputStream s = context.getAssets().open("swiss-zip-to-kanton.json");
+        StreamReader sr = new StreamReader();
+        sr.setStream(s);
+        String string = sr.read();
+        JSONObject jsonObj = new JSONObject(string);
+        return jsonObj.optString(zip);
+    }
 }
