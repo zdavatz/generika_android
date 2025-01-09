@@ -1,25 +1,30 @@
 package org.oddb.generika.barcode;
 
+import android.content.Context;
+import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.oddb.generika.model.Receipt;
+import org.oddb.generika.model.ZurRosePrescription;
 import org.oddb.generika.util.Hash;
 import org.oddb.generika.util.StreamReader;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 public class EPrescription {
@@ -297,6 +302,100 @@ public class EPrescription {
         outputStream.write(encoded);
         outputStream.close();
         Receipt.importFromFileAndJson(context, Uri.parse(f.toURI().toString()), json);
+    }
+
+    public ZurRosePrescription toZurRosePrescription(Context context) throws JSONException, IOException {
+        ZurRosePrescription prescription = new ZurRosePrescription();
+        prescription.issueDate = this.date;
+        prescription.prescriptionNr = String.format("%09d", new Random().nextInt(1000000000));
+        prescription.remark = this.rmk;
+        prescription.validity = this.valDt; // ???
+
+        prescription.user = "";
+        prescription.password = "";
+        prescription.deliveryType = ZurRosePrescription.DeliveryType.Patient;
+        prescription.ignoreInteractions = false;
+        prescription.interactionsWithOldPres = false;
+
+        ZurRosePrescription.PrescriptorAddress prescriptor = new ZurRosePrescription.PrescriptorAddress();
+        prescription.prescriptorAddress = prescriptor;
+        prescriptor.zsrId = this.zsr;
+        prescriptor.lastName = this.auth; // ???
+
+        prescriptor.langCode = 1;
+        prescriptor.clientNrClustertec = "888870";
+        prescriptor.street = "";
+        prescriptor.zipCode = "";
+        prescriptor.city = "";
+
+
+
+        ZurRosePrescription.PatientAddress patient = new ZurRosePrescription.PatientAddress();
+        prescription.patientAddress = patient;
+        patient.lastName = this.patientLastName;
+        patient.firstName = this.patientFirstName;
+        patient.street = this.patientStreet;
+        patient.city = this.patientCity;
+        patient.kanton = this.swissKantonFromZip(context, this.patientZip);
+        patient.zipCode = this.patientZip;
+        patient.birthday = this.patientBirthdate;
+        patient.sex = this.patientGender; // same, 1 = m, 2 = f
+        patient.phoneNrHome = this.patientPhone;
+        patient.email = this.patientEmail;
+        patient.email = this.patientEmail;
+        patient.langCode = this.patientLang.toLowerCase().equals("de") ? 1 : this.patientLang.toLowerCase().equals("fr") ? 2 : this.patientLang.toLowerCase().equals("it") ? 3 : 1;
+        patient.coverCardId = "";
+        patient.patientNr = "";
+
+        String insuranceEan = null;
+        for (PatientId pid : this.patientIds) {
+            if (pid.type == 1) {
+                insuranceEan = pid.value;
+            }
+        }
+
+        ArrayList<ZurRosePrescription.Product> products = new ArrayList<>();
+        for (Medicament medi : this.medicaments) {
+            ZurRosePrescription.Product product = new ZurRosePrescription.Product();
+            products.add(product);
+
+            switch (medi.idType) {
+                case 2:
+                    // GTIN
+                    product.eanId = medi.medicamentId;
+                    break;
+                case 3:
+                    // Pharmacode
+                    product.pharmacode = medi.medicamentId;
+                    break;
+            }
+            product.quantity = medi.nbPack; // ???
+            product.remark = medi.appInstr;
+            product.insuranceBillingType = 1;
+            product.insuranceEanId = insuranceEan;
+
+            boolean repetition = false;
+            ArrayList<ZurRosePrescription.Posology> poses = new ArrayList<>();
+
+            for (Posology mediPos : medi.pos) {
+                ZurRosePrescription.Posology pos = new ZurRosePrescription.Posology();
+                poses.add(pos);
+                if (!mediPos.d.isEmpty()) {
+                    pos.qtyMorning = mediPos.d.get(0);
+                    pos.qtyMidday = mediPos.d.get(1);
+                    pos.qtyEvening = mediPos.d.get(2);
+                    pos.qtyNight = mediPos.d.get(3);
+                }
+                if (mediPos.dtTo != null) {
+                    repetition = true;
+                }
+            }
+            product.repetition = repetition;
+            product.posologies = poses;
+        }
+        prescription.products = products;
+
+        return prescription;
     }
 
     private String generatePatientUniqueID() {
