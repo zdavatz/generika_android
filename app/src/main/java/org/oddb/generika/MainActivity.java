@@ -19,6 +19,7 @@ package org.oddb.generika;
 
 import android.app.ActivityOptions;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
@@ -70,16 +71,20 @@ import io.realm.RealmList;
 import io.realm.RealmResults;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.json.JSONException;
 import org.oddb.generika.barcode.BarcodeExtractor;
+import org.oddb.generika.barcode.EPrescription;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
+import org.oddb.generika.model.ZurRosePrescription;
 import org.oddb.generika.network.ProductInfoFetcher;
 import org.oddb.generika.ui.MessageDialog;
 import org.oddb.generika.ui.list.GenerikaListAdapter;
@@ -641,12 +646,12 @@ public class MainActivity extends BaseActivity implements
           int length = value.length();
 
           Product.Barcode barcode_ = null;
-          if (length == 13) { // EAN 13
+          if (barcode.format == Barcode.EAN_13 && length == 13) { // EAN 13
             Log.d(TAG, "(onActivityResult/EAN-13) barcode: " + value);
             barcode_ = new Product.Barcode();
             barcode_.setValue(value);
             barcode_.setFilepath(filepath);
-          } else { // GS1 DataMatrix (GTIN)
+          } else if (barcode.format == Barcode.DATA_MATRIX) { // GS1 DataMatrix (GTIN)
             HashMap<String, String> result = BarcodeExtractor.extract(value);
             Log.d(TAG, "(onActivityResult/GS1 DataMatrix) result: " + result);
             String gtin = result.get(Constant.GS1_DM_AI_GTIN);
@@ -655,6 +660,48 @@ public class MainActivity extends BaseActivity implements
               barcode_ = new Product.Barcode(result);
               barcode_.setFilepath(filepath);
             }
+          } else if (barcode.format == Barcode.QR_CODE) {
+            File file = new File(filepath);
+            if (file.exists()) {
+              file.delete();
+            }
+            try {
+              EPrescription e = new EPrescription(barcode.rawValue);
+              e.importReceipt(this);
+              ZurRosePrescription zp = e.toZurRosePrescription(this);
+              Context context = this;
+              new AlertDialog.Builder(this).setTitle(R.string.do_you_want_to_send_to_zurrose)
+                      .setNegativeButton(R.string.cancel, null)
+                      .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                          Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                              try {
+                                String xmlStr = zp.toXML().asXML();
+                                Log.d(TAG, "ok " + xmlStr);
+                                int result = zp.sendToZurRose(context);
+                                String message = result == 200 ? context.getString(R.string.sent_to_zurrose) : context.getString(R.string.error_code) + result;
+                                String title = result == 200 ? "" : context.getString(R.string.error);
+                                runOnUiThread(new Runnable() {
+                                  @Override
+                                  public void run() {
+                                    alertDialog(title, message);
+                                  }
+                                });
+                              } catch (Exception e) {
+                                e.printStackTrace();
+                              }
+                            }
+                          });
+                          thread.start();
+                        }
+                      })
+                      .show();
+            } catch (Exception ex) {
+              throw new RuntimeException(ex);
+            }
+              return;
           }
           if (barcode_ != null) {
             dataManager.addProduct(barcode_);

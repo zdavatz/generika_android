@@ -34,7 +34,9 @@ play.store
 privateKeyGenerika.store
 run_emulator
 server.p12
+client.p12
 upload_cert.der
 upload_certificate.pem
 upload_certificate_1.pem
 generika.json
+/app/src/main/java/org/oddb/generika/util/Secrets.java

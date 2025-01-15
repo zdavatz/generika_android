@@ -101,4 +101,8 @@
       Kein .amk File gefunden</string>
     <string name="invalid_barcode_found">
       Kein gültiger Barcode gefunden. Bitte nochmals versuchen:\n%s</string>
+    <string name="do_you_want_to_send_to_zurrose">Senden an ZurRose?</string>
+    <string name="error">Fehler</string>
+    <string name="error_code">Fehler Code:</string>
+    <string name="sent_to_zurrose">Rezept wurde an ZurRose übermittelt.</string>
 </resources>

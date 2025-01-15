@@ -166,7 +166,7 @@ public final class BarcodeCaptureActivity extends BaseActivity implements
     // https://developers.google.com/android/reference/com/google/android/\
     //   gms/vision/barcode/Barcode
     BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context)
-      .setBarcodeFormats(Barcode.EAN_13 | Barcode.DATA_MATRIX)
+      .setBarcodeFormats(Barcode.EAN_13 | Barcode.DATA_MATRIX | Barcode.QR_CODE)
       .build();
     // wrap barcode detector to capture image
     BarcodeImageCapturingDetector detector = new BarcodeImageCapturingDetector(

@@ -23,6 +23,13 @@ import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.oddb.generika.ImporterActivity;
+import org.oddb.generika.R;
+import org.oddb.generika.data.DataManager;
+import org.oddb.generika.util.Constant;
+
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
@@ -87,6 +94,58 @@ public class Receipt extends RealmObject implements Retryable {
 
   public static void withRetry(final int limit, WithRetry f) {
     Retryable.withRetry(limit, f);
+  }
+
+  public static void importFromFileAndJson(Context context, Uri uri, JSONObject json) {
+    try {
+      // .amk (original file)
+      Receipt.Amkfile amkfile = new Receipt.Amkfile(context, uri);
+      String filename = amkfile.getOriginalName();
+      Log.d(TAG, "(importJSON) filename: " + filename);
+
+      String hashedKey = json.getString("prescription_hash");
+
+      // operator
+      Operator operator = Operator.newInstanceFromJSON(
+              json.getJSONObject("operator"));
+
+      // patient
+      Patient patient = Patient.newInstanceFromJSON(
+              json.getJSONObject("patient"));
+
+      // medications
+      JSONArray medicationArray = json.getJSONArray("medications");
+      int count = medicationArray.length();
+      Product[] medications = new Product[count];
+      for (int i = 0; i < count; i++) {
+        JSONObject medication = medicationArray.getJSONObject(i);
+        medications[i] = Product.newInstanceFromJSON(medication);
+      }
+
+      // save original .amk file
+      amkfile.setContent(json.toString());
+      String filepath = amkfile.getPath();
+      Log.d(TAG, "(importJSON) .amk local filepath: " + filepath);
+
+      boolean saved = amkfile.save();
+      Log.d(TAG, "(importJSON) saved: " + saved);
+      if (!saved) {
+        // TODO
+      }
+
+      Receipt receipt = new Receipt();
+      receipt.setHashedKey(hashedKey);
+      receipt.setPlaceDate(json.getString("place_date"));
+      receipt.setFilepath(filepath);
+      receipt.setFilename(filename);
+
+      DataManager dataManager = new DataManager(Constant.SOURCE_TYPE_AMKJSON);
+      dataManager.addReceipt(receipt, operator, patient, medications);
+    } catch (Exception e) {
+      Log.d(TAG, "(importJSON) exception: " + e.getMessage());
+      Log.d(TAG, "(importJSON) " + Log.getStackTraceString(e));
+    }
+
   }
 
   public static class Amkfile {

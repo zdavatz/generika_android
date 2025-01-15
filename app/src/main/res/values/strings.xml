@@ -119,4 +119,8 @@
       No .amk File was found.</string>
     <string name="invalid_barcode_found">
       Invalid barcode has been detected, please try again:\n%s</string>
+    <string name="do_you_want_to_send_to_zurrose">Do you want to send to ZurRose?</string>
+    <string name="error">Error</string>
+    <string name="error_code">Error Code:</string>
+    <string name="sent_to_zurrose">Prescription is sent to ZurRose.</string>
 </resources>

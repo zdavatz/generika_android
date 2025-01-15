@@ -166,10 +166,13 @@ public class ReceiptActivity extends BaseActivity {
     // signature
     ImageView signature = (ImageView)findViewById(
       R.id.receipt_view_operator_signature);
-    byte[] bytes = Base64.decode(operator.getSignature(), Base64.DEFAULT);
-    GlideApp.with(context)
-      .load(bytes)
-      .into(signature);
+    String base64Str = operator.getSignature();
+    if (base64Str != null) {
+      byte[] bytes = Base64.decode(base64Str, Base64.DEFAULT);
+      GlideApp.with(context)
+              .load(bytes)
+              .into(signature);
+    }
   }
 
   private void fillPatientFields(Patient patient) {
