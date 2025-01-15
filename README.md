@@ -53,11 +53,15 @@ https://wiki.gentoo.org/wiki/Android
 
 #### Play Service (Vision API)
 
-It's automatically prepared before initial boot on device.  
+It's automatically prepared before initial boot on device.
 This application is needed.
 
 https://play.google.com/store/apps/details?id=com.google.android.gms&hl=en
 
+### ZurRose Credentials
+
+- Copy the client cert to `/app/src/main/assets/client.p12`.
+- Copy `/app/src/main/java/org/oddb/generika/util/Secrets.java.sample` to `Secrets.java` and fill in the password for the p12 file.
 
 ### Build
 
@@ -96,7 +100,7 @@ Pixel_2_XL_API_26
 % make run ARGS="-avd Nexus_5_API_27"
 ```
 
-For example, build-run-stop (cycle) will be like this:  
+For example, build-run-stop (cycle) will be like this:
 (at console, run an emulator on X11 DISPLAY)
 
 ```zsh
