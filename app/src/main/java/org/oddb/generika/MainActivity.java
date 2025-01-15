@@ -83,6 +83,7 @@ import org.oddb.generika.barcode.EPrescription;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
+import org.oddb.generika.model.ZurRosePrescription;
 import org.oddb.generika.network.ProductInfoFetcher;
 import org.oddb.generika.ui.MessageDialog;
 import org.oddb.generika.ui.list.GenerikaListAdapter;
@@ -666,11 +667,23 @@ public class MainActivity extends BaseActivity implements
               try {
                   EPrescription e = new EPrescription(barcode.rawValue);
                   e.importReceipt(this);
-                  String xmlStr = e.toZurRosePrescription(this).toXML().asXML();
+                  ZurRosePrescription zp = e.toZurRosePrescription(this);
+                  String xmlStr = zp.toXML().asXML();
                   Log.d(TAG, "ok " + xmlStr);
-              } catch (IOException ex) {
-                  throw new RuntimeException(ex);
-              } catch (JSONException ex) {
+                  Context context = this;
+                Thread thread = new Thread(new Runnable() {
+
+                  @Override
+                  public void run() {
+                    try {
+                      zp.sendToZurRose(context);
+                    } catch (Exception e) {
+                      e.printStackTrace();
+                    }
+                  }
+                });
+                thread.start();
+              } catch (Exception ex) {
                   throw new RuntimeException(ex);
               }
               return;

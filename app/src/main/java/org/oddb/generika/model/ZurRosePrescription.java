@@ -1,13 +1,35 @@
 package org.oddb.generika.model;
 
+import android.content.Context;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.oddb.generika.barcode.EPrescription;
+import org.oddb.generika.util.StreamReader;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 public class ZurRosePrescription {
     public static class Address {
@@ -106,7 +128,7 @@ public class ZurRosePrescription {
         public String eanId; // optional
 
         void toXML(Element parent) {
-            Element e = parent.addElement("patientAddress");
+            Element e = parent.addElement("prescriptorAddress");
             super.writeBodyToXMLElement(e);
             e.addAttribute("langCode", String.valueOf(this.langCode));
             e.addAttribute("clientNrClustertec", this.clientNrClustertec);
@@ -324,5 +346,57 @@ public class ZurRosePrescription {
             product.toXML(root);
         }
         return document;
+    }
+
+    public void sendToZurRose(Context context) throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        /*** CA Certificate ***/
+
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        InputStream caInput = context.getAssets().open("estudio-zur-rose-ch.pem");
+        Certificate ca = cf.generateCertificate(caInput);
+        System.out.println("ca=" + ((X509Certificate) ca).getSubjectDN());
+
+        // Create a KeyStore containing our trusted CAs
+        String keyStoreType = KeyStore.getDefaultType();
+        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+        keyStore.load(null, null);
+        keyStore.setCertificateEntry("ca", ca);
+        System.out.println(keyStoreType);
+
+        // Create a TrustManager that trusts the CAs in our KeyStore
+        String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+        tmf.init(keyStore);
+
+        /*** Client Certificate ***/
+
+        KeyStore keyStore12 = KeyStore.getInstance("PKCS12");
+        InputStream certInput12 = context.getAssets().open("client.p12");
+        keyStore12.load(certInput12, "zurrose".toCharArray());
+
+        // Create a KeyManager that uses our client cert
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509");
+        kmf.init(keyStore12, "zurrose".toCharArray());
+
+
+        /*** SSL Connection ***/
+
+        // Create an SSLContext that uses our TrustManager and our KeyManager
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
+
+        URL url = new URL("https://estudio.zur-rose.ch/estudio/prescriptioncert");
+        HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+        urlConnection.setRequestMethod("POST");
+        urlConnection.setRequestProperty("Content-Type", "application/xml");
+        urlConnection.setSSLSocketFactory(sslContext.getSocketFactory());
+        urlConnection.setDoOutput(true);
+        urlConnection.getOutputStream().write(this.toXML().asXML().getBytes(StandardCharsets.UTF_8));
+
+        InputStream in = urlConnection.getInputStream();
+        StreamReader sr = new StreamReader();
+        sr.setStream(in);
+        String output = sr.read();
+        int code = urlConnection.getResponseCode();
     }
 }
