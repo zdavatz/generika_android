@@ -101,4 +101,8 @@
       Fichier .amk n\'est pas valide.</string>
     <string name="invalid_barcode_found">
       Barcode invalid. Essayer encore une fois s.v.p.:\n%s</string>
+    <string name="do_you_want_to_send_to_zurrose">Envoyer à ZurRose?</string>
+    <string name="error">Erreur</string>
+    <string name="error_code">Erreur Code:</string>
+    <string name="sent_to_zurrose">La recette a été envoyée à ZurRose.</string>
 </resources>

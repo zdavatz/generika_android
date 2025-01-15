@@ -19,6 +19,7 @@ package org.oddb.generika;
 
 import android.app.ActivityOptions;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
@@ -664,28 +665,42 @@ public class MainActivity extends BaseActivity implements
             if (file.exists()) {
               file.delete();
             }
-              try {
-                  EPrescription e = new EPrescription(barcode.rawValue);
-                  e.importReceipt(this);
-                  ZurRosePrescription zp = e.toZurRosePrescription(this);
-                  String xmlStr = zp.toXML().asXML();
-                  Log.d(TAG, "ok " + xmlStr);
-                  Context context = this;
-                Thread thread = new Thread(new Runnable() {
-
-                  @Override
-                  public void run() {
-                    try {
-                      zp.sendToZurRose(context);
-                    } catch (Exception e) {
-                      e.printStackTrace();
-                    }
-                  }
-                });
-                thread.start();
-              } catch (Exception ex) {
-                  throw new RuntimeException(ex);
-              }
+            try {
+              EPrescription e = new EPrescription(barcode.rawValue);
+              e.importReceipt(this);
+              ZurRosePrescription zp = e.toZurRosePrescription(this);
+              Context context = this;
+              new AlertDialog.Builder(this).setTitle(R.string.do_you_want_to_send_to_zurrose)
+                      .setNegativeButton(R.string.cancel, null)
+                      .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                          Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                              try {
+                                String xmlStr = zp.toXML().asXML();
+                                Log.d(TAG, "ok " + xmlStr);
+                                int result = zp.sendToZurRose(context);
+                                String message = result == 200 ? context.getString(R.string.sent_to_zurrose) : context.getString(R.string.error_code) + result;
+                                String title = result == 200 ? "" : context.getString(R.string.error);
+                                runOnUiThread(new Runnable() {
+                                  @Override
+                                  public void run() {
+                                    alertDialog(title, message);
+                                  }
+                                });
+                              } catch (Exception e) {
+                                e.printStackTrace();
+                              }
+                            }
+                          });
+                          thread.start();
+                        }
+                      })
+                      .show();
+            } catch (Exception ex) {
+              throw new RuntimeException(ex);
+            }
               return;
           }
           if (barcode_ != null) {

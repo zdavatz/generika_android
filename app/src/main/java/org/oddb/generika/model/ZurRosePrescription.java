@@ -348,7 +348,7 @@ public class ZurRosePrescription {
         return document;
     }
 
-    public void sendToZurRose(Context context) throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+    public int sendToZurRose(Context context) throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
         /*** CA Certificate ***/
 
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -396,7 +396,8 @@ public class ZurRosePrescription {
         InputStream in = urlConnection.getInputStream();
         StreamReader sr = new StreamReader();
         sr.setStream(in);
-        String output = sr.read();
+//        String output = sr.read();
         int code = urlConnection.getResponseCode();
+        return code;
     }
 }
