@@ -328,7 +328,17 @@ public class EPrescription {
         prescriptor.zipCode = "";
         prescriptor.city = "";
 
-
+        String insuranceEan = null;
+        String coverCardId = null;
+        for (PatientId pid : this.patientIds) {
+            if (pid.type == 1) {
+                if (pid.value.length() == 13) {
+                    insuranceEan = pid.value;
+                } else if (pid.value.length() == 20 || pid.value.contains(".")) {
+                    coverCardId = pid.value;
+                }
+            }
+        }
 
         ZurRosePrescription.PatientAddress patient = new ZurRosePrescription.PatientAddress();
         prescription.patientAddress = patient;
@@ -344,15 +354,8 @@ public class EPrescription {
         patient.email = this.patientEmail;
         patient.email = this.patientEmail;
         patient.langCode = this.patientLang.toLowerCase().equals("de") ? 1 : this.patientLang.toLowerCase().equals("fr") ? 2 : this.patientLang.toLowerCase().equals("it") ? 3 : 1;
-        patient.coverCardId = "";
-
-        String insuranceEan = null;
-        for (PatientId pid : this.patientIds) {
-            if (pid.type == 1) {
-                insuranceEan = pid.value;
-            }
-        }
         patient.patientNr = "0";
+        patient.coverCardId = coverCardId != null ? coverCardId : "";
 
         ArrayList<ZurRosePrescription.Product> products = new ArrayList<>();
         for (Medicament medi : this.medicaments) {
