@@ -345,7 +345,6 @@ public class EPrescription {
         patient.email = this.patientEmail;
         patient.langCode = this.patientLang.toLowerCase().equals("de") ? 1 : this.patientLang.toLowerCase().equals("fr") ? 2 : this.patientLang.toLowerCase().equals("it") ? 3 : 1;
         patient.coverCardId = "";
-        patient.patientNr = "";
 
         String insuranceEan = null;
         for (PatientId pid : this.patientIds) {
@@ -353,6 +352,7 @@ public class EPrescription {
                 insuranceEan = pid.value;
             }
         }
+        patient.patientNr = "0";
 
         ArrayList<ZurRosePrescription.Product> products = new ArrayList<>();
         for (Medicament medi : this.medicaments) {

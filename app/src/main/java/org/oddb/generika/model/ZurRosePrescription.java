@@ -265,9 +265,7 @@ public class ZurRosePrescription {
 
             Element insurance = e.addElement("insurance");
 
-            if (this.insuranceEanId != null) {
-                insurance.addAttribute("eanId", this.insuranceEanId);
-            }
+            insurance.addAttribute("eanId", this.insuranceEanId != null ? this.insuranceEanId : "1");
             if (this.insuranceBsvNr != null) {
                 insurance.addAttribute("bsvNr", this.insuranceBsvNr);
             }
