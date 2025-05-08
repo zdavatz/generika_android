@@ -43,6 +43,9 @@ public class Constant extends Object {
   public final static String kSearchLang = "kSearchLang";
   public final static String kAppUseSystemLocale = "kAppUseSystemLocale";
   public final static String kAppLocale = "kAppLocale";
+  public final static String kProfileGLN = "kProfileGLN";
+  public final static String kProfileZSR = "kProfileZSR";
+  public final static String kProfileZrCustomerNumber = "kProfileZrCustomerNumber";
   // TODO: enable cloud storage support
   //private final static String kRecordSync = "kRecordSync";
   // -- preference values (see also user_settings.xml)

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AppEditTextPreference">
+        <attr name="validationFormat" format="string"/>
+        <attr name="validationMessage" format="string"/>
+    </declare-styleable>
+</resources>

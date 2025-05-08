@@ -105,4 +105,8 @@
     <string name="error">Erreur</string>
     <string name="error_code">Erreur Code:</string>
     <string name="sent_to_zurrose">La recette a été envoyée à ZurRose.</string>
+
+    <string name="preference_invalid_value">La valeur n\'est pas valide</string>
+    <string name="preference_invalid_gln">Le GLN doit être un numéro à 13 chiffres</string>
+    <string name="preference_zr_customer_number">zR Numéro de client</string>
 </resources>
