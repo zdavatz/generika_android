@@ -666,7 +666,7 @@ public class MainActivity extends BaseActivity implements
               file.delete();
             }
             try {
-              EPrescription e = new EPrescription(barcode.rawValue);
+              EPrescription e = new EPrescription(this, barcode.rawValue);
               e.importReceipt(this);
               ZurRosePrescription zp = e.toZurRosePrescription(this);
               Context context = this;

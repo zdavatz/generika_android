@@ -1,15 +1,19 @@
 package org.oddb.generika.barcode;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
+
+import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.oddb.generika.model.Receipt;
 import org.oddb.generika.model.ZurRosePrescription;
+import org.oddb.generika.util.Constant;
 import org.oddb.generika.util.Hash;
 import org.oddb.generika.util.StreamReader;
 
@@ -29,6 +33,7 @@ import java.util.zip.GZIPInputStream;
 
 public class EPrescription {
     private final static String TAG = "EPrescription";
+    private SharedPreferences sharedPreferences;
 
     class PatientId {
         int type;
@@ -89,7 +94,8 @@ public class EPrescription {
     ArrayList<PField> patientPFields;
 
     ArrayList<Medicament> medicaments;
-    public EPrescription(String qrCodeString) throws IllegalArgumentException, IOException, JSONException {
+    public EPrescription(Context context, String qrCodeString) throws IllegalArgumentException, IOException, JSONException {
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         if (qrCodeString.startsWith("https://eprescription.hin.ch")) {
             int sharpIndex = qrCodeString.indexOf("#");
             qrCodeString = qrCodeString.substring(sharpIndex + 1);
@@ -114,7 +120,8 @@ public class EPrescription {
         this.date = this.parseDateString(obj.optString("Dt"));
         this.prescriptionId = obj.optString("Id", "");
         this.medType = obj.optInt("MedType", 3); // Default 3 = Prescription
-        this.zsr = obj.optString("Zsr", "");
+        String savedZsr = this.sharedPreferences.getString(Constant.kProfileZSR, "");
+        this.zsr = !savedZsr.isEmpty() ? savedZsr : obj.optString("Zsr", "");
         this.rmk = obj.optString("rmk", "");
 
         ArrayList<PField> pfs = new ArrayList<>();
@@ -323,12 +330,24 @@ public class EPrescription {
         prescriptor.lastName = this.auth; // ???
 
         prescriptor.langCode = 1;
-        prescriptor.clientNrClustertec = "888870";
+        String savedZrCustomer = this.sharedPreferences.getString(Constant.kProfileZrCustomerNumber, "");
+        prescriptor.clientNrClustertec = !savedZrCustomer.isEmpty() ? savedZrCustomer : "888870";
         prescriptor.street = "";
         prescriptor.zipCode = "";
         prescriptor.city = "";
+        prescriptor.eanId = this.sharedPreferences.getString(Constant.kProfileGLN, "");
 
-
+        String insuranceEan = null;
+        String coverCardId = null;
+        for (PatientId pid : this.patientIds) {
+            if (pid.type == 1) {
+                if (pid.value.length() == 13) {
+                    insuranceEan = pid.value;
+                } else if (pid.value.length() == 20 || pid.value.contains(".")) {
+                    coverCardId = pid.value;
+                }
+            }
+        }
 
         ZurRosePrescription.PatientAddress patient = new ZurRosePrescription.PatientAddress();
         prescription.patientAddress = patient;
@@ -344,15 +363,8 @@ public class EPrescription {
         patient.email = this.patientEmail;
         patient.email = this.patientEmail;
         patient.langCode = this.patientLang.toLowerCase().equals("de") ? 1 : this.patientLang.toLowerCase().equals("fr") ? 2 : this.patientLang.toLowerCase().equals("it") ? 3 : 1;
-        patient.coverCardId = "";
-        patient.patientNr = "";
-
-        String insuranceEan = null;
-        for (PatientId pid : this.patientIds) {
-            if (pid.type == 1) {
-                insuranceEan = pid.value;
-            }
-        }
+        patient.patientNr = "0";
+        patient.coverCardId = coverCardId != null ? coverCardId : "";
 
         ArrayList<ZurRosePrescription.Product> products = new ArrayList<>();
         for (Medicament medi : this.medicaments) {

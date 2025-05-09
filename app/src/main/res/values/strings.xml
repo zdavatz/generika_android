@@ -123,4 +123,8 @@
     <string name="error">Error</string>
     <string name="error_code">Error Code:</string>
     <string name="sent_to_zurrose">Prescription is sent to ZurRose.</string>
+
+    <string name="preference_invalid_value">The value is invalid</string>
+    <string name="preference_invalid_gln">GLN has to be a 13 digit number</string>
+    <string name="preference_zr_customer_number">ZR Customer Number</string>
 </resources>

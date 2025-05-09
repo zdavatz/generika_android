@@ -105,4 +105,8 @@
     <string name="error">Fehler</string>
     <string name="error_code">Fehler Code:</string>
     <string name="sent_to_zurrose">Rezept wurde an ZurRose übermittelt.</string>
+
+    <string name="preference_invalid_value">Der Wert ist ungültig</string>
+    <string name="preference_invalid_gln">Die GLN muss eine 13-stellige Nummer sein.</string>
+    <string name="preference_zr_customer_number">zR Kundennummer</string>
 </resources>
