@@ -4,7 +4,6 @@ buildscript {
    * jcenter repository.
    */
   repositories {
-    jcenter()
     google()
     mavenCentral()
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
