@@ -40,3 +40,4 @@ upload_certificate.pem
 upload_certificate_1.pem
 generika.json
 /app/src/main/java/org/oddb/generika/util/Secrets.java
+app/src/main/assets/amiko_db_full_idx_pinfo_de.db

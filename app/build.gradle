@@ -19,8 +19,13 @@ buildscript {
   }
 }
 
+plugins {
+    id "de.undercouch.download" version "5.5.0"
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
+apply plugin: 'de.undercouch.download'
 
 android {
   signingConfigs {
@@ -29,6 +34,10 @@ android {
   namespace "org.oddb.generika"
 
   compileSdkVersion 34
+
+  buildFeatures {
+    buildConfig = true
+  }
 
   defaultConfig {
     applicationId "org.oddb.generika"
@@ -42,6 +51,8 @@ android {
 
     // junit4
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
   }
 
   // https://google.github.io/android-gradle-dsl/current/ \
@@ -84,12 +95,29 @@ android {
       includeAndroidResources = true
     }
   }
+
+  task downloadAmikoDB(type: Download) {
+    src "http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db"
+    dest rootProject.layout.projectDirectory.file("app/src/main/assets/amiko_db_full_idx_pinfo_de.db")
+    overwrite true
+    useETag true
+  }
 }
 
 tasks.withType(Test) {
   testLogging {
     events "standardOut", "started", "passed", "skipped", "failed"
   }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == "mergeDebugAssets" ||
+            task.name == "mergeReleaseAssets" ||
+            task.name == "generateDebugResources" ||
+            task.name == "generateReleaseResources"
+    ) {
+        task.dependsOn downloadAmikoDB
+    }
 }
 
 dependencies {
