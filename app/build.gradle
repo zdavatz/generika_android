@@ -33,7 +33,7 @@ android {
   }
   namespace "org.oddb.generika"
 
-  compileSdkVersion 34
+  compileSdkVersion 36
 
   buildFeatures {
     buildConfig = true
@@ -45,9 +45,8 @@ android {
 
     versionName "1.0.62"
 
-    // Android 6.0 - 8.1
-    minSdkVersion 23
-    targetSdkVersion 34
+    minSdkVersion 34
+    targetSdkVersion 36
 
     // junit4
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

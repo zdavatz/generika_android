@@ -217,7 +217,7 @@ public class MainActivity extends BaseActivity implements
     } else {
       searchBox.setHint(context.getString(R.string.product_search_box_hint));
     }
-    actionButton.setVisibility(View.VISIBLE);
+    actionButton.show();
   }
 
   @Override
@@ -234,6 +234,7 @@ public class MainActivity extends BaseActivity implements
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
+      super.onSaveInstanceState(outState);
     Log.d(TAG, "(onSaveInstanceState) outState: " + outState);
     // Do nothing here. Because `super.onSaveInstanceState(outState)` is going
     // to be a problem for alert dialog (fragment) on >= 8.0
@@ -351,7 +352,7 @@ public class MainActivity extends BaseActivity implements
 
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          actionButton.setVisibility(View.VISIBLE);
+          actionButton.show();
 
           String name = getResources().getResourceEntryName(
             menuItem.getItemId());
@@ -522,7 +523,7 @@ public class MainActivity extends BaseActivity implements
             (actionId == EditorInfo.IME_ACTION_DONE)) { // 6
           searchBox.setCursorVisible(false);
           searchBox.clearFocus();
-          actionButton.setVisibility(View.VISIBLE);
+          actionButton.show();
         }
         return false;
       }
@@ -535,7 +536,7 @@ public class MainActivity extends BaseActivity implements
         InputMethodManager keyboard = (InputMethodManager)(context)
           .getSystemService(Context.INPUT_METHOD_SERVICE);
         if (focused) {
-          actionButton.setVisibility(View.GONE);
+          actionButton.hide();
           searchBox.setCursorVisible(true);
           keyboard.showSoftInput(searchBox, 0);
         } else {
@@ -576,7 +577,7 @@ public class MainActivity extends BaseActivity implements
                     !searchBox.isCursorVisible()) {
                   // focused, but cursor and button visibility is not back
                   searchBox.setCursorVisible(true);
-                  actionButton.setVisibility(View.GONE);
+                  actionButton.hide();
                 }
               } else {
                 // Log.d(TAG, "(onGlobalLayout) keyboard: hidden");
@@ -585,7 +586,7 @@ public class MainActivity extends BaseActivity implements
                     searchBox.isCursorVisible()) {
                   // focus is remained, button is not back
                   searchBox.clearFocus();
-                  actionButton.setVisibility(View.VISIBLE);
+                  actionButton.show();
                 }
               }
             }
