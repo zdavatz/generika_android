@@ -23,9 +23,18 @@ import android.view.MenuItem;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.view.View;
 import android.widget.TextView;
+
+import com.google.android.material.appbar.AppBarLayout;
 
 import org.oddb.generika.util.Constant;
 
@@ -62,6 +71,25 @@ public class InformationActivity extends BaseActivity {
     }
     textView.setMovementMethod(LinkMovementMethod.getInstance());
     textView.setLinksClickable(true);
+
+      View coordinator = findViewById(R.id.coordinator);
+      ViewCompat.setOnApplyWindowInsetsListener(coordinator, (v, insets) -> {
+          Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+          // Remove the top padding from the root view so AppBarLayout can go to the top
+          v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
+          return insets;
+      });
+
+      // Handle top padding for the AppBarLayout specifically
+      AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout); // Ensure you have an ID in XML
+      ViewCompat.setOnApplyWindowInsetsListener(appBarLayout, (v, insets) -> {
+          Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+          v.setPadding(0, systemBars.top, 0, 0);
+          return insets;
+      });
+
+      WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+      controller.setAppearanceLightStatusBars(true);
   }
 
   @Override
