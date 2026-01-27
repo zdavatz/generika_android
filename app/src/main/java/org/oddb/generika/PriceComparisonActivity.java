@@ -4,9 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
@@ -29,7 +27,6 @@ import java.util.List;
 public class PriceComparisonActivity extends AppCompatActivity {
     public static final String EXTRA_GTIN = "gtin";
 
-    private ListView listView;
     private List<AmikoDBPriceComparison> comparisons;
 
     @Override
@@ -45,8 +42,6 @@ public class PriceComparisonActivity extends AppCompatActivity {
             actionBar.setTitle(R.string.price_comparison);
         }
 
-        listView = findViewById(R.id.comparison_list);
-
         String gtin = getIntent().getStringExtra(EXTRA_GTIN);
         if (gtin != null) {
             AmikoDBManager manager = AmikoDBManager.getInstance(this);
@@ -57,8 +52,7 @@ public class PriceComparisonActivity extends AppCompatActivity {
             comparisons = new ArrayList<>();
         }
 
-        ComparisonAdapter adapter = new ComparisonAdapter(comparisons);
-        listView.setAdapter(adapter);
+        populateTable(comparisons);
 
         View coordinator = findViewById(R.id.coordinator);
         ViewCompat.setOnApplyWindowInsetsListener(coordinator, (v, insets) -> {
@@ -69,7 +63,7 @@ public class PriceComparisonActivity extends AppCompatActivity {
         });
 
         // Handle top padding for the AppBarLayout specifically
-        AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout); // Ensure you have an ID in XML
+        AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout);
         ViewCompat.setOnApplyWindowInsetsListener(appBarLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(0, systemBars.top, 0, 0);
@@ -77,7 +71,42 @@ public class PriceComparisonActivity extends AppCompatActivity {
         });
 
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        controller.setAppearanceLightStatusBars(true);
+        if (controller != null) {
+            controller.setAppearanceLightStatusBars(true);
+        }
+    }
+
+    private void populateTable(List<AmikoDBPriceComparison> data) {
+        TableLayout table = findViewById(R.id.comparison_table);
+        table.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        int rowCount = 0;
+        for (AmikoDBPriceComparison comparison : data) {
+            addRow(table, inflater, "", "", rowCount++);
+            addRow(table, inflater, "Präparat", comparison.package_.name, rowCount++);
+            addRow(table, inflater, "Zulassungsinhaber", comparison.package_.parent.auth, rowCount++);
+            addRow(table, inflater, "Packungsgrösse", comparison.package_.dosage + " " + comparison.package_.units, rowCount++);
+            addRow(table, inflater, "PP", comparison.package_.pp, rowCount++);
+            addRow(table, inflater, "% (Preisunterschied in Prozent)", String.valueOf((int) Math.floor(comparison.priceDifferenceInPercentage)), rowCount++);
+            addRow(table, inflater, "SB", comparison.package_.selbstbehalt(), rowCount++);
+        }
+    }
+
+    private void addRow(TableLayout table, LayoutInflater inflater, String labelText, String valueText, int position) {
+        View rowView = inflater.inflate(R.layout.item_price_comparison_row, table, false);
+        TextView label = rowView.findViewById(R.id.label);
+        TextView value = rowView.findViewById(R.id.value);
+
+        label.setText(labelText);
+        value.setText(valueText);
+
+        if (position % 7 == 0) {
+            rowView.setBackgroundColor(0xFFEEEEEE);
+        } else {
+            rowView.setBackgroundColor(0x00000000);
+        }
+        table.addView(rowView);
     }
 
     @Override
@@ -87,69 +116,5 @@ public class PriceComparisonActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private class ComparisonAdapter extends BaseAdapter {
-        private List<RowData> flattenedData;
-
-        public ComparisonAdapter(List<AmikoDBPriceComparison> data) {
-            flattenedData = new ArrayList<>();
-            for (AmikoDBPriceComparison comparison : data) {
-                flattenedData.add(new RowData("", ""));
-                flattenedData.add(new RowData("Präparat", comparison.package_.name));
-                flattenedData.add(new RowData("Zulassungsinhaber", comparison.package_.parent.auth));
-                flattenedData.add(new RowData("Packungsgrösse", comparison.package_.dosage + " " + comparison.package_.units));
-                flattenedData.add(new RowData("PP", comparison.package_.pp));
-                flattenedData.add(new RowData("% (Preisunterschied in Prozent)", String.valueOf((int) Math.floor(comparison.priceDifferenceInPercentage))));
-                flattenedData.add(new RowData("SB", comparison.package_.selbstbehalt()));
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return flattenedData.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return flattenedData.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_price_comparison_row, parent, false);
-            }
-
-            RowData row = flattenedData.get(position);
-            TextView label = convertView.findViewById(R.id.label);
-            TextView value = convertView.findViewById(R.id.value);
-
-            label.setText(row.label);
-            value.setText(row.value);
-
-            if (position % 7 == 0) {
-                convertView.setBackgroundColor(0xFFEEEEEE);
-            } else {
-                convertView.setBackgroundColor(0x00000000);
-            }
-
-            return convertView;
-        }
-    }
-
-    private static class RowData {
-        String label;
-        String value;
-
-        RowData(String label, String value) {
-            this.label = label;
-            this.value = value != null ? value : "";
-        }
     }
 }
