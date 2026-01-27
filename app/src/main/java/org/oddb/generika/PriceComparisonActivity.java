@@ -1,5 +1,6 @@
 package org.oddb.generika;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -57,12 +58,10 @@ public class PriceComparisonActivity extends AppCompatActivity {
         View coordinator = findViewById(R.id.coordinator);
         ViewCompat.setOnApplyWindowInsetsListener(coordinator, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // Remove the top padding from the root view so AppBarLayout can go to the top
             v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Handle top padding for the AppBarLayout specifically
         AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout);
         ViewCompat.setOnApplyWindowInsetsListener(appBarLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -81,19 +80,63 @@ public class PriceComparisonActivity extends AppCompatActivity {
         table.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        int rowCount = 0;
-        for (AmikoDBPriceComparison comparison : data) {
-            addRow(table, inflater, "", "", rowCount++);
-            addRow(table, inflater, "Präparat", comparison.package_.name, rowCount++);
-            addRow(table, inflater, "Zulassungsinhaber", comparison.package_.parent.auth, rowCount++);
-            addRow(table, inflater, "Packungsgrösse", comparison.package_.dosage + " " + comparison.package_.units, rowCount++);
-            addRow(table, inflater, "PP", comparison.package_.pp, rowCount++);
-            addRow(table, inflater, "% (Preisunterschied in Prozent)", String.valueOf((int) Math.floor(comparison.priceDifferenceInPercentage)), rowCount++);
-            addRow(table, inflater, "SB", comparison.package_.selbstbehalt(), rowCount++);
+        boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+
+        if (isLandscape) {
+            addHeaderRowLand(table, inflater);
+            int rowCount = 0;
+            for (AmikoDBPriceComparison comparison : data) {
+                addRowLand(table, inflater, comparison, rowCount++);
+            }
+        } else {
+            int rowCount = 0;
+            for (AmikoDBPriceComparison comparison : data) {
+                addRowPortrait(table, inflater, "", "", rowCount++);
+                addRowPortrait(table, inflater, "Präparat", comparison.package_.name, rowCount++);
+                addRowPortrait(table, inflater, "Zulassungsinhaber", comparison.package_.parent.auth, rowCount++);
+                addRowPortrait(table, inflater, "Packungsgrösse", comparison.package_.dosage + " " + comparison.package_.units, rowCount++);
+                addRowPortrait(table, inflater, "PP", comparison.package_.pp, rowCount++);
+                addRowPortrait(table, inflater, "% (Preisunterschied in Prozent)", String.valueOf((int) Math.floor(comparison.priceDifferenceInPercentage)), rowCount++);
+                addRowPortrait(table, inflater, "SB", comparison.package_.selbstbehalt(), rowCount++);
+            }
         }
     }
 
-    private void addRow(TableLayout table, LayoutInflater inflater, String labelText, String valueText, int position) {
+    private void addHeaderRowLand(TableLayout table, LayoutInflater inflater) {
+        View rowView = inflater.inflate(R.layout.item_price_comparison_row_land, table, false);
+        ((TextView) rowView.findViewById(R.id.name)).setText("Präparat");
+        ((TextView) rowView.findViewById(R.id.auth)).setText("Inhaber");
+        ((TextView) rowView.findViewById(R.id.size)).setText("Grösse");
+        ((TextView) rowView.findViewById(R.id.pp)).setText("PP");
+        ((TextView) rowView.findViewById(R.id.diff)).setText("%");
+        ((TextView) rowView.findViewById(R.id.sb)).setText("SB");
+
+        // Make headers bold
+        int[] ids = {R.id.name, R.id.auth, R.id.size, R.id.pp, R.id.diff, R.id.sb};
+        for (int id : ids) {
+            ((TextView) rowView.findViewById(id)).setTypeface(null, android.graphics.Typeface.BOLD);
+        }
+
+        rowView.setBackgroundColor(0xFFDDDDDD);
+        table.addView(rowView);
+    }
+
+    private void addRowLand(TableLayout table, LayoutInflater inflater, AmikoDBPriceComparison comparison, int position) {
+        View rowView = inflater.inflate(R.layout.item_price_comparison_row_land, table, false);
+        ((TextView) rowView.findViewById(R.id.name)).setText(comparison.package_.name);
+        ((TextView) rowView.findViewById(R.id.auth)).setText(comparison.package_.parent.auth);
+        ((TextView) rowView.findViewById(R.id.size)).setText(comparison.package_.dosage + " " + comparison.package_.units);
+        ((TextView) rowView.findViewById(R.id.pp)).setText(comparison.package_.pp);
+        ((TextView) rowView.findViewById(R.id.diff)).setText(String.valueOf((int) Math.floor(comparison.priceDifferenceInPercentage)));
+        ((TextView) rowView.findViewById(R.id.sb)).setText(comparison.package_.selbstbehalt());
+
+        if (position % 2 == 1) {
+            rowView.setBackgroundColor(0xFFEEEEEE);
+        }
+        table.addView(rowView);
+    }
+
+    private void addRowPortrait(TableLayout table, LayoutInflater inflater, String labelText, String valueText, int position) {
         View rowView = inflater.inflate(R.layout.item_price_comparison_row, table, false);
         TextView label = rowView.findViewById(R.id.label);
         TextView value = rowView.findViewById(R.id.value);
