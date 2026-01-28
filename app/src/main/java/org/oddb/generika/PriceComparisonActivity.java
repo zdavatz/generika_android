@@ -112,7 +112,7 @@ public class PriceComparisonActivity extends AppCompatActivity {
                 addRowPortrait(table, inflater, "Zulassungsinhaber", comparison.package_.parent.auth, rowCount++);
                 addRowPortrait(table, inflater, "Packungsgrösse", comparison.package_.dosage + " " + comparison.package_.units, rowCount++);
                 addRowPortrait(table, inflater, "PP", comparison.package_.pp, rowCount++);
-                addRowPortrait(table, inflater, "% (Preisunterschied in Prozent)", String.valueOf((int) Math.floor(comparison.priceDifferenceInPercentage)), rowCount++);
+                addRowPortrait(table, inflater, "% (Preisunterschied in Prozent)", String.format("%.0f%%", comparison.priceDifferenceInPercentage), rowCount++);
                 addRowPortrait(table, inflater, "SB", comparison.package_.selbstbehalt(), rowCount++);
             }
         }
@@ -143,7 +143,7 @@ public class PriceComparisonActivity extends AppCompatActivity {
         ((TextView) rowView.findViewById(R.id.auth)).setText(comparison.package_.parent.auth);
         ((TextView) rowView.findViewById(R.id.size)).setText(comparison.package_.dosage + " " + comparison.package_.units);
         ((TextView) rowView.findViewById(R.id.pp)).setText(comparison.package_.pp);
-        ((TextView) rowView.findViewById(R.id.diff)).setText(String.valueOf((int) Math.floor(comparison.priceDifferenceInPercentage)));
+        ((TextView) rowView.findViewById(R.id.diff)).setText(String.format("%.0f%%", comparison.priceDifferenceInPercentage));
         ((TextView) rowView.findViewById(R.id.sb)).setText(comparison.package_.selbstbehalt());
 
         if (position % 2 == 1) {
