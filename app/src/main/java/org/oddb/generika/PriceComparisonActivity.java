@@ -3,6 +3,7 @@ package org.oddb.generika;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TableLayout;
@@ -22,13 +23,22 @@ import com.google.android.material.appbar.AppBarLayout;
 import org.oddb.generika.data.AmikoDBManager;
 import org.oddb.generika.model.AmikoDBPriceComparison;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class PriceComparisonActivity extends AppCompatActivity {
     public static final String EXTRA_GTIN = "gtin";
 
     private List<AmikoDBPriceComparison> comparisons;
+
+    private enum SortField {
+        NAME, OWNER, SIZE, PRICE, DIFF, SB
+    }
+    private SortField currentSortField = SortField.DIFF;
+    private boolean isAsc = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +63,7 @@ public class PriceComparisonActivity extends AppCompatActivity {
             comparisons = new ArrayList<>();
         }
 
-        populateTable(comparisons);
+        sortAndReload();
 
         View coordinator = findViewById(R.id.coordinator);
         ViewCompat.setOnApplyWindowInsetsListener(coordinator, (v, insets) -> {
@@ -73,6 +83,12 @@ public class PriceComparisonActivity extends AppCompatActivity {
         if (controller != null) {
             controller.setAppearanceLightStatusBars(true);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_price_comparison, menu);
+        return true;
     }
 
     private void populateTable(List<AmikoDBPriceComparison> data) {
@@ -154,10 +170,90 @@ public class PriceComparisonActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
             onBackPressed();
             return true;
         }
+
+        SortField field = null;
+        if (id == R.id.sort_name) field = SortField.NAME;
+        else if (id == R.id.sort_owner) field = SortField.OWNER;
+        else if (id == R.id.sort_size) field = SortField.SIZE;
+        else if (id == R.id.sort_price) field = SortField.PRICE;
+        else if (id == R.id.sort_diff) field = SortField.DIFF;
+        else if (id == R.id.sort_sb) field = SortField.SB;
+
+        if (field != null) {
+            if (currentSortField == field) {
+                isAsc = !isAsc;
+            } else {
+                currentSortField = field;
+                isAsc = true;
+            }
+            sortAndReload();
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void sortAndReload() {
+        Comparator<AmikoDBPriceComparison> comparator;
+        switch (currentSortField) {
+            case NAME:
+                comparator = (c1, c2) -> c1.package_.name.compareToIgnoreCase(c2.package_.name);
+                break;
+            case OWNER:
+                comparator = (c1, c2) -> c1.package_.parent.auth.compareToIgnoreCase(c2.package_.parent.auth);
+                break;
+            case SIZE:
+                comparator = (c1, c2) -> Double.compare(parseSafe(c1.package_.dosage), parseSafe(c2.package_.dosage));
+                break;
+            case PRICE:
+                comparator = (c1, c2) -> Double.compare(parsePrice(c1.package_.pp), parsePrice(c2.package_.pp));
+                break;
+            case DIFF:
+                comparator = Comparator.comparingDouble(c -> c.priceDifferenceInPercentage);
+                break;
+            case SB:
+                comparator = (c1, c2) -> Double.compare(parsePercentage(c1.package_.selbstbehalt()), parsePercentage(c2.package_.selbstbehalt()));
+                break;
+            default:
+                return;
+        }
+
+        if (!isAsc) {
+            comparator = comparator.reversed();
+        }
+
+        Collections.sort(comparisons, comparator);
+        populateTable(comparisons);
+    }
+
+    private double parseSafe(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private double parsePrice(String price) {
+        if (price == null) return 0;
+        try {
+            return Double.parseDouble(price.replace("CHF ", ""));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private double parsePercentage(String percentageStr) {
+        if (percentageStr == null) return 0;
+        try {
+            return Double.parseDouble(percentageStr.replace("%", ""));
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }
