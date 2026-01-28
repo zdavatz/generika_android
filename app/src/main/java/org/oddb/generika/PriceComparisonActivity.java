@@ -107,13 +107,13 @@ public class PriceComparisonActivity extends AppCompatActivity {
         } else {
             int rowCount = 0;
             for (AmikoDBPriceComparison comparison : data) {
-                addRowPortrait(table, inflater, "", "", rowCount++);
-                addRowPortrait(table, inflater, "Präparat", comparison.package_.name, rowCount++);
-                addRowPortrait(table, inflater, "Zulassungsinhaber", comparison.package_.parent.auth, rowCount++);
-                addRowPortrait(table, inflater, "Packungsgrösse", comparison.package_.dosage + " " + comparison.package_.units, rowCount++);
-                addRowPortrait(table, inflater, "PP", comparison.package_.pp, rowCount++);
-                addRowPortrait(table, inflater, "% (Preisunterschied in Prozent)", String.format("%.0f%%", comparison.priceDifferenceInPercentage), rowCount++);
-                addRowPortrait(table, inflater, "SB", comparison.package_.selbstbehalt(), rowCount++);
+                addRowPortrait(table, inflater, comparison, "", "", rowCount++);
+                addRowPortrait(table, inflater, comparison,"Präparat", comparison.package_.name, rowCount++);
+                addRowPortrait(table, inflater, comparison,"Zulassungsinhaber", comparison.package_.parent.auth, rowCount++);
+                addRowPortrait(table, inflater, comparison,"Packungsgrösse", comparison.package_.dosage + " " + comparison.package_.units, rowCount++);
+                addRowPortrait(table, inflater, comparison,"PP", comparison.package_.pp, rowCount++);
+                addRowPortrait(table, inflater, comparison,"% (Preisunterschied in Prozent)", String.format("%.0f%%", comparison.priceDifferenceInPercentage), rowCount++);
+                addRowPortrait(table, inflater, comparison,"SB", comparison.package_.selbstbehalt(), rowCount++);
             }
         }
     }
@@ -139,7 +139,8 @@ public class PriceComparisonActivity extends AppCompatActivity {
 
     private void addRowLand(TableLayout table, LayoutInflater inflater, AmikoDBPriceComparison comparison, int position) {
         View rowView = inflater.inflate(R.layout.item_price_comparison_row_land, table, false);
-        ((TextView) rowView.findViewById(R.id.name)).setText(comparison.package_.name);
+        TextView nameTextView = (TextView) rowView.findViewById(R.id.name);
+        nameTextView.setText(comparison.package_.name);
         ((TextView) rowView.findViewById(R.id.auth)).setText(comparison.package_.parent.auth);
         ((TextView) rowView.findViewById(R.id.size)).setText(comparison.package_.dosage + " " + comparison.package_.units);
         ((TextView) rowView.findViewById(R.id.pp)).setText(comparison.package_.pp);
@@ -149,10 +150,17 @@ public class PriceComparisonActivity extends AppCompatActivity {
         if (position % 2 == 1) {
             rowView.setBackgroundColor(0xFFEEEEEE);
         }
+        if (comparison.package_.isOriginal()) {
+            nameTextView.setTextColor(0xFFFF0000);
+        } else if (comparison.package_.isGeneric()) {
+            nameTextView.setTextColor(0xFF00FF00);
+        } else {
+            nameTextView.setTextColor(nameTextView.getTextColors().getDefaultColor());
+        }
         table.addView(rowView);
     }
 
-    private void addRowPortrait(TableLayout table, LayoutInflater inflater, String labelText, String valueText, int position) {
+    private void addRowPortrait(TableLayout table, LayoutInflater inflater, AmikoDBPriceComparison comparison, String labelText, String valueText, int position) {
         View rowView = inflater.inflate(R.layout.item_price_comparison_row, table, false);
         TextView label = rowView.findViewById(R.id.label);
         TextView value = rowView.findViewById(R.id.value);
@@ -164,6 +172,15 @@ public class PriceComparisonActivity extends AppCompatActivity {
             rowView.setBackgroundColor(0xFFEEEEEE);
         } else {
             rowView.setBackgroundColor(0x00000000);
+        }
+        if (labelText == "Präparat") {
+            if (comparison.package_.isOriginal()) {
+                value.setTextColor(0xFFFF0000);
+            } else if (comparison.package_.isGeneric()) {
+                value.setTextColor(0xFF00FF00);
+            } else {
+                value.setTextColor(value.getTextColors().getDefaultColor());
+            }
         }
         table.addView(rowView);
     }
