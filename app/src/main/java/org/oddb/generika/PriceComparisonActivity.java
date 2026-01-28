@@ -65,6 +65,19 @@ public class PriceComparisonActivity extends AppCompatActivity {
 
         sortAndReload();
 
+        // The initial order is special, the selected package is always on the top no matter what
+        int indexOfCurrentPackage = -1;
+        for (int i = 0; i < comparisons.size(); i++) {
+            if (comparisons.get(i).package_.gtin.equals(gtin)) {
+                indexOfCurrentPackage = i;
+                break;
+            }
+        }
+        if (indexOfCurrentPackage != -1) {
+            comparisons.add(0, comparisons.remove(indexOfCurrentPackage));
+            populateTable(comparisons);
+        }
+
         View coordinator = findViewById(R.id.coordinator);
         ViewCompat.setOnApplyWindowInsetsListener(coordinator, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
