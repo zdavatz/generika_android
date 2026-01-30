@@ -1,0 +1,7 @@
+:root {
+    --background-color-normal: transparent;
+    --background-color-gray: whitesmoke; /* for tables */
+    --text-color-normal: black;
+    --text-color-highlight: yellow;
+    --lines-color: #E5E7E8;
+}
