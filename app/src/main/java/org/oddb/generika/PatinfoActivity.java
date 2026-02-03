@@ -34,6 +34,7 @@ import java.util.ArrayList;
 public class PatinfoActivity extends BaseActivity {
     private static final String TAG = "PatinfoActivity";
     public static final String EXTRA_GTIN = "gtin";
+    public static final String EXTRA_TYPE = "type";
     private WebView webView;
 
     private AmikoDBRow amikoDBRow;
@@ -56,9 +57,13 @@ public class PatinfoActivity extends BaseActivity {
         webView.setWebViewClient(new WebViewClient());
 
         String gtin = getIntent().getStringExtra(EXTRA_GTIN);
+        String type = getIntent().getStringExtra(EXTRA_TYPE);
+        if (type == null) {
+            type = "FI";
+        }
         if (gtin != null) {
             AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
-            ArrayList<AmikoDBRow> rows = dbManager.findWithGtin(gtin, "FI");
+            ArrayList<AmikoDBRow> rows = dbManager.findWithGtin(gtin, type);
             if (!rows.isEmpty()) {
                 this.amikoDBRow = rows.get(0);
                 webView.loadDataWithBaseURL("about:blank", getHTML(), "text/html", "UTF-8", null);

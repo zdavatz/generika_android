@@ -285,11 +285,7 @@ public class MainActivity extends BaseActivity implements
               @Override
               public void onOk() {
                 if (product != null) {
-                    Intent intent = new Intent(
-                            MainActivity.this, PriceComparisonActivity.class);
-                    intent.putExtra(PriceComparisonActivity.EXTRA_GTIN, product.getEan());
-
-                    startActivityForResult(intent, 0);
+                    displayProduct(product);
                 }
               }
               @Override
@@ -783,18 +779,40 @@ public class MainActivity extends BaseActivity implements
     transaction.commitAllowingStateLoss();
   }
 
-  public void openWebView(Product product) {
-    // WebView reads type and lang from shared preferences
-    // So, just puts arguments here.
-    Intent intent = new Intent(this, WebViewActivity.class);
-    if (product != null) {
-      intent.putExtra(Constant.kEan, product.getEan());
-      intent.putExtra(Constant.kReg, product.getReg());
-      intent.putExtra(Constant.kSeq, product.getSeq());
-    }
-    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-      MainActivity.this);
-    startActivity(intent, options.toBundle());
+  public void displayProduct(Product product) {
+      SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+      String searchType =  sharedPreferences.getString(
+              Constant.kSearchType, Constant.TYPE_PV);
+
+      AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
+      ArrayList<AmikoDBRow> rows = dbManager.findWithGtin(product.getEan(),
+              searchType.equals(Constant.TYPE_FI) ? "FI" :
+                      searchType.equals(Constant.TYPE_PI) ? "PI" : null);
+      if (!rows.isEmpty()) {
+          if (searchType.equals(Constant.TYPE_PV)) {
+              Intent intent = new Intent(this, PriceComparisonActivity.class);
+              intent.putExtra(PriceComparisonActivity.EXTRA_GTIN, product.getEan());
+              startActivity(intent);
+          } else {
+              Intent intent = new Intent(this, PatinfoActivity.class);
+              intent.putExtra(PatinfoActivity.EXTRA_GTIN, product.getEan());
+              intent.putExtra(PatinfoActivity.EXTRA_TYPE, searchType.equals(Constant.TYPE_PI) ? "PI" : "FI");
+              startActivity(intent);
+          }
+      } else {
+
+// WebView reads type and lang from shared preferences
+// So, just puts arguments here.
+          Intent intent = new Intent(this, WebViewActivity.class);
+          if (product != null) {
+              intent.putExtra(Constant.kEan, product.getEan());
+              intent.putExtra(Constant.kReg, product.getReg());
+              intent.putExtra(Constant.kSeq, product.getSeq());
+          }
+          ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+                  MainActivity.this);
+          startActivity(intent, options.toBundle());
+      }
   }
 
   public void openWebView(Product[] products) {
