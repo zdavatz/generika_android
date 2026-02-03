@@ -96,8 +96,7 @@ import org.oddb.generika.util.Constant;
 
 
 public class MainActivity extends BaseActivity implements
-  GenerikaListAdapter.ListItemListener,
-  ProductInfoFetcher.FetchTaskCallback<ProductInfoFetcher.FetchResult> {
+  GenerikaListAdapter.ListItemListener {
   private static final String TAG = "MainActivity";
 
   // view
@@ -114,9 +113,6 @@ public class MainActivity extends BaseActivity implements
   private String sourceType;
   private DataManager dataManager;
   private GenerikaListAdapter listAdapter; // Product / Receipt
-
-  // network (headless fragment)
-  private ProductInfoFetcher fetcher;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -201,10 +197,8 @@ public class MainActivity extends BaseActivity implements
 
     if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
       this.listAdapter = new ProductListAdapter(dataManager.getProducts());
-      this.fetcher = buildProductInfoFetcher();
     } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
       this.listAdapter = new ReceiptListAdapter(dataManager.getReceipts());
-      this.fetcher = null;
     }
 
     // change list adapter
@@ -244,25 +238,6 @@ public class MainActivity extends BaseActivity implements
     // See below:
     // https://issuetracker.google.com/issues/36932872
     // https://stackoverflow.com/a/10261438
-  }
-
-  private ProductInfoFetcher buildProductInfoFetcher() {
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    Fragment fetcher_ = fragmentManager.findFragmentByTag(
-      ProductInfoFetcher.TAG);
-    if (fetcher_ == null) {
-      // check search lang in preference
-      SharedPreferences sharedPreferences = PreferenceManager
-        .getDefaultSharedPreferences(context);
-      String searchLang = sharedPreferences.getString(
-        Constant.kSearchLang, Constant.LANG_DE);
-      String urlBase = String.format(
-        Constant.API_URL_PATH, searchLang);
-
-      fetcher_ = ProductInfoFetcher.getInstance(
-        fragmentManager, this, urlBase);
-    }
-    return (ProductInfoFetcher)fetcher_;
   }
 
   private void initData() {
@@ -874,90 +849,5 @@ public class MainActivity extends BaseActivity implements
     Log.d(TAG, "(onExpiresAtChange) expiresAt: " +
                Product.makeExpiresAt(newDate));
     dataManager.updateProduct(id, properties);
-  }
-
-  // -- ProductInfoFetcher.FetchTaskCallback
-
-  private void startFetching(Product product) {
-    if (fetcher != null) {
-      fetcher.invokeFetch(product);
-      Log.d(TAG, "(startFetching) fetching: " + fetcher.isFetching());
-    }
-  }
-
-  @Override
-  public void updateFromFetch(ProductInfoFetcher.FetchResult result) {
-    Log.d(TAG, "(updateFromFetch) result: " + result);
-    if (result == null) { return; }
-    if (result.errorMessage != null) {
-      alertDialog("", result.errorMessage);
-    } else if (result.map != null) {
-      final String id = result.id;
-      Log.d(TAG, "(updateFromFetch) resut.id: " + id);
-
-      final HashMap<String, String> properties = result.map;
-      // NOTE:
-      // realm is not transferred to background async task thread
-      // it's not accecible.
-      DataManager dataManager_ = new DataManager(Constant.SOURCE_TYPE_BARCODE);
-      try {
-        final Product product = dataManager_.getProductById(id);
-        if (product == null) { return; }
-        product.removeAllChangeListeners();
-        // this listener is invoked after update transaction below
-        product.addChangeListener(new RealmChangeListener<Product>() {
-          @Override
-          public void onChange(Product product_) {
-            if (product_ == null || !product_.isValid()) { return; }
-            // only once (remove self)
-            product_.removeAllChangeListeners();
-            if (product_.getName() != null && product_.getSize() != null) {
-              listAdapter.refresh(product_, listView);
-              Log.d(TAG, "(updateFromFetch/onChange) product.name: " +
-                    product_.getName());
-
-              new Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                  // notify result to user
-                  String title = context.getString(
-                    R.string.fetch_info_result_dialog_title);
-                  String message = product_.toMessage();
-                  alertDialog(
-                    title, message,
-                    new MessageDialog.OnChangeListener() {
-                      @Override
-                      public void onOk() {
-                        if (product_ != null) { openWebView(product_); }
-                      }
-                      @Override
-                      public void onCancel() {
-                        // pass
-                      }
-                    });
-                }
-              });
-            }
-          }
-        });
-        // above onChange will be called
-        dataManager_.updateProduct(product.getId(), properties);
-      } finally {
-        dataManager_.release();
-      }
-    }
-  }
-
-  @Override
-  public void onProgressUpdate(Integer ...progress) {
-    // pass
-  }
-
-  @Override
-  public void finishFetching() {
-    if (fetcher != null) {
-      fetcher.cancelFetch();
-      Log.d(TAG, "(finishFetching) fetching: " + fetcher.isFetching());
-    }
   }
 }
