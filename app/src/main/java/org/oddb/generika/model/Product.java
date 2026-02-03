@@ -184,7 +184,7 @@ public class Product extends RealmObject implements Retryable {
   // -- scanned product classes and methods
 
   public static class Barcode {
-    String value;
+    public String value;
     String filepath;
 
     // GS1 DataMatrix only
@@ -263,7 +263,7 @@ public class Product extends RealmObject implements Retryable {
   // NOTE: it must be called in realm transaction & try/catch block
   public static Product insertNewBarcodeIntoSource(
     Realm realm,
-    Product.Barcode barcode, Data data, boolean withUniqueCheck) {
+    Product.Barcode barcode, Data data, AmikoDBPackage package_, boolean withUniqueCheck) {
     RealmList<Product> items = data.getItems();
 
     String id;
@@ -278,12 +278,19 @@ public class Product extends RealmObject implements Retryable {
     item.setFilepath(barcode.filepath);
     item.setDatetime(makeScannedAt(barcode.filepath));
 
+    if (package_ != null) {
+        item.setName(package_.name);
+        item.setSize(package_.dosage + " " + package_.units);
+        item.setPrice(package_.pp.replaceAll("CHF ", ""));
+        item.setCategory(package_.flags);
+    }
+
     // GS1 DataMatrix
     String batchOrLot = barcode.batchOrLot;
     String expiresAt = barcode.expiresAt;
     Log.d(TAG, "(insertNewBarcodeIntoSource) batchOrLot: " + batchOrLot);
     Log.d(TAG, "(insertNewBarcodeIntoSource) expiresAt: " + expiresAt);
-    if (batchOrLot != null) {
+    if (batchOrLot != null && !batchOrLot.isEmpty()) {
       // name must be updated in `updateProperties` (after api request)
       item.setName(batchOrLot);
     }

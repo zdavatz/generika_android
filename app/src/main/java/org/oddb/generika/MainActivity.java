@@ -81,11 +81,13 @@ import java.util.Set;
 import org.json.JSONException;
 import org.oddb.generika.barcode.BarcodeExtractor;
 import org.oddb.generika.barcode.EPrescription;
+import org.oddb.generika.data.AmikoDBManager;
 import org.oddb.generika.data.DataManager;
+import org.oddb.generika.model.AmikoDBPackage;
+import org.oddb.generika.model.AmikoDBRow;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
 import org.oddb.generika.model.ZurRosePrescription;
-import org.oddb.generika.network.ProductInfoFetcher;
 import org.oddb.generika.ui.MessageDialog;
 import org.oddb.generika.ui.list.GenerikaListAdapter;
 import org.oddb.generika.ui.list.ProductListAdapter;
@@ -187,7 +189,7 @@ public class MainActivity extends BaseActivity implements
    *
    * sourceType, listAdapter and fetcher will be set.
    *
-   * @param String sourceType amkjson/barcode
+   * @param sourceType_ amkjson/barcode
    * @return void
    */
   private void switchSource(String sourceType_) {
@@ -299,7 +301,27 @@ public class MainActivity extends BaseActivity implements
             alertDialog("", errorMessage);
             return;
           }
-          startFetching(product);  // invoke async api call
+
+          String title = context.getString(R.string.fetch_info_result_dialog_title);
+          String message = product.toMessage();
+          alertDialog(
+            title, message,
+            new MessageDialog.OnChangeListener() {
+              @Override
+              public void onOk() {
+                if (product != null) {
+                    Intent intent = new Intent(
+                            MainActivity.this, PriceComparisonActivity.class);
+                    intent.putExtra(PriceComparisonActivity.EXTRA_GTIN, product.getEan());
+
+                    startActivityForResult(intent, 0);
+                }
+              }
+              @Override
+              public void onCancel() {
+                // pass
+              }
+            });
         }
         setInteractionsMenuState();
       }
@@ -705,7 +727,16 @@ public class MainActivity extends BaseActivity implements
               return;
           }
           if (barcode_ != null) {
-            dataManager.addProduct(barcode_);
+              ArrayList<AmikoDBRow> rows = AmikoDBManager.getInstance(getApplicationContext()).findWithGtin(barcode_.value, null);
+              AmikoDBPackage package_ = null;
+              if (!rows.isEmpty()) {
+                  for (AmikoDBPackage p : rows.get(0).parsedPackages()) {
+                      if (p.gtin.equals(barcode_.value)) {
+                          package_ = p;
+                      }
+                  }
+              }
+            dataManager.addProduct(barcode_, package_);
           } else {
             File file = new File(filepath);
             if (file.exists()) {
