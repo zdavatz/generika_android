@@ -18,6 +18,7 @@
 package org.oddb.generika;
 
 import android.app.ActivityOptions;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -117,6 +118,9 @@ public class MainActivity extends BaseActivity implements
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    
+    // Check if database needs to be downloaded first
+    checkAndDownloadDatabase();
     setContentView(R.layout.activity_main);
 
     boolean importAction = false;
@@ -146,6 +150,69 @@ public class MainActivity extends BaseActivity implements
 
     initViews();
     switchSource(this.sourceType);
+  }
+
+  private void checkAndDownloadDatabase() {
+    AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
+    
+    if (!dbManager.checkAllFilesExists() || dbManager.shouldCopyFromPersistentFolder(this)) {
+      showDatabaseDownloadDialog();
+    }
+  }
+
+  private void showDatabaseDownloadDialog() {
+    ProgressDialog progressDialog = new ProgressDialog(this);
+    progressDialog.setTitle(getString(R.string.app_name));
+    progressDialog.setMessage("Downloading pharmaceutical database...\nThis is a one-time download (~600MB)");
+    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    progressDialog.setMax(100);
+    progressDialog.setCancelable(false);
+    progressDialog.show();
+    
+    AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
+    try {
+      dbManager.downloadDatabaseIfNeeded(new AmikoDBManager.DownloadCallback() {
+        @Override
+        public void onProgress(int percent) {
+          runOnUiThread(() -> {
+            progressDialog.setProgress(percent);
+            progressDialog.setMessage(String.format(
+              "Downloading pharmaceutical database...\nThis is a one-time download (~600MB)\n%d%%", 
+              percent
+            ));
+          });
+        }
+        
+        @Override
+        public void onComplete() {
+          runOnUiThread(() -> {
+            progressDialog.dismiss();
+            Toast.makeText(MainActivity.this, 
+              "Database downloaded successfully", 
+              Toast.LENGTH_SHORT).show();
+          });
+        }
+        
+        @Override
+        public void onError(Exception e) {
+          runOnUiThread(() -> {
+            progressDialog.dismiss();
+            Log.e(TAG, "Database download error", e);
+            // Show error dialog
+            new AlertDialog.Builder(MainActivity.this)
+              .setTitle("Download Error")
+              .setMessage("Failed to download database: " + e.getMessage() + 
+                "\n\nPlease check your internet connection.")
+              .setPositiveButton("Retry", (d, w) -> showDatabaseDownloadDialog())
+              .setNegativeButton("Exit", (d, w) -> finish())
+              .setCancelable(false)
+              .show();
+          });
+        }
+      });
+    } catch (Exception e) {
+      Log.e(TAG, "Error starting download", e);
+    }
   }
 
   private void handleImportResult(Bundle extras) {

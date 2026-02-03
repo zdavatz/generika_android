@@ -16,6 +16,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,12 +29,19 @@ public class AmikoDBManager extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "amiko_db_full_idx_pinfo_de.db";
     private static final String AMIKO_COLUMNS = "_id, title, auth, atc, substances, regnrs, atc_class, tindex_str, application_str, indications_str, customer_id, pack_info_str, add_info_str, ids_str, titles_str, content, style_str, packages, type";
+    private static final String DB_URL = "http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db";
 
     private SQLiteDatabase mDataBase;
     private String mAppDataDir;
 
     private final Context mContext;
     private static AmikoDBManager sInstance;
+
+    public interface DownloadCallback {
+        void onProgress(int percent);
+        void onComplete();
+        void onError(Exception e);
+    }
 
     public static synchronized AmikoDBManager getInstance(Context context) {
         if (sInstance == null) {
@@ -132,33 +141,84 @@ public class AmikoDBManager extends SQLiteOpenHelper {
     }
 
     /**
-     * Copies file from local assets-folder to system folder (persistant storage),
-     * from where it can be accessed and handled. This is done by transferring bytestream.
-     * @param srcFile
-     * @param dstPath
+     * Downloads database from server if needed
      */
-    private void copyFileFromAssetsToPath(String srcFile, String dstPath) throws IOException {
-        Log.d(TAG, "Copying file " + srcFile + " to " + dstPath);
-        File dir = new File(dstPath);
+    public void downloadDatabaseIfNeeded(DownloadCallback callback) {
+        boolean shouldDownload = shouldCopyFromPersistentFolder(mContext);
+        if (!shouldDownload) {
+            if (callback != null) callback.onComplete();
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                downloadDatabase(callback);
+                
+                // Update timestamp
+                Date downloadDate = new Date();
+                SharedPreferences settings = mContext.getSharedPreferences("GENERIKA_PREFS_FILE", 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putLong("PREF_DB_UPDATE_DATE_DE", downloadDate.getTime());
+                editor.commit();
+                
+                if (callback != null) callback.onComplete();
+            } catch (Exception e) {
+                Log.e(TAG, "Error downloading database", e);
+                if (callback != null) callback.onError(e);
+            }
+        }).start();
+    }
+
+    private void downloadDatabase(DownloadCallback callback) throws IOException {
+        Log.d(TAG, "Downloading database from " + DB_URL);
+        
+        File dir = new File(mAppDataDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
-
-        // Open shipped database from assets folder
-        InputStream mInput = mContext.getAssets().open(srcFile);
-        OutputStream mOutput = new FileOutputStream(dstPath + srcFile);
-
-        // Transfer bytes from input to output
-        byte[] mBuffer = new byte[1024];
-        int mLength;
-        while ((mLength = mInput.read(mBuffer))>0) {
-            mOutput.write(mBuffer, 0, mLength);
+        
+        File tempFile = new File(mAppDataDir + DATABASE_NAME + ".tmp");
+        File finalFile = new File(mAppDataDir + DATABASE_NAME);
+        
+        URL url = new URL(DB_URL);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.connect();
+        
+        long totalSize = connection.getContentLength();
+        long downloadedSize = 0;
+        
+        InputStream input = connection.getInputStream();
+        OutputStream output = new FileOutputStream(tempFile);
+        
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        int lastProgress = 0;
+        
+        while ((bytesRead = input.read(buffer)) != -1) {
+            output.write(buffer, 0, bytesRead);
+            downloadedSize += bytesRead;
+            
+            if (callback != null && totalSize > 0) {
+                int progress = (int) (downloadedSize * 100 / totalSize);
+                if (progress != lastProgress) {
+                    lastProgress = progress;
+                    callback.onProgress(progress);
+                }
+            }
         }
-
-        // Close streams
-        mOutput.flush();
-        mOutput.close();
-        mInput.close();
+        
+        output.flush();
+        output.close();
+        input.close();
+        connection.disconnect();
+        
+        // Rename temp file to final file
+        if (finalFile.exists()) {
+            finalFile.delete();
+        }
+        tempFile.renameTo(finalFile);
+        
+        Log.d(TAG, "Database download complete");
     }
 
     public boolean checkAllFilesExists() {
@@ -179,31 +239,11 @@ public class AmikoDBManager extends SQLiteOpenHelper {
     }
 
     /**
-     * Creates a set of empty databases (if there are more than one) and rewrites them with own databases.
+     * Check if database exists (download happens via downloadDatabaseIfNeeded)
      */
     public void copyFilesFromNonPersistentFolder() throws Exception {
-        boolean shouldOverride = shouldCopyFromPersistentFolder(mContext);
-        if (shouldOverride) {
-			/*
-			this.getReadableDatabase();
-			this.close();
-			*/
-            // Copy SQLite database from external storage
-            try {
-                copyFileFromAssetsToPath(DATABASE_NAME, mAppDataDir);
-                Log.d(TAG, "createDataBase(): database created");
-            } catch (IOException e) {
-                throw new Exception("Error copying main database!" + e.getLocalizedMessage());
-            }
-        }
-
-        if (isBuildDateAfterLastUpdate(mContext)) {
-            Date apkBuildDate = new Date(BuildConfig.TIMESTAMP);
-            SharedPreferences settings = mContext.getSharedPreferences("GENERIKA_PREFS_FILE", 0);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putLong("PREF_DB_UPDATE_DATE_DE", apkBuildDate.getTime());
-            // Commit the edits!
-            editor.commit();
+        if (!checkAllFilesExists()) {
+            Log.d(TAG, "Database not found, will need to download");
         }
     }
 

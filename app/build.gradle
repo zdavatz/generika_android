@@ -41,9 +41,9 @@ android {
 
   defaultConfig {
     applicationId "org.oddb.generika"
-    versionCode 63
+    versionCode 64
 
-    versionName "1.0.63"
+    versionName "1.0.64"
 
     minSdkVersion 34
     targetSdkVersion 36
@@ -95,12 +95,15 @@ android {
     }
   }
 
+  // DISABLED: Database is now downloaded at runtime by the app
+  /*
   task downloadAmikoDB(type: Download) {
     src "http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db"
     dest rootProject.layout.projectDirectory.file("app/src/main/assets/amiko_db_full_idx_pinfo_de.db")
     overwrite true
     useETag true
   }
+  */
 }
 
 tasks.withType(Test) {
@@ -109,6 +112,8 @@ tasks.withType(Test) {
   }
 }
 
+// DISABLED: Database download task is commented out above
+/*
 tasks.whenTaskAdded { task ->
     if (task.name == "mergeDebugAssets" ||
             task.name == "mergeReleaseAssets" ||
@@ -118,6 +123,7 @@ tasks.whenTaskAdded { task ->
         task.dependsOn downloadAmikoDB
     }
 }
+*/
 
 dependencies {
   implementation fileTree(dir: 'libs', include: ['*.jar'])
