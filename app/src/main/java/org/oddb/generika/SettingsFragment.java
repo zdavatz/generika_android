@@ -17,6 +17,7 @@
  */
 package org.oddb.generika;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -26,6 +27,8 @@ import androidx.preference.Preference;
 import androidx.preference.Preference.OnPreferenceChangeListener;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import androidx.appcompat.app.AlertDialog;
+import android.widget.Toast;
 import android.util.Log;
 
 import java.lang.Boolean;
@@ -33,6 +36,7 @@ import java.lang.Object;
 import java.util.Locale;
 
 import org.oddb.generika.preference.AppListPreference;
+import org.oddb.generika.data.AmikoDBManager;
 import org.oddb.generika.util.AppLocale;
 import org.oddb.generika.util.Constant;
 
@@ -52,6 +56,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
       .getDefaultSharedPreferences(context);
 
     initLocales();
+    initDatabasePreference();
   }
 
   private void initLocales() {
@@ -127,6 +132,83 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         appLocale.setValue(Constant.LANG_DE);
         break;
     }
+  }
+
+  private void initDatabasePreference() {
+    Preference downloadDb = findPreference("download_database");
+    if (downloadDb != null) {
+      downloadDb.setOnPreferenceClickListener(preference -> {
+        showDatabaseDownloadConfirmation();
+        return true;
+      });
+    }
+    updateDatabaseInfo();
+  }
+
+  private void updateDatabaseInfo() {
+    Preference dbInfo = findPreference("database_info");
+    if (dbInfo != null) {
+      AmikoDBManager dbManager = AmikoDBManager.getInstance(getContext());
+      if (dbManager.checkAllFilesExists()) {
+        dbInfo.setSummary("Database is installed");
+        dbInfo.setEnabled(true);
+      } else {
+        dbInfo.setSummary("Database not found");
+      }
+    }
+  }
+
+  private void showDatabaseDownloadConfirmation() {
+    new AlertDialog.Builder(getContext())
+      .setTitle("Update Database")
+      .setMessage("This will download ~600MB of data. Continue?")
+      .setPositiveButton("Download", (dialog, which) -> startDatabaseDownload())
+      .setNegativeButton("Cancel", null)
+      .show();
+  }
+
+  private void startDatabaseDownload() {
+    ProgressDialog progressDialog = new ProgressDialog(getContext());
+    progressDialog.setTitle(getString(R.string.app_name));
+    progressDialog.setMessage("Downloading pharmaceutical database...\n(~600MB)");
+    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    progressDialog.setMax(100);
+    progressDialog.setCancelable(false);
+    progressDialog.show();
+
+    AmikoDBManager dbManager = AmikoDBManager.getInstance(getContext());
+    dbManager.forceDownload(new AmikoDBManager.DownloadCallback() {
+      @Override
+      public void onProgress(int percent) {
+        getActivity().runOnUiThread(() -> {
+          progressDialog.setProgress(percent);
+          progressDialog.setMessage(String.format(
+            "Downloading pharmaceutical database...\n(~600MB)\n%d%%", percent));
+        });
+      }
+
+      @Override
+      public void onComplete() {
+        getActivity().runOnUiThread(() -> {
+          progressDialog.dismiss();
+          Toast.makeText(getContext(), "Database updated successfully", Toast.LENGTH_SHORT).show();
+          updateDatabaseInfo();
+        });
+      }
+
+      @Override
+      public void onError(Exception e) {
+        getActivity().runOnUiThread(() -> {
+          progressDialog.dismiss();
+          Log.e(TAG, "Database download error", e);
+          new AlertDialog.Builder(getContext())
+            .setTitle("Download Error")
+            .setMessage("Failed to download database: " + e.getMessage())
+            .setPositiveButton("OK", null)
+            .show();
+        });
+      }
+    });
   }
 
   /**

@@ -169,6 +169,28 @@ public class AmikoDBManager extends SQLiteOpenHelper {
         }).start();
     }
 
+    /**
+     * Force download database (even if it already exists)
+     */
+    public void forceDownload(DownloadCallback callback) {
+        new Thread(() -> {
+            try {
+                downloadDatabase(callback);
+                
+                Date downloadDate = new Date();
+                SharedPreferences settings = mContext.getSharedPreferences("GENERIKA_PREFS_FILE", 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putLong("PREF_DB_UPDATE_DATE_DE", downloadDate.getTime());
+                editor.commit();
+                
+                if (callback != null) callback.onComplete();
+            } catch (Exception e) {
+                Log.e(TAG, "Error downloading database", e);
+                if (callback != null) callback.onError(e);
+            }
+        }).start();
+    }
+
     private void downloadDatabase(DownloadCallback callback) throws IOException {
         Log.d(TAG, "Downloading database from " + DB_URL);
         
