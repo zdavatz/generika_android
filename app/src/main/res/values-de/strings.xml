@@ -7,6 +7,7 @@
     <string name="importer">Importer</string>
     <string name="receipt">Rezept</string>
     <string name="web_view">Web View</string>
+    <string name="price_comparison">Preisvergleich</string>
     <!-- drawer menus/titles -->
     <string name="barcodes">Medikamente</string>
     <string name="amkfiles">Rezepte</string>

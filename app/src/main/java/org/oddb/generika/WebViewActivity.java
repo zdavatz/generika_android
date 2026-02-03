@@ -24,12 +24,19 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebChromeClient;
@@ -37,6 +44,8 @@ import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.Arrays;
 
@@ -77,7 +86,9 @@ public class WebViewActivity extends BaseActivity {
     this.sharedPreferences = PreferenceManager
       .getDefaultSharedPreferences(context);
 
-    loadSettings();
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+      loadSettings();
     initViews();
 
     if (webView != null && savedInstanceState == null) {
@@ -133,7 +144,26 @@ public class WebViewActivity extends BaseActivity {
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setDisplayShowHomeEnabled(true);
 
-    this.webView = (WebView)findViewById(R.id.web_view);
+      View coordinator = findViewById(R.id.coordinator);
+      ViewCompat.setOnApplyWindowInsetsListener(coordinator, (v, insets) -> {
+          Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+          // Remove the top padding from the root view so AppBarLayout can go to the top
+          v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
+          return insets;
+      });
+
+      // Handle top padding for the AppBarLayout specifically
+      AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout); // Ensure you have an ID in XML
+      ViewCompat.setOnApplyWindowInsetsListener(appBarLayout, (v, insets) -> {
+          Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+          v.setPadding(0, systemBars.top, 0, 0);
+          return insets;
+      });
+
+      WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+      controller.setAppearanceLightStatusBars(true);
+
+      this.webView = (WebView)findViewById(R.id.web_view);
     webView.setPadding(0, 0, 0, 0);
     webView.setScrollbarFadingEnabled(true);
     webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);

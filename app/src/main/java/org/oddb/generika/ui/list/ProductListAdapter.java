@@ -18,6 +18,7 @@
 package org.oddb.generika.ui.list;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
@@ -58,6 +59,7 @@ import java.util.regex.Pattern;
 
 import org.oddb.generika.MainActivity;
 import org.oddb.generika.GlideApp;
+import org.oddb.generika.PriceComparisonActivity;
 import org.oddb.generika.R;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.ui.MonthYearPickerDialog;
@@ -355,9 +357,9 @@ public class ProductListAdapter extends RealmBaseAdapter<Product>
                   (item.getEan().equals(Constant.INIT_DATA.get("ean")))) {
                 // placeholder row
                 Product dummy = null;
-                ((MainActivity)parentView.getContext()).openWebView(dummy);
+                ((MainActivity)parentView.getContext()).displayProduct(dummy);
               } else {
-                ((MainActivity)parentView.getContext()).openWebView(item);
+                 ((MainActivity)parentView.getContext()).displayProduct(item);
               }
               return true;
             } else { // swipe state "middle"
