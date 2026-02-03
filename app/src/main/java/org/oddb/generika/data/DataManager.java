@@ -26,6 +26,7 @@ import io.realm.RealmResults;
 
 import java.util.HashMap;
 
+import org.oddb.generika.model.AmikoDBPackage;
 import org.oddb.generika.model.Data;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
@@ -91,7 +92,7 @@ public class DataManager {
 
     // TODO: translation
     Product product = Product.insertNewBarcodeIntoSource(
-      realm, barcode, data, withUniqueCheck);
+      realm, barcode, data, null, withUniqueCheck);
     product.setName(Constant.INIT_DATA.get("name"));
     product.setSize(Constant.INIT_DATA.get("size"));
     product.setDatetime(Constant.INIT_DATA.get("datetime"));
@@ -143,7 +144,7 @@ public class DataManager {
     return products;
   }
 
-  public void addProduct(final Product.Barcode barcode) {
+  public void addProduct(final Product.Barcode barcode, AmikoDBPackage package_) {
     if (data == null) { return; }  // TOD: should raise exception
 
     Product.withRetry(2, new Product.WithRetry() {
@@ -155,7 +156,7 @@ public class DataManager {
           @Override
           public void execute(Realm realm_) {
             Product.insertNewBarcodeIntoSource(
-              realm_, barcode, data_,
+              realm_, barcode, data_, package_,
               (currentCount == 1));
           }
         });
