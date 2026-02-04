@@ -41,9 +41,9 @@ android {
 
   defaultConfig {
     applicationId "org.oddb.generika"
-    versionCode 73
+    versionCode 74
 
-    versionName "1.0.73"
+    versionName "1.0.74"
 
     minSdkVersion 34
     targetSdkVersion 35
