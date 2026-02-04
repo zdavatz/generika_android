@@ -39,7 +39,9 @@ import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ListView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -93,8 +95,9 @@ import org.oddb.generika.model.Receipt;
 import org.oddb.generika.model.ZurRosePrescription;
 import org.oddb.generika.ui.MessageDialog;
 import org.oddb.generika.ui.list.GenerikaListAdapter;
-import org.oddb.generika.ui.list.ProductListAdapter;
-import org.oddb.generika.ui.list.ReceiptListAdapter;
+import org.oddb.generika.ui.list.ProductRecyclerAdapter;
+import org.oddb.generika.ui.list.ReceiptRecyclerAdapter;
+import org.oddb.generika.ui.list.SwipeToDeleteCallback;
 import org.oddb.generika.util.Constant;
 
 
@@ -106,7 +109,8 @@ public class MainActivity extends BaseActivity implements
   private DrawerLayout drawerLayout;
   private ActionBarDrawerToggle drawerToggle;
   private CharSequence title;
-  private ListView listView;
+  private RecyclerView recyclerView;
+  private ItemTouchHelper itemTouchHelper;
   private ActionBar actionBar;
   private NavigationView navigationView;
   private FloatingActionButton actionButton;
@@ -295,16 +299,23 @@ public class MainActivity extends BaseActivity implements
     initData();
 
     if (sourceType.equals(Constant.SOURCE_TYPE_BARCODE)) {
-      this.listAdapter = new ProductListAdapter(dataManager.getProducts());
+      ProductRecyclerAdapter productAdapter = new ProductRecyclerAdapter(dataManager.getProducts());
+      this.listAdapter = productAdapter;
+      itemTouchHelper = new ItemTouchHelper(
+          new SwipeToDeleteCallback(this, productAdapter));
     } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
-      this.listAdapter = new ReceiptListAdapter(dataManager.getReceipts());
+      ReceiptRecyclerAdapter receiptAdapter = new ReceiptRecyclerAdapter(dataManager.getReceipts());
+      this.listAdapter = receiptAdapter;
+      itemTouchHelper = new ItemTouchHelper(
+          new SwipeToDeleteCallback(this, receiptAdapter));
     }
 
     // change list adapter
     listAdapter.setCallback(this);
     listAdapter.refreshAll();
 
-    listView.setAdapter(listAdapter);
+    recyclerView.setAdapter((RecyclerView.Adapter) listAdapter);
+    itemTouchHelper.attachToRecyclerView(recyclerView);
 
     searchBox.setText("");
     if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
@@ -431,7 +442,8 @@ public class MainActivity extends BaseActivity implements
     this.searchBox = (EditText)findViewById(R.id.search_box);
     setupSearchBox();
 
-    this.listView = (ListView)findViewById(R.id.list_view);
+    this.recyclerView = (RecyclerView)findViewById(R.id.list_view);
+    this.recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
     // drawer navigation
     this.navigationView = (NavigationView)findViewById(

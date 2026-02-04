@@ -18,28 +18,21 @@
 package org.oddb.generika.ui.list;
 
 import androidx.annotation.Nullable;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 
 import java.util.Date;
 
-import org.oddb.generika.model.Product;
-import org.oddb.generika.model.Receipt;
+/**
+ * Common interface for list adapters (RecyclerView based).
+ * Updated to remove ListView dependency.
+ */
+public interface GenerikaListAdapter {
 
+    interface ListItemListener {
+        void onDelete(String itemId);
+        void onExpiresAtChange(String itemId, Date expiresAt);
+    }
 
-public interface GenerikaListAdapter extends ListAdapter {
-
-  public interface ListItemListener {
-    abstract void onDelete(String itemId);
-    abstract void onExpiresAtChange(String itemId, Date newDate);
-  }
-
-  abstract public void setCallback(ListItemListener callback);
-  abstract public void refreshAll();
-
-  // TODO: Refactor
-  // USE generics
-  abstract public void updateItems(@Nullable Object data);
-  default public void refresh(Product product, ListView listView) {};
-  default public void refresh(Receipt receipt, ListView listView) {};
+    void setCallback(ListItemListener callback);
+    void refreshAll();
+    void updateItems(@Nullable Object data);
 }
