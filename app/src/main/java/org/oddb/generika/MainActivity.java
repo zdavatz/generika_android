@@ -65,6 +65,8 @@ import com.google.android.gms.common.api.CommonStatusCodes;
 
 import com.google.android.gms.vision.barcode.Barcode;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
@@ -118,6 +120,13 @@ public class MainActivity extends BaseActivity implements
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    
+    // Initialize Firebase Crashlytics
+    FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
+    crashlytics.setCrashlyticsCollectionEnabled(true);
+    crashlytics.log("MainActivity onCreate");
+    crashlytics.setCustomKey("app_version", BuildConfig.VERSION_NAME);
+    crashlytics.setCustomKey("build_time", BuildConfig.TIMESTAMP);
     
     // Check if database needs to be downloaded first
     checkAndDownloadDatabase();
@@ -186,7 +195,18 @@ public class MainActivity extends BaseActivity implements
         @Override
         public void onComplete() {
           runOnUiThread(() -> {
-            progressDialog.dismiss();
+            // Log successful database check/download
+            FirebaseCrashlytics.getInstance().log("Database download/check completed successfully");
+            FirebaseCrashlytics.getInstance().setCustomKey("db_ready", true);
+            
+            if (progressDialog != null && progressDialog.isShowing()) {
+              try {
+                progressDialog.dismiss();
+              } catch (Exception e) {
+                Log.e(TAG, "Error dismissing progress dialog", e);
+                FirebaseCrashlytics.getInstance().recordException(e);
+              }
+            }
             Toast.makeText(MainActivity.this, 
               "Database downloaded successfully", 
               Toast.LENGTH_SHORT).show();
@@ -196,7 +216,19 @@ public class MainActivity extends BaseActivity implements
         @Override
         public void onError(Exception e) {
           runOnUiThread(() -> {
-            progressDialog.dismiss();
+            // Report non-fatal exception to Crashlytics
+            FirebaseCrashlytics.getInstance().recordException(e);
+            FirebaseCrashlytics.getInstance().log("Database download failed: " + e.getMessage());
+            FirebaseCrashlytics.getInstance().setCustomKey("db_ready", false);
+            
+            if (progressDialog != null && progressDialog.isShowing()) {
+              try {
+                progressDialog.dismiss();
+              } catch (Exception ex) {
+                Log.e(TAG, "Error dismissing progress dialog", ex);
+                FirebaseCrashlytics.getInstance().recordException(ex);
+              }
+            }
             Log.e(TAG, "Database download error", e);
             // Show error dialog
             new AlertDialog.Builder(MainActivity.this)
