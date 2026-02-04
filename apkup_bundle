@@ -1,0 +1,4 @@
+make clean
+./gradlew bundleRelease
+cd /home/zeno/.software/android-bundle-uploader
+python main.py ../generika_android/generika.json org.oddb.generika /home/zeno/.software/generika_android/app/build/outputs/bundle/release/app-release.aab production
