@@ -12,13 +12,11 @@ import org.robolectric.shadows.ShadowLog;
 import android.content.Context;
 
 import org.oddb.generika.CustomTestRunner;
-
-import org.oddb.generika.BuildConfig;
 import org.oddb.generika.R;
 
 
 @RunWith(CustomTestRunner.class)
-@Config(constants=BuildConfig.class)
+@Config(sdk = 34)
 public class ResourceTest {
   private Context context;  // application
 

@@ -20,9 +20,8 @@ import org.oddb.generika.util.AppLocale;
 import org.oddb.generika.util.Constant;
 
 
-
 @RunWith(CustomTestRunner.class)
-@Config(constants=BuildConfig.class)
+@Config(sdk = 34)
 public class AppLocaleTest {
   private SharedPreferences sharedPreferences;
   private Context context;  // application

@@ -4,6 +4,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
 import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -15,7 +17,7 @@ import androidx.appcompat.widget.Toolbar;
 
 
 @RunWith(CustomTestRunner.class)
-@Config(constants=BuildConfig.class)
+@Config(sdk = 34)
 public class SettingsActivityTest {
   @Before
   public void setup() throws Exception {
@@ -40,6 +42,6 @@ public class SettingsActivityTest {
       SettingsActivity.class).newIntent(intent).create().get();
 
     Toolbar toolbar = settings.findViewById(R.id.settings);
-    assertEquals("Settings", toolbar.getTitle());
+    assertEquals("Settings", toolbar.getTitle().toString());
   }
 }

@@ -4,7 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -15,14 +16,11 @@ import android.content.Context;
 import java.util.HashMap;
 
 import org.oddb.generika.CustomTestRunner;
-
-import org.oddb.generika.BuildConfig;
 import org.oddb.generika.barcode.BarcodeExtractor;
 
 
-
 @RunWith(CustomTestRunner.class)
-@Config(constants=BuildConfig.class)
+@Config(sdk = 34) // Use sdk instead of constants
 public class BarcodeExtractorTest {
   private Context context;
 
