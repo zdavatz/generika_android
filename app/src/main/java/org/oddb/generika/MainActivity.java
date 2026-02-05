@@ -179,7 +179,7 @@ public class MainActivity extends BaseActivity implements
     progressDialog.setMessage("Downloading pharmaceutical database...\nThis is a one-time download (~600MB)");
     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     progressDialog.setMax(100);
-    progressDialog.setCancelable(false);
+    progressDialog.setCancelable(true);
     progressDialog.show();
     
     AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
