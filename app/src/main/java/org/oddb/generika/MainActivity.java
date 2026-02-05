@@ -168,7 +168,7 @@ public class MainActivity extends BaseActivity implements
   private void checkAndDownloadDatabase() {
     AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
     
-    if (!dbManager.checkAllFilesExists() || dbManager.shouldCopyFromPersistentFolder(this)) {
+    if (!dbManager.checkAllFilesExists()) {
       showDatabaseDownloadDialog();
     }
   }
@@ -819,6 +819,10 @@ public class MainActivity extends BaseActivity implements
                   }
               }
             dataManager.addProduct(barcode_, package_);
+            // Refresh the list adapter to show the newly scanned product immediately
+            if (listAdapter != null) {
+              listAdapter.refreshAll();
+            }
           } else {
             File file = new File(filepath);
             if (file.exists()) {
