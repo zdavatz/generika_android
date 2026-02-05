@@ -219,6 +219,7 @@ public class ProductRecyclerAdapter
         Product item = getItem(position);
         if (item != null && itemListener != null) {
             itemListener.onDelete(item.getId());
+            notifyItemRemoved(position);
         }
     }
 
