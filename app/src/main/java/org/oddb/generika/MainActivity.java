@@ -17,6 +17,7 @@
  */
 package org.oddb.generika;
 
+import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -36,6 +37,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -121,6 +123,8 @@ public class MainActivity extends BaseActivity implements
   private DataManager dataManager;
   private GenerikaListAdapter listAdapter; // Product / Receipt
 
+  private ProgressDialog progressDialog;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -174,7 +178,7 @@ public class MainActivity extends BaseActivity implements
   }
 
   private void showDatabaseDownloadDialog() {
-    ProgressDialog progressDialog = new ProgressDialog(this);
+    this.progressDialog = new ProgressDialog(this);
     progressDialog.setTitle(getString(R.string.app_name));
     progressDialog.setMessage("Downloading pharmaceutical database...\nThis is a one-time download (~600MB)");
     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -333,6 +337,9 @@ public class MainActivity extends BaseActivity implements
 
   @Override
   protected void onDestroy() {
+    if (this.progressDialog != null && this.progressDialog.isShowing()) {
+        this.progressDialog.dismiss();
+    }
     super.onDestroy();
 
     dataManager.release();
