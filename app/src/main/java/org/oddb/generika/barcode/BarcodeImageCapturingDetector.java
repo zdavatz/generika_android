@@ -85,6 +85,19 @@ public class BarcodeImageCapturingDetector extends Detector<Barcode> {
         Bitmap bitmap = buildBitmap(byteBuffer,
             metadata.getWidth(), metadata.getHeight());
 
+        // Android's Vision doesn't support detection with inverted color
+        // We have to invert every other frame so it detects properly,
+        // It's not possible to attach metadata to the frame, so we are
+        // looking at the frame id. even number means normal image, odd number means it's inverted.
+        // https://github.com/zdavatz/generika_android/issues/104
+        if (metadata.getId() % 2 == 1) {
+          for (int i = 0; i < bitmap.getWidth(); i++) {
+            for (int j = 0; j < bitmap.getHeight(); j++) {
+              bitmap.setPixel(i, j, bitmap.getPixel(i, j) ^ 0x00ffffff);
+            }
+          }
+        }
+
         if (barcodeImageCaptureListener != null) { // barcode + captured bitmap
           barcodeImageCaptureListener.onBarcodeImageCaptured(
             barcode.displayValue, bitmap);

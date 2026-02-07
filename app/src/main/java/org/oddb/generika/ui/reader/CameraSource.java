@@ -119,6 +119,8 @@ public class CameraSource {
   private String focusMode = null;
   private String flashMode = null;
 
+  public boolean isInverted = false;
+
   private SurfaceView dummySurfaceView;
   private SurfaceTexture dummySurfaceTexture;
 
@@ -772,6 +774,17 @@ public class CameraSource {
 
         pendingTimeMillis = SystemClock.elapsedRealtime() - startTimeMillis;
         pendingFrameId++;
+        // Android's Vision doesn't support detection with inverted color
+        // We have to invert every other frame so it detects properly
+        // https://github.com/zdavatz/generika_android/issues/104
+          if (!isInverted){
+              for (int y = 0; y < data.length; y++) {
+                  data[y] = (byte) ~data[y];
+              }
+              isInverted = true;
+          } else {
+              isInverted = false;
+          }
         pendingFrameData = bytesToByteBuffer.get(data);
         lock.notifyAll();
       }
