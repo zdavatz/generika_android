@@ -95,6 +95,9 @@ public class Product extends RealmObject implements Retryable {
   private String price;
   private String category;
 
+  // GS1 DataMatrix batch/lot number
+  private String batchOrLot;
+
   // -- prescribed product (medication)
   // (values from .amk file)
   private String atc;
@@ -291,8 +294,15 @@ public class Product extends RealmObject implements Retryable {
     Log.d(TAG, "(insertNewBarcodeIntoSource) batchOrLot: " + batchOrLot);
     Log.d(TAG, "(insertNewBarcodeIntoSource) expiresAt: " + expiresAt);
     if (batchOrLot != null && !batchOrLot.isEmpty()) {
-      // name must be updated in `updateProperties` (after api request)
-      item.setName(batchOrLot);
+      item.setBatchOrLot(batchOrLot);
+      String currentName = item.getName();
+      if (currentName != null && !currentName.isEmpty()) {
+        // Append batch/lot to the product name from AmikoDB
+        item.setName(currentName + ", " + batchOrLot);
+      } else {
+        // No package info available, use batch/lot as placeholder
+        item.setName(batchOrLot);
+      }
     }
     if (expiresAt != null) {
       item.setExpiresAt(expiresAt);
@@ -389,6 +399,9 @@ public class Product extends RealmObject implements Retryable {
   }
   public void setCategory(String category) { this.category = category; }
 
+  public String getBatchOrLot() { return batchOrLot; }
+  public void setBatchOrLot(String batchOrLot) { this.batchOrLot = batchOrLot; }
+
   public String getAtc() { return atc; }
   public void setAtc(String value) { this.atc = value; }
 
@@ -413,10 +426,20 @@ public class Product extends RealmObject implements Retryable {
       if (value != null && value != "" && value != "null")  {
         switch (key) {
           case "name":
-            String name = getName();
-            if (name != null && !name.equals("") &&
-                value != null && !value.equals("")) { // pretend
-              value = String.format("%s, %s", value, name);
+            // For GS1 DataMatrix scans, append the batch/lot number
+            // to the API-provided product name
+            String lot = getBatchOrLot();
+            if (lot != null && !lot.isEmpty() &&
+                value != null && !value.isEmpty()) {
+              value = String.format("%s, %s", value, lot);
+            } else {
+              // For regular barcodes, keep the old behavior:
+              // append old name if present (e.g. placeholder text)
+              String name = getName();
+              if (name != null && !name.equals("") &&
+                  value != null && !value.equals("")) {
+                value = String.format("%s, %s", value, name);
+              }
             }
             break;
         }
