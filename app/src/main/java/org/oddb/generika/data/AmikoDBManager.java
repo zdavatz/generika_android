@@ -91,6 +91,17 @@ public class AmikoDBManager extends SQLiteOpenHelper {
         return mDataBase != null;
     }
 
+    /**
+     * Closes and reopens the database to pick up a newly downloaded file.
+     */
+    public void reloadDatabase() {
+        if (mDataBase != null && mDataBase.isOpen()) {
+            mDataBase.close();
+            mDataBase = null;
+        }
+        openDataBase();
+    }
+
     public ArrayList<AmikoDBRow> findWithRegnr(String regnr, String type) {
         ArrayList<AmikoDBRow> results = new ArrayList<>();
         if (mDataBase == null && !this.openDataBase()) {
@@ -161,6 +172,9 @@ public class AmikoDBManager extends SQLiteOpenHelper {
                 editor.putLong("PREF_DB_UPDATE_DATE_DE", downloadDate.getTime());
                 editor.commit();
                 
+                // Reload the database connection to use the new file
+                reloadDatabase();
+                
                 if (callback != null) callback.onComplete();
             } catch (Exception e) {
                 Log.e(TAG, "Error downloading database", e);
@@ -182,6 +196,9 @@ public class AmikoDBManager extends SQLiteOpenHelper {
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putLong("PREF_DB_UPDATE_DATE_DE", downloadDate.getTime());
                 editor.commit();
+                
+                // Reload the database connection to use the new file
+                reloadDatabase();
                 
                 if (callback != null) callback.onComplete();
             } catch (Exception e) {
