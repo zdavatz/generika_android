@@ -291,14 +291,9 @@ public class Product extends RealmObject implements Retryable {
     Log.d(TAG, "(insertNewBarcodeIntoSource) batchOrLot: " + batchOrLot);
     Log.d(TAG, "(insertNewBarcodeIntoSource) expiresAt: " + expiresAt);
     if (batchOrLot != null && !batchOrLot.isEmpty()) {
-      String currentName = item.getName();
-      if (currentName != null && !currentName.isEmpty()) {
-        // Append batch/lot to the product name from AmikoDB
-        item.setName(currentName + ", " + batchOrLot);
-      } else {
-        // No package info available, use batch/lot as placeholder
-        item.setName(batchOrLot);
-      }
+      // Store batch/lot in comment field (not persisted to Realm schema change)
+      // so it can be displayed after the expiry date
+      item.setComment(batchOrLot);
     }
     if (expiresAt != null) {
       item.setExpiresAt(expiresAt);
@@ -419,22 +414,10 @@ public class Product extends RealmObject implements Retryable {
       if (value != null && value != "" && value != "null")  {
         switch (key) {
           case "name":
-            String currentName = getName();
-            if (currentName != null && !currentName.equals("") &&
-                value != null && !value.equals("")) {
-              // Check if the current name contains a batch/lot suffix
-              // (format: "ProductName, LOTXXX" from DataMatrix scan)
-              // If the API-provided name matches the product part, keep the lot
-              int lastComma = currentName.lastIndexOf(", ");
-              if (lastComma > 0) {
-                String namePart = currentName.substring(0, lastComma);
-                String lotPart = currentName.substring(lastComma + 2);
-                // Append only the batch/lot to the new API name
-                value = String.format("%s, %s", value, lotPart);
-              } else {
-                // No batch/lot suffix, keep old behavior
-                value = String.format("%s, %s", value, currentName);
-              }
+            String name = getName();
+            if (name != null && !name.equals("") &&
+                value != null && !value.equals("")) { // pretend
+              value = String.format("%s, %s", value, name);
             }
             break;
         }

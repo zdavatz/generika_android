@@ -190,8 +190,18 @@ public class ProductRecyclerAdapter
         if (expiresAt != null && !expiresAt.equals(Constant.INIT_DATA.get("expiresAt"))) {
             expiresAt = Formatter.formatAsLocalDate(expiresAt, expiresAtFormat);
         }
+        // Append batch/lot number from DataMatrix (stored in comment field)
+        String batchOrLot = item.getComment();
+        if (batchOrLot != null && !batchOrLot.isEmpty()) {
+            if (expiresAt != null && !expiresAt.isEmpty()) {
+                expiresAt = expiresAt + ", " + batchOrLot;
+            } else {
+                expiresAt = batchOrLot;
+            }
+        }
         holder.expiresAt.setText(expiresAt);
-        holder.expiresAt.setTextColor(composeExpiresAtTextColor(expiresAt, context));
+        holder.expiresAt.setTextColor(composeExpiresAtTextColor(
+            Formatter.formatAsLocalDate(item.getExpiresAt(), expiresAtFormat), context));
 
         // Click listener - tap to display product
         holder.itemView.setOnClickListener(v -> {
