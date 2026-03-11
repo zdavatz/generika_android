@@ -166,7 +166,21 @@ Run JUnit Tests.
 % make test ARGS="--tests \"*Barcode*\""
 ```
 
-## Upload APK from commandline
+## Upload to Google Play Store
+
+### App Bundle (recommended)
+
+```zsh
+# build + upload to production in one step
+./apkup_bundle
+
+# or upload to a specific track
+./apkup_bundle beta
+```
+
+Requires `generika.json` (service account credentials) in the project root and the [android-bundle-uploader](https://github.com/nicolgit/android-bundle-uploader) tool in `../android-bundle-uploader/`.
+
+### APK (legacy)
 
 * Install Playup from https://github.com/jeduan/playup
 * Setup your json File with the security credentials

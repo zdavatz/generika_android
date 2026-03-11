@@ -6,7 +6,10 @@
 ./gradlew compileDebugSources   # compile
 ./gradlew assembleDebug         # build debug APK
 ./gradlew assembleRelease       # build release APK
+./gradlew bundleRelease         # build release AAB
 ./gradlew test                  # run tests
+./apkup_bundle                  # clean + build + upload AAB to Google Play (production)
+./apkup_bundle beta             # upload to beta track
 ```
 
 ## Architecture
