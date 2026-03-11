@@ -235,5 +235,10 @@
             android:name=".PatinfoActivity"
             android:label="@string/pi_fullname"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".InteractionsActivity"
+            android:label="@string/interactions"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 </manifest>

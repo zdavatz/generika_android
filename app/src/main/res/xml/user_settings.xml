@@ -77,6 +77,11 @@
             android:title="Database Information"
             android:summary="View current database details"
             android:enabled="false" />
+
+        <androidx.preference.Preference
+            android:key="download_interactions_database"
+            android:title="Update Interactions Database"
+            android:summary="Download the latest drug interactions database" />
             
     </androidx.preference.PreferenceCategory>
 

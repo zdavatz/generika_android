@@ -37,6 +37,7 @@ import java.util.Locale;
 
 import org.oddb.generika.preference.AppListPreference;
 import org.oddb.generika.data.AmikoDBManager;
+import org.oddb.generika.data.InteractionsDBManager;
 import org.oddb.generika.util.AppLocale;
 import org.oddb.generika.util.Constant;
 
@@ -142,6 +143,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return true;
       });
     }
+
+    Preference downloadInteractionsDb = findPreference("download_interactions_database");
+    if (downloadInteractionsDb != null) {
+      downloadInteractionsDb.setOnPreferenceClickListener(preference -> {
+        startInteractionsDatabaseDownload();
+        return true;
+      });
+    }
     updateDatabaseInfo();
   }
 
@@ -204,6 +213,47 @@ public class SettingsFragment extends PreferenceFragmentCompat {
           new AlertDialog.Builder(getContext())
             .setTitle("Download Error")
             .setMessage("Failed to download database: " + e.getMessage())
+            .setPositiveButton("OK", null)
+            .show();
+        });
+      }
+    });
+  }
+
+  private void startInteractionsDatabaseDownload() {
+    ProgressDialog progressDialog = new ProgressDialog(getContext());
+    progressDialog.setTitle(getString(R.string.app_name));
+    progressDialog.setMessage("Downloading interactions database...");
+    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    progressDialog.setMax(100);
+    progressDialog.setCancelable(false);
+    progressDialog.show();
+
+    InteractionsDBManager interDB = InteractionsDBManager.getInstance(getContext());
+    interDB.forceDownload(new InteractionsDBManager.DownloadCallback() {
+      @Override
+      public void onProgress(int percent) {
+        getActivity().runOnUiThread(() -> {
+          progressDialog.setProgress(percent);
+        });
+      }
+
+      @Override
+      public void onComplete() {
+        getActivity().runOnUiThread(() -> {
+          progressDialog.dismiss();
+          Toast.makeText(getContext(), "Interactions database updated", Toast.LENGTH_SHORT).show();
+        });
+      }
+
+      @Override
+      public void onError(Exception e) {
+        getActivity().runOnUiThread(() -> {
+          progressDialog.dismiss();
+          Log.e(TAG, "Interactions database download error", e);
+          new AlertDialog.Builder(getContext())
+            .setTitle("Download Error")
+            .setMessage("Failed to download interactions database: " + e.getMessage())
             .setPositiveButton("OK", null)
             .show();
         });

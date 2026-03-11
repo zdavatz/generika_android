@@ -90,6 +90,7 @@ import org.oddb.generika.barcode.BarcodeExtractor;
 import org.oddb.generika.barcode.EPrescription;
 import org.oddb.generika.data.AmikoDBManager;
 import org.oddb.generika.data.DataManager;
+import org.oddb.generika.data.InteractionsDBManager;
 import org.oddb.generika.model.AmikoDBPackage;
 import org.oddb.generika.model.AmikoDBRow;
 import org.oddb.generika.model.Product;
@@ -171,10 +172,25 @@ public class MainActivity extends BaseActivity implements
 
   private void checkAndDownloadDatabase() {
     AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
-    
+
     if (!dbManager.checkAllFilesExists()) {
       showDatabaseDownloadDialog();
     }
+
+    // Download interactions database in background
+    InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
+    interDB.downloadDatabaseIfNeeded(new InteractionsDBManager.DownloadCallback() {
+      @Override
+      public void onProgress(int percent) {}
+      @Override
+      public void onComplete() {
+        Log.d(TAG, "Interactions database ready");
+      }
+      @Override
+      public void onError(Exception e) {
+        Log.e(TAG, "Interactions database download error", e);
+      }
+    });
   }
 
   private void showDatabaseDownloadDialog() {
@@ -478,17 +494,25 @@ public class MainActivity extends BaseActivity implements
             } else {
               results = dataManager.getProducts();
             }
-            Product[] products = null;
-            if (results != null) {
-              Log.d(TAG, "(productResults) results: " + results.size());
-              ArrayList<Product> productList = new ArrayList(results);
-              products = new Product[productList.size()];
-              products = productList.toArray(products);
-            }
 
             drawerLayout.closeDrawers();
 
-            openWebView(products);
+            if (results != null) {
+              HashSet<String> uniqueEans = new HashSet<String>();
+              for (Product p : results) {
+                String ean = p.getEan();
+                if (ean != null && !ean.equals("") &&
+                    !ean.equals(Constant.INIT_DATA.get("ean"))) {
+                  uniqueEans.add(ean);
+                }
+              }
+              if (uniqueEans.size() >= 2) {
+                Intent intent = new Intent(MainActivity.this, InteractionsActivity.class);
+                String[] eans = uniqueEans.toArray(new String[0]);
+                intent.putExtra(Constant.kEans, eans);
+                startActivity(intent);
+              }
+            }
           } else if (!menuItem.isChecked()) { // drugs/prescriptions
             Log.d(TAG, "(onNavigationItemSelected) name: " + name);
             String nextSourceType;
