@@ -523,6 +523,10 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
         String mechanism = ephaRow.get("mechanism");
         String measures = ephaRow.get("measures");
 
+        // Check FachInfo text severity in both directions
+        int fiSeverityForward = classSeverityForDirection(drugA.atcCode, drugB.atcCode);
+        int fiSeverityReverse = classSeverityForDirection(drugB.atcCode, drugA.atcCode);
+
         String header = drugA.name + " [" + drugA.atcCode + "] \u2194 " +
                          drugB.name + " [" + drugB.atcCode + "]";
 
@@ -537,6 +541,22 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
         }
         if (measures != null && !measures.isEmpty()) {
             sb.append("<br><i>Massnahmen: ").append(measures).append("</i>");
+        }
+
+        if (fiSeverityForward > 0 || fiSeverityReverse > 0) {
+            String fwdLabel = fiSeverityForward >= 0 && fiSeverityForward < SEVERITY_LABELS.length ?
+                SEVERITY_LABELS[fiSeverityForward] : SEVERITY_LABELS[0];
+            String revLabel = fiSeverityReverse >= 0 && fiSeverityReverse < SEVERITY_LABELS.length ?
+                SEVERITY_LABELS[fiSeverityReverse] : SEVERITY_LABELS[0];
+            if (fiSeverityReverse > fiSeverityForward) {
+                sb.append("<br><span style='background-color: #ffec8b; padding: 2px 6px; font-size: 11px;'>");
+                sb.append("Swissmedic FI: Gegenrichtung hat h\u00F6here Einstufung (");
+                sb.append(revLabel).append(" vs ").append(fwdLabel).append(")</span>");
+            } else if (fiSeverityForward > fiSeverityReverse) {
+                sb.append("<br><span style='background-color: #ffec8b; padding: 2px 6px; font-size: 11px;'>");
+                sb.append("Swissmedic FI: Diese Richtung hat h\u00F6here Einstufung (");
+                sb.append(fwdLabel).append(" vs ").append(revLabel).append(")</span>");
+            }
         }
 
         String color = severity >= 0 && severity < SEVERITY_COLORS.length ?
@@ -627,8 +647,13 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
 
                 String hint = "";
                 if (reverseSeverity > severity) {
+                    String revLabel = reverseSeverity >= 0 && reverseSeverity < SEVERITY_LABELS.length ?
+                        SEVERITY_LABELS[reverseSeverity] : SEVERITY_LABELS[0];
+                    String fwdLabel = severity >= 0 && severity < SEVERITY_LABELS.length ?
+                        SEVERITY_LABELS[severity] : SEVERITY_LABELS[0];
                     hint = "<br><span style='background-color: #ffec8b; padding: 2px 6px; font-size: 11px;'>" +
-                           "Gegenrichtung hat höhere Einstufung</span>";
+                           "Swissmedic FI: Gegenrichtung hat h\u00F6here Einstufung (" +
+                           revLabel + " vs " + fwdLabel + ")</span>";
                 }
 
                 String header = myDrug.name + " [" + myDrug.atcCode + "] \u2194 " +
