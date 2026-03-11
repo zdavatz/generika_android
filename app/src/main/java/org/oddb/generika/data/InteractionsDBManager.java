@@ -492,17 +492,15 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
             return results; // EPha match found, no need for lower tiers
         }
 
-        // Tier 2: Substance-level interactions
+        // Tier 2: Substance-level interactions (both directions)
         List<InteractionResult> substanceResults = findSubstanceInteractions(drugA, drugB);
-        if (!substanceResults.isEmpty()) {
-            results.addAll(substanceResults);
-            return results;
-        }
+        results.addAll(substanceResults);
+        List<InteractionResult> substanceResultsReverse = findSubstanceInteractions(drugB, drugA);
+        results.addAll(substanceResultsReverse);
 
-        // Tier 3: Class-level interactions (FachInfo text analysis)
+        // Tier 3: Class-level interactions (both directions)
         List<InteractionResult> classResults = findClassInteractions(drugA, drugB);
         results.addAll(classResults);
-        // Also check reverse direction
         List<InteractionResult> classResultsReverse = findClassInteractions(drugB, drugA);
         results.addAll(classResultsReverse);
 

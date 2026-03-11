@@ -97,7 +97,11 @@ public class InteractionsActivity extends BaseActivity {
                 ArrayList<AmikoDBRow> rows = amikoDB.findWithGtin(ean, null);
                 if (!rows.isEmpty()) {
                     AmikoDBRow row = rows.get(0);
+                    // atc field format: "N06AB06;Sertralin" — extract code before semicolon
                     String atc = row.atc;
+                    if (atc != null && atc.contains(";")) {
+                        atc = atc.substring(0, atc.indexOf(";")).trim();
+                    }
                     String name = row.title;
                     if (name != null && name.contains(",")) {
                         name = name.substring(0, name.indexOf(",")).trim();
