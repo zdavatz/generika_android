@@ -388,20 +388,29 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
      */
     private int classSeverityForDirection(String myAtcCode, String otherAtcCode) {
         String fiText = interactionsTextForAtc(myAtcCode);
-        if (fiText == null) return 0;
+        if (fiText == null) {
+            Log.d(TAG, "classSeverityForDirection: no FI text for " + myAtcCode);
+            return 0;
+        }
+        Log.d(TAG, "classSeverityForDirection: " + myAtcCode + " -> " + otherAtcCode +
+              ", FI text length=" + fiText.length());
         int best = 0;
         Map<String, List<String>> keywords = getAtcKeywords();
+        int prefixMatches = 0;
         for (Map.Entry<String, List<String>> entry : keywords.entrySet()) {
             String prefix = entry.getKey();
             if (!otherAtcCode.startsWith(prefix)) continue;
+            prefixMatches++;
             for (String kw : entry.getValue()) {
                 if (!fiText.toLowerCase().contains(kw.toLowerCase())) continue;
                 String context = extractContext(fiText, kw);
                 if (context == null) continue;
                 int sev = scoreSeverity(context);
+                Log.d(TAG, "  keyword '" + kw + "' matched, severity=" + sev);
                 if (sev > best) best = sev;
             }
         }
+        Log.d(TAG, "classSeverityForDirection: prefixMatches=" + prefixMatches + ", best=" + best);
         return best;
     }
 
@@ -526,6 +535,9 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
         // Check FachInfo text severity in both directions
         int fiSeverityForward = classSeverityForDirection(drugA.atcCode, drugB.atcCode);
         int fiSeverityReverse = classSeverityForDirection(drugB.atcCode, drugA.atcCode);
+        Log.d(TAG, "buildEphaResult FI severity: forward=" + fiSeverityForward +
+              " (" + drugA.atcCode + "->" + drugB.atcCode + "), reverse=" + fiSeverityReverse +
+              " (" + drugB.atcCode + "->" + drugA.atcCode + ")");
 
         String header = drugA.name + " [" + drugA.atcCode + "] \u2194 " +
                          drugB.name + " [" + drugB.atcCode + "]";
