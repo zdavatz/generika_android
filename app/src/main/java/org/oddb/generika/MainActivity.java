@@ -172,36 +172,58 @@ public class MainActivity extends BaseActivity implements
 
   private void checkAndDownloadDatabase() {
     AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
-
-    if (!dbManager.checkAllFilesExists()) {
-      showDatabaseDownloadDialog();
-    }
-
-    // Download interactions database in background
     InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
-    interDB.downloadDatabaseIfNeeded(new InteractionsDBManager.DownloadCallback() {
-      @Override
-      public void onProgress(int percent) {}
-      @Override
-      public void onComplete() {
-        Log.d(TAG, "Interactions database ready");
-      }
-      @Override
-      public void onError(Exception e) {
-        Log.e(TAG, "Interactions database download error", e);
-      }
-    });
+
+    boolean needAmiko = !dbManager.checkAllFilesExists();
+    boolean needInteractions = !interDB.checkAllFilesExists();
+
+    if (needAmiko || needInteractions) {
+      showDatabaseDownloadDialog(needAmiko, needInteractions);
+    } else {
+      // Both exist — check if updates are needed silently
+      dbManager.downloadDatabaseIfNeeded(new AmikoDBManager.DownloadCallback() {
+        @Override public void onProgress(int percent) {}
+        @Override public void onComplete() {
+          Log.d(TAG, "Pharmaceutical database up to date");
+        }
+        @Override public void onError(Exception e) {
+          Log.e(TAG, "Pharmaceutical database update error", e);
+        }
+      });
+      interDB.downloadDatabaseIfNeeded(new InteractionsDBManager.DownloadCallback() {
+        @Override public void onProgress(int percent) {}
+        @Override public void onComplete() {
+          Log.d(TAG, "Interactions database up to date");
+        }
+        @Override public void onError(Exception e) {
+          Log.e(TAG, "Interactions database update error", e);
+        }
+      });
+    }
   }
 
-  private void showDatabaseDownloadDialog() {
+  private void showDatabaseDownloadDialog(boolean downloadAmiko, boolean downloadInteractions) {
     this.progressDialog = new ProgressDialog(this);
     progressDialog.setTitle(getString(R.string.app_name));
-    progressDialog.setMessage("Downloading pharmaceutical database...");
+    progressDialog.setMessage("Downloading databases...");
     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     progressDialog.setMax(100);
     progressDialog.setCancelable(true);
     progressDialog.show();
-    
+
+    if (downloadAmiko) {
+      startAmikoDownload(downloadInteractions);
+    } else {
+      startInteractionsDownload();
+    }
+  }
+
+  private void startAmikoDownload(boolean alsoDownloadInteractions) {
+    runOnUiThread(() -> {
+      progressDialog.setProgress(0);
+      progressDialog.setMessage("Downloading pharmaceutical database...");
+    });
+
     AmikoDBManager dbManager = AmikoDBManager.getInstance(this);
     try {
       dbManager.downloadDatabaseIfNeeded(new AmikoDBManager.DownloadCallback() {
@@ -210,56 +232,33 @@ public class MainActivity extends BaseActivity implements
           runOnUiThread(() -> {
             progressDialog.setProgress(percent);
             progressDialog.setMessage(String.format(
-              "Downloading pharmaceutical database...\n%d%%", 
-              percent
-            ));
+              "Downloading pharmaceutical database...\n%d%%", percent));
           });
         }
-        
+
         @Override
         public void onComplete() {
-          runOnUiThread(() -> {
-            // Log successful database check/download
-            FirebaseCrashlytics.getInstance().log("Database download/check completed successfully");
-            FirebaseCrashlytics.getInstance().setCustomKey("db_ready", true);
-            
-            if (progressDialog != null && progressDialog.isShowing()) {
-              try {
-                progressDialog.dismiss();
-              } catch (Exception e) {
-                Log.e(TAG, "Error dismissing progress dialog", e);
-                FirebaseCrashlytics.getInstance().recordException(e);
-              }
-            }
-            Toast.makeText(MainActivity.this, 
-              "Database downloaded successfully", 
-              Toast.LENGTH_SHORT).show();
-          });
+          FirebaseCrashlytics.getInstance().log("Pharmaceutical database ready");
+          FirebaseCrashlytics.getInstance().setCustomKey("db_ready", true);
+
+          if (alsoDownloadInteractions) {
+            startInteractionsDownload();
+          } else {
+            runOnUiThread(() -> dismissProgressDialog());
+          }
         }
-        
+
         @Override
         public void onError(Exception e) {
+          FirebaseCrashlytics.getInstance().recordException(e);
           runOnUiThread(() -> {
-            // Report non-fatal exception to Crashlytics
-            FirebaseCrashlytics.getInstance().recordException(e);
-            FirebaseCrashlytics.getInstance().log("Database download failed: " + e.getMessage());
-            FirebaseCrashlytics.getInstance().setCustomKey("db_ready", false);
-            
-            if (progressDialog != null && progressDialog.isShowing()) {
-              try {
-                progressDialog.dismiss();
-              } catch (Exception ex) {
-                Log.e(TAG, "Error dismissing progress dialog", ex);
-                FirebaseCrashlytics.getInstance().recordException(ex);
-              }
-            }
+            dismissProgressDialog();
             Log.e(TAG, "Database download error", e);
-            // Show error dialog
             new AlertDialog.Builder(MainActivity.this)
               .setTitle("Download Error")
-              .setMessage("Failed to download database: " + e.getMessage() + 
+              .setMessage("Failed to download pharmaceutical database: " + e.getMessage() +
                 "\n\nPlease check your internet connection.")
-              .setPositiveButton("Retry", (d, w) -> showDatabaseDownloadDialog())
+              .setPositiveButton("Retry", (d, w) -> showDatabaseDownloadDialog(true, alsoDownloadInteractions))
               .setNegativeButton("Exit", (d, w) -> finish())
               .setCancelable(false)
               .show();
@@ -268,6 +267,66 @@ public class MainActivity extends BaseActivity implements
       });
     } catch (Exception e) {
       Log.e(TAG, "Error starting download", e);
+    }
+  }
+
+  private void startInteractionsDownload() {
+    runOnUiThread(() -> {
+      if (progressDialog != null && progressDialog.isShowing()) {
+        progressDialog.setProgress(0);
+        progressDialog.setMessage("Downloading interactions database...");
+      }
+    });
+
+    InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
+    interDB.downloadDatabaseIfNeeded(new InteractionsDBManager.DownloadCallback() {
+      @Override
+      public void onProgress(int percent) {
+        runOnUiThread(() -> {
+          if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.setProgress(percent);
+            progressDialog.setMessage(String.format(
+              "Downloading interactions database...\n%d%%", percent));
+          }
+        });
+      }
+
+      @Override
+      public void onComplete() {
+        Log.d(TAG, "Interactions database ready");
+        runOnUiThread(() -> {
+          dismissProgressDialog();
+          Toast.makeText(MainActivity.this,
+            "All databases downloaded", Toast.LENGTH_SHORT).show();
+        });
+      }
+
+      @Override
+      public void onError(Exception e) {
+        Log.e(TAG, "Interactions database download error", e);
+        FirebaseCrashlytics.getInstance().recordException(e);
+        runOnUiThread(() -> {
+          dismissProgressDialog();
+          new AlertDialog.Builder(MainActivity.this)
+            .setTitle("Download Error")
+            .setMessage("Failed to download interactions database: " + e.getMessage() +
+              "\n\nPlease check your internet connection.")
+            .setPositiveButton("Retry", (d, w) -> showDatabaseDownloadDialog(false, true))
+            .setNegativeButton("Continue", null)
+            .setCancelable(false)
+            .show();
+        });
+      }
+    });
+  }
+
+  private void dismissProgressDialog() {
+    if (progressDialog != null && progressDialog.isShowing()) {
+      try {
+        progressDialog.dismiss();
+      } catch (Exception e) {
+        Log.e(TAG, "Error dismissing progress dialog", e);
+      }
     }
   }
 
