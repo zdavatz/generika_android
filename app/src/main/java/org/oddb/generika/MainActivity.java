@@ -208,7 +208,7 @@ public class MainActivity extends BaseActivity implements
     progressDialog.setMessage("Downloading databases...");
     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     progressDialog.setMax(100);
-    progressDialog.setCancelable(true);
+    progressDialog.setCancelable(false);
     progressDialog.show();
 
     if (downloadAmiko) {

@@ -1,14 +1,17 @@
 package org.oddb.generika;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -73,7 +76,13 @@ public class InteractionsActivity extends BaseActivity {
 
         String[] eans = getIntent().getStringArrayExtra(Constant.kEans);
         if (eans != null) {
-            loadInteractions(eans);
+            InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
+            if (!interDB.checkAllFilesExists()) {
+                // DB missing — download it first
+                downloadAndThenLoad(eans);
+            } else {
+                loadInteractions(eans);
+            }
         }
     }
 
@@ -83,6 +92,48 @@ public class InteractionsActivity extends BaseActivity {
             finishAfterTransition();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void downloadAndThenLoad(String[] eans) {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle(getString(R.string.app_name));
+        progressDialog.setMessage("Downloading interactions database...");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMax(100);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
+        interDB.forceDownload(new InteractionsDBManager.DownloadCallback() {
+            @Override
+            public void onProgress(int percent) {
+                runOnUiThread(() -> {
+                    progressDialog.setProgress(percent);
+                    progressDialog.setMessage(String.format(
+                        "Downloading interactions database...\n%d%%", percent));
+                });
+            }
+
+            @Override
+            public void onComplete() {
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    loadInteractions(eans);
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    Log.e(TAG, "Interactions DB download error", e);
+                    String errorHtml = "<html><body><h2>Database not available</h2>" +
+                        "<p>Could not download interactions database: " + e.getMessage() + "</p>" +
+                        "<p>Please check your internet connection and try again via Settings.</p></body></html>";
+                    webView.loadDataWithBaseURL(null, errorHtml, "text/html", "utf-8", null);
+                });
+            }
+        });
     }
 
     private void loadInteractions(String[] eans) {
