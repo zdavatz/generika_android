@@ -66,23 +66,26 @@
 
     <!-- database -->
     <androidx.preference.PreferenceCategory android:title="Database">
-        
-        <androidx.preference.Preference
-            android:key="download_database"
-            android:title="Update Database"
-            android:summary="Download the latest pharmaceutical database (~600MB)" />
-        
-        <androidx.preference.Preference
-            android:key="database_info"
-            android:title="Database Information"
-            android:summary="View current database details"
-            android:enabled="false" />
 
         <androidx.preference.Preference
-            android:key="download_interactions_database"
-            android:title="Update Interactions Database"
-            android:summary="Download the latest drug interactions database" />
-            
+            android:key="download_database"
+            android:title="Update All Databases"
+            android:summary="Download pharmaceutical + interactions databases" />
+
+        <androidx.preference.Preference
+            android:key="database_info"
+            android:title="Pharmaceutical Database"
+            android:summary="Not installed"
+            android:enabled="false"
+            android:selectable="false" />
+
+        <androidx.preference.Preference
+            android:key="interactions_database_info"
+            android:title="Interactions Database"
+            android:summary="Not installed"
+            android:enabled="false"
+            android:selectable="false" />
+
     </androidx.preference.PreferenceCategory>
 
     <!-- cloud sync -->

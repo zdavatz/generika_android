@@ -311,4 +311,34 @@ public class AmikoDBManager extends SQLiteOpenHelper {
         File dbFile = new File(path + fileName);
         return dbFile.exists();
     }
+
+    /**
+     * Returns row count of the amikodb table, or -1 if unavailable.
+     */
+    public int getRowCount() {
+        if (mDataBase == null && !this.openDataBase()) return -1;
+        try {
+            Cursor cursor = mDataBase.rawQuery("SELECT COUNT(*) FROM amikodb", null);
+            int count = 0;
+            if (cursor.moveToFirst()) {
+                count = cursor.getInt(0);
+            }
+            cursor.close();
+            return count;
+        } catch (Exception e) {
+            Log.e(TAG, "getRowCount error", e);
+            return -1;
+        }
+    }
+
+    /**
+     * Returns the file size of the database in bytes, or -1 if unavailable.
+     */
+    public long getFileSizeBytes() {
+        File dbFile = new File(mAppDataDir + DATABASE_NAME);
+        if (dbFile.exists()) {
+            return dbFile.length();
+        }
+        return -1;
+    }
 }

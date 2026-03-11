@@ -143,43 +143,90 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return true;
       });
     }
-
-    Preference downloadInteractionsDb = findPreference("download_interactions_database");
-    if (downloadInteractionsDb != null) {
-      downloadInteractionsDb.setOnPreferenceClickListener(preference -> {
-        startInteractionsDatabaseDownload();
-        return true;
-      });
-    }
     updateDatabaseInfo();
   }
 
   private void updateDatabaseInfo() {
+    // Pharmaceutical DB stats
     Preference dbInfo = findPreference("database_info");
     if (dbInfo != null) {
-      AmikoDBManager dbManager = AmikoDBManager.getInstance(getContext());
-      if (dbManager.checkAllFilesExists()) {
-        dbInfo.setSummary("Database is installed");
-        dbInfo.setEnabled(true);
-      } else {
-        dbInfo.setSummary("Database not found");
-      }
+      new Thread(() -> {
+        AmikoDBManager dbManager = AmikoDBManager.getInstance(getContext());
+        if (dbManager.checkAllFilesExists()) {
+          int rowCount = dbManager.getRowCount();
+          long fileSize = dbManager.getFileSizeBytes();
+          String sizeMB = String.format("%.1f MB", fileSize / (1024.0 * 1024.0));
+          String summary;
+          if (rowCount >= 0) {
+            summary = String.format("%,d drugs | %s", rowCount, sizeMB);
+          } else {
+            summary = "Installed | " + sizeMB;
+          }
+          final String s = summary;
+          if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> dbInfo.setSummary(s));
+          }
+        } else {
+          if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> dbInfo.setSummary("Not installed"));
+          }
+        }
+      }).start();
+    }
+
+    // Interactions DB stats
+    Preference interInfo = findPreference("interactions_database_info");
+    if (interInfo != null) {
+      new Thread(() -> {
+        InteractionsDBManager interDB = InteractionsDBManager.getInstance(getContext());
+        if (interDB.checkAllFilesExists()) {
+          java.util.Map<String, Integer> stats = interDB.getTableStats();
+          long fileSize = interDB.getFileSizeBytes();
+          String sizeMB = String.format("%.1f MB", fileSize / (1024.0 * 1024.0));
+          StringBuilder sb = new StringBuilder();
+          if (!stats.isEmpty()) {
+            Integer epha = stats.get("epha_interactions");
+            Integer subst = stats.get("interactions");
+            Integer drugs = stats.get("drugs");
+            if (epha != null) sb.append(String.format("%,d EPha", epha));
+            if (subst != null) {
+              if (sb.length() > 0) sb.append(" | ");
+              sb.append(String.format("%,d substance", subst));
+            }
+            if (drugs != null) {
+              if (sb.length() > 0) sb.append(" | ");
+              sb.append(String.format("%,d drugs", drugs));
+            }
+            sb.append(" | ").append(sizeMB);
+          } else {
+            sb.append("Installed | ").append(sizeMB);
+          }
+          final String s = sb.toString();
+          if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> interInfo.setSummary(s));
+          }
+        } else {
+          if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> interInfo.setSummary("Not installed"));
+          }
+        }
+      }).start();
     }
   }
 
   private void showDatabaseDownloadConfirmation() {
     new AlertDialog.Builder(getContext())
-      .setTitle("Update Database")
-      .setMessage("This will download ~600MB of data. Continue?")
-      .setPositiveButton("Download", (dialog, which) -> startDatabaseDownload())
+      .setTitle("Update Databases")
+      .setMessage("This will download the pharmaceutical database (~600MB) and the interactions database. Continue?")
+      .setPositiveButton("Download", (dialog, which) -> startAllDatabaseDownloads())
       .setNegativeButton("Cancel", null)
       .show();
   }
 
-  private void startDatabaseDownload() {
+  private void startAllDatabaseDownloads() {
     ProgressDialog progressDialog = new ProgressDialog(getContext());
     progressDialog.setTitle(getString(R.string.app_name));
-    progressDialog.setMessage("Downloading pharmaceutical database...\n(~600MB)");
+    progressDialog.setMessage("Downloading pharmaceutical database...");
     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     progressDialog.setMax(100);
     progressDialog.setCancelable(false);
@@ -192,16 +239,51 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         getActivity().runOnUiThread(() -> {
           progressDialog.setProgress(percent);
           progressDialog.setMessage(String.format(
-            "Downloading pharmaceutical database...\n(~600MB)\n%d%%", percent));
+            "Downloading pharmaceutical database...\n%d%%", percent));
         });
       }
 
       @Override
       public void onComplete() {
+        // Now download interactions DB
         getActivity().runOnUiThread(() -> {
-          progressDialog.dismiss();
-          Toast.makeText(getContext(), "Database updated successfully", Toast.LENGTH_SHORT).show();
-          updateDatabaseInfo();
+          progressDialog.setProgress(0);
+          progressDialog.setMessage("Downloading interactions database...");
+        });
+
+        InteractionsDBManager interDB = InteractionsDBManager.getInstance(getContext());
+        interDB.forceDownload(new InteractionsDBManager.DownloadCallback() {
+          @Override
+          public void onProgress(int percent) {
+            getActivity().runOnUiThread(() -> {
+              progressDialog.setProgress(percent);
+              progressDialog.setMessage(String.format(
+                "Downloading interactions database...\n%d%%", percent));
+            });
+          }
+
+          @Override
+          public void onComplete() {
+            getActivity().runOnUiThread(() -> {
+              progressDialog.dismiss();
+              Toast.makeText(getContext(), "All databases updated", Toast.LENGTH_SHORT).show();
+              updateDatabaseInfo();
+            });
+          }
+
+          @Override
+          public void onError(Exception e) {
+            getActivity().runOnUiThread(() -> {
+              progressDialog.dismiss();
+              Log.e(TAG, "Interactions database download error", e);
+              new AlertDialog.Builder(getContext())
+                .setTitle("Download Error")
+                .setMessage("Failed to download interactions database: " + e.getMessage())
+                .setPositiveButton("OK", null)
+                .show();
+              updateDatabaseInfo(); // still update amiko stats
+            });
+          }
         });
       }
 
@@ -212,48 +294,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
           Log.e(TAG, "Database download error", e);
           new AlertDialog.Builder(getContext())
             .setTitle("Download Error")
-            .setMessage("Failed to download database: " + e.getMessage())
-            .setPositiveButton("OK", null)
-            .show();
-        });
-      }
-    });
-  }
-
-  private void startInteractionsDatabaseDownload() {
-    ProgressDialog progressDialog = new ProgressDialog(getContext());
-    progressDialog.setTitle(getString(R.string.app_name));
-    progressDialog.setMessage("Downloading interactions database...");
-    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-    progressDialog.setMax(100);
-    progressDialog.setCancelable(false);
-    progressDialog.show();
-
-    InteractionsDBManager interDB = InteractionsDBManager.getInstance(getContext());
-    interDB.forceDownload(new InteractionsDBManager.DownloadCallback() {
-      @Override
-      public void onProgress(int percent) {
-        getActivity().runOnUiThread(() -> {
-          progressDialog.setProgress(percent);
-        });
-      }
-
-      @Override
-      public void onComplete() {
-        getActivity().runOnUiThread(() -> {
-          progressDialog.dismiss();
-          Toast.makeText(getContext(), "Interactions database updated", Toast.LENGTH_SHORT).show();
-        });
-      }
-
-      @Override
-      public void onError(Exception e) {
-        getActivity().runOnUiThread(() -> {
-          progressDialog.dismiss();
-          Log.e(TAG, "Interactions database download error", e);
-          new AlertDialog.Builder(getContext())
-            .setTitle("Download Error")
-            .setMessage("Failed to download interactions database: " + e.getMessage())
+            .setMessage("Failed to download pharmaceutical database: " + e.getMessage())
             .setPositiveButton("OK", null)
             .show();
         });

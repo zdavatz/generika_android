@@ -647,4 +647,38 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
         }
         return results;
     }
+
+    /**
+     * Returns a map of table names to row counts for display.
+     */
+    public Map<String, Integer> getTableStats() {
+        Map<String, Integer> stats = new HashMap<>();
+        if (mDataBase == null && !openDataBase()) return stats;
+
+        String[] tables = {"epha_interactions", "interactions", "drugs", "class_keywords", "cyp_rules"};
+        for (String table : tables) {
+            try {
+                Cursor cursor = mDataBase.rawQuery("SELECT COUNT(*) FROM " + table, null);
+                if (cursor.moveToFirst()) {
+                    stats.put(table, cursor.getInt(0));
+                }
+                cursor.close();
+            } catch (Exception e) {
+                // table may not exist
+                Log.d(TAG, "Table " + table + " not found: " + e.getMessage());
+            }
+        }
+        return stats;
+    }
+
+    /**
+     * Returns the file size of the database in bytes, or -1 if unavailable.
+     */
+    public long getFileSizeBytes() {
+        File dbFile = new File(mAppDataDir + DATABASE_NAME);
+        if (dbFile.exists()) {
+            return dbFile.length();
+        }
+        return -1;
+    }
 }
