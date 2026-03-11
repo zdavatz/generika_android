@@ -104,7 +104,7 @@ public class InteractionsActivity extends BaseActivity {
         progressDialog.show();
 
         InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
-        interDB.forceDownload(new InteractionsDBManager.DownloadCallback() {
+        interDB.downloadDatabaseIfNeeded(new InteractionsDBManager.DownloadCallback() {
             @Override
             public void onProgress(int percent) {
                 runOnUiThread(() -> {
