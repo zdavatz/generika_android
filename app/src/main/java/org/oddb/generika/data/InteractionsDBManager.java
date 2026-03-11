@@ -116,24 +116,17 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
 
     public void downloadDatabaseIfNeeded(DownloadCallback callback) {
         if (checkAllFilesExists()) {
-            // Check if APK build date is newer than last download
+            // File exists — no need to re-download on every launch
             SharedPreferences settings = mContext.getSharedPreferences("GENERIKA_PREFS_FILE", 0);
             long lastUpdate = settings.getLong(PREF_KEY, 0);
-            if (lastUpdate > 0) {
-                Date apkBuildDate = new Date(BuildConfig.TIMESTAMP);
-                Date lastUpdateDate = new Date(lastUpdate);
-                if (!apkBuildDate.after(lastUpdateDate)) {
-                    if (callback != null) callback.onComplete();
-                    return;
-                }
-            } else {
-                // File exists but never recorded - set timestamp and skip
+            if (lastUpdate == 0) {
+                // File exists but never recorded - set timestamp
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putLong(PREF_KEY, System.currentTimeMillis());
                 editor.apply();
-                if (callback != null) callback.onComplete();
-                return;
             }
+            if (callback != null) callback.onComplete();
+            return;
         }
 
         new Thread(() -> {
@@ -450,8 +443,19 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
      */
     public List<InteractionResult> getInteractions(List<DrugInfo> drugs) {
         List<InteractionResult> allResults = new ArrayList<>();
-        if (mDataBase == null && !openDataBase()) return allResults;
-        if (drugs == null || drugs.size() < 2) return allResults;
+        if (mDataBase == null && !openDataBase()) {
+            Log.e(TAG, "getInteractions: could not open database");
+            return allResults;
+        }
+        if (drugs == null || drugs.size() < 2) {
+            Log.d(TAG, "getInteractions: need at least 2 drugs, got " + (drugs != null ? drugs.size() : 0));
+            return allResults;
+        }
+
+        Log.d(TAG, "getInteractions: checking " + drugs.size() + " drugs");
+        for (DrugInfo d : drugs) {
+            Log.d(TAG, "  drug: " + d.name + " [" + d.atcCode + "] ean=" + d.ean);
+        }
 
         // Pairwise comparison
         for (int i = 0; i < drugs.size(); i++) {
@@ -462,11 +466,14 @@ public class InteractionsDBManager extends SQLiteOpenHelper {
                 DrugInfo drugB = drugs.get(j);
                 if (drugB.atcCode == null || drugB.atcCode.isEmpty()) continue;
 
+                Log.d(TAG, "Checking pair: " + drugA.atcCode + " <-> " + drugB.atcCode);
                 List<InteractionResult> pairResults = getInteractionsForPair(drugA, drugB);
+                Log.d(TAG, "  pair results: " + pairResults.size());
                 allResults.addAll(pairResults);
             }
         }
 
+        Log.d(TAG, "getInteractions: total results = " + allResults.size());
         // Sort by severity descending
         allResults.sort((a, b) -> b.severity - a.severity);
         return allResults;

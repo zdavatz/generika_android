@@ -310,25 +310,18 @@ public class AmikoDBManager extends SQLiteOpenHelper {
         if (!checkAllFilesExists()) {
             return true;
         }
-        
-        // File exists - now check if we need to update it
+
+        // File exists — no need to re-download on every launch
         SharedPreferences settings = context.getSharedPreferences("GENERIKA_PREFS_FILE", 0);
         long timeMillisSince1970 = settings.getLong("PREF_DB_UPDATE_DATE_DE", 0);
-        
-        // If we've never recorded a download (timeMillisSince1970 == 0), 
-        // but the file exists, it means we already have it - don't re-download
+
         if (timeMillisSince1970 == 0) {
-            // Set the current time so we don't keep checking this
+            // File exists but never recorded - set timestamp
             SharedPreferences.Editor editor = settings.edit();
             editor.putLong("PREF_DB_UPDATE_DATE_DE", System.currentTimeMillis());
             editor.apply();
-            return false;
         }
-        
-        // Compare build date with last update
-        Date lastUpdate = new Date(timeMillisSince1970);
-        Date apkBuildDate = new Date(BuildConfig.TIMESTAMP);
-        return apkBuildDate.after(lastUpdate);
+        return false;
     }
 
     /**

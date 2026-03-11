@@ -87,44 +87,62 @@ public class InteractionsActivity extends BaseActivity {
 
     private void loadInteractions(String[] eans) {
         new Thread(() -> {
-            // Resolve EANs to DrugInfo (with ATC codes) via AmikoDBManager
-            AmikoDBManager amikoDB = AmikoDBManager.getInstance(this);
-            List<DrugInfo> drugs = new ArrayList<>();
-            Set<String> seenAtc = new HashSet<>();
+            try {
+                Log.d(TAG, "loadInteractions: " + eans.length + " EANs");
 
-            for (String ean : eans) {
-                if (ean == null || ean.isEmpty()) continue;
-                ArrayList<AmikoDBRow> rows = amikoDB.findWithGtin(ean, null);
-                if (!rows.isEmpty()) {
-                    AmikoDBRow row = rows.get(0);
-                    // atc field format: "N06AB06;Sertralin" — extract code before semicolon
-                    String atc = row.atc;
-                    if (atc != null && atc.contains(";")) {
-                        atc = atc.substring(0, atc.indexOf(";")).trim();
+                // Resolve EANs to DrugInfo (with ATC codes) via AmikoDBManager
+                AmikoDBManager amikoDB = AmikoDBManager.getInstance(this);
+                List<DrugInfo> drugs = new ArrayList<>();
+                Set<String> seenAtc = new HashSet<>();
+
+                for (String ean : eans) {
+                    if (ean == null || ean.isEmpty()) continue;
+                    Log.d(TAG, "Looking up EAN: " + ean);
+                    ArrayList<AmikoDBRow> rows = amikoDB.findWithGtin(ean, null);
+                    Log.d(TAG, "  findWithGtin returned " + rows.size() + " rows");
+                    if (!rows.isEmpty()) {
+                        AmikoDBRow row = rows.get(0);
+                        // atc field format: "N06AB06;Sertralin" — extract code before semicolon
+                        String atc = row.atc;
+                        Log.d(TAG, "  raw atc: " + atc + ", title: " + row.title);
+                        if (atc != null && atc.contains(";")) {
+                            atc = atc.substring(0, atc.indexOf(";")).trim();
+                        }
+                        String name = row.title;
+                        if (name != null && name.contains(",")) {
+                            name = name.substring(0, name.indexOf(",")).trim();
+                        }
+                        if (atc != null && !atc.isEmpty() && !seenAtc.contains(atc)) {
+                            seenAtc.add(atc);
+                            drugs.add(new DrugInfo(ean, name != null ? name : ean, atc));
+                            Log.d(TAG, "  Added drug: " + name + " [" + atc + "]");
+                        }
+                    } else {
+                        Log.w(TAG, "No AmikoDBRow found for EAN: " + ean);
                     }
-                    String name = row.title;
-                    if (name != null && name.contains(",")) {
-                        name = name.substring(0, name.indexOf(",")).trim();
-                    }
-                    if (atc != null && !atc.isEmpty() && !seenAtc.contains(atc)) {
-                        seenAtc.add(atc);
-                        drugs.add(new DrugInfo(ean, name != null ? name : ean, atc));
-                    }
-                } else {
-                    Log.w(TAG, "No AmikoDBRow found for EAN: " + ean);
                 }
+
+                Log.d(TAG, "Resolved " + drugs.size() + " drugs with ATC codes");
+
+                // Look up interactions
+                InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
+                Log.d(TAG, "InteractionsDB exists: " + interDB.checkAllFilesExists());
+                List<InteractionResult> results = interDB.getInteractions(drugs);
+                Log.d(TAG, "Found " + results.size() + " interactions");
+
+                // Build HTML
+                String html = buildHtml(drugs, results);
+
+                runOnUiThread(() -> {
+                    webView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null);
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading interactions", e);
+                String errorHtml = "<html><body><h2>Error</h2><p>" + e.getMessage() + "</p></body></html>";
+                runOnUiThread(() -> {
+                    webView.loadDataWithBaseURL(null, errorHtml, "text/html", "utf-8", null);
+                });
             }
-
-            // Look up interactions
-            InteractionsDBManager interDB = InteractionsDBManager.getInstance(this);
-            List<InteractionResult> results = interDB.getInteractions(drugs);
-
-            // Build HTML
-            String html = buildHtml(drugs, results);
-
-            runOnUiThread(() -> {
-                webView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null);
-            });
         }).start();
     }
 
