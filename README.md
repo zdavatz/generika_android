@@ -23,6 +23,7 @@ It's available on [Google Play](https://play.google.com/store/apps/details?id=or
   1. EPha curated ATC-to-ATC interactions (~16k pairs)
   2. Substance-level interactions from Swissmedic FI (~47k entries)
   3. Class-level interactions via ATC keyword search in FachInfo text
+  4. Gegenrichtung severity hints — compares FI text severity in both directions and warns when they differ
 * Prescription import via AmiKo Desitin (.amk files)
 * Expiry date tracking with LOT number display
 * ZurRose prescription forwarding

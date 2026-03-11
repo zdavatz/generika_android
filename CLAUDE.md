@@ -55,6 +55,8 @@ EAN → ATC resolution goes through `AmikoDBManager.findWithGtin()`.
 
 For unmatched pairs (no EPha hit), both substance-level and class-level tiers run in both directions, matching the oddb.org Ruby behavior.
 
+**Gegenrichtung severity hints:** For EPha results and class-level results, the code checks FachInfo text severity (`classSeverityForDirection`) in both directions. If one direction has higher severity than the other, a yellow hint is shown (e.g. "Swissmedic FI: Gegenrichtung hat höhere Einstufung (Kontraindiziert vs Keine Einstufung)"). This matches the oddb.org Ruby `build_epha_result` and `find_class_interactions` logic.
+
 ## Conventions
 
 - Commit messages: short imperative sentence describing the change
