@@ -196,7 +196,7 @@ public class MainActivity extends BaseActivity implements
   private void showDatabaseDownloadDialog() {
     this.progressDialog = new ProgressDialog(this);
     progressDialog.setTitle(getString(R.string.app_name));
-    progressDialog.setMessage("Downloading pharmaceutical database...\nThis is a one-time download (~600MB)");
+    progressDialog.setMessage("Downloading pharmaceutical database...");
     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     progressDialog.setMax(100);
     progressDialog.setCancelable(true);
@@ -210,7 +210,7 @@ public class MainActivity extends BaseActivity implements
           runOnUiThread(() -> {
             progressDialog.setProgress(percent);
             progressDialog.setMessage(String.format(
-              "Downloading pharmaceutical database...\nThis is a one-time download (~600MB)\n%d%%", 
+              "Downloading pharmaceutical database...\n%d%%", 
               percent
             ));
           });

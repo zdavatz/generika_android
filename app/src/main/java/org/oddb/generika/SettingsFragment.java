@@ -217,7 +217,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
   private void showDatabaseDownloadConfirmation() {
     new AlertDialog.Builder(getContext())
       .setTitle("Update Databases")
-      .setMessage("This will download the pharmaceutical database (~600MB) and the interactions database. Continue?")
+      .setMessage("This will download the pharmaceutical and interactions databases. Continue?")
       .setPositiveButton("Download", (dialog, which) -> startAllDatabaseDownloads())
       .setNegativeButton("Cancel", null)
       .show();

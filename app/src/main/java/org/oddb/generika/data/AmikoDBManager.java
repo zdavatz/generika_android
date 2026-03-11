@@ -11,7 +11,9 @@ import org.oddb.generika.model.AmikoDBPackage;
 import org.oddb.generika.model.AmikoDBPriceComparison;
 import org.oddb.generika.model.AmikoDBRow;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +23,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class AmikoDBManager extends SQLiteOpenHelper {
     private static String TAG = "AmikoDBManager";
@@ -29,7 +33,7 @@ public class AmikoDBManager extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "amiko_db_full_idx_pinfo_de.db";
     private static final String AMIKO_COLUMNS = "_id, title, auth, atc, substances, regnrs, atc_class, tindex_str, application_str, indications_str, customer_id, pack_info_str, add_info_str, ids_str, titles_str, content, style_str, packages, type";
-    private static final String DB_URL = "http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db";
+    private static final String DB_URL = "http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db.zip";
 
     private SQLiteDatabase mDataBase;
     private String mAppDataDir;
@@ -210,33 +214,34 @@ public class AmikoDBManager extends SQLiteOpenHelper {
 
     private void downloadDatabase(DownloadCallback callback) throws IOException {
         Log.d(TAG, "Downloading database from " + DB_URL);
-        
+
         File dir = new File(mAppDataDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        
-        File tempFile = new File(mAppDataDir + DATABASE_NAME + ".tmp");
+
+        File zipFile = new File(mAppDataDir + DATABASE_NAME + ".zip");
         File finalFile = new File(mAppDataDir + DATABASE_NAME);
-        
+
+        // Download the zip file
         URL url = new URL(DB_URL);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.connect();
-        
+
         long totalSize = connection.getContentLength();
         long downloadedSize = 0;
-        
+
         InputStream input = connection.getInputStream();
-        OutputStream output = new FileOutputStream(tempFile);
-        
+        OutputStream output = new FileOutputStream(zipFile);
+
         byte[] buffer = new byte[8192];
         int bytesRead;
         int lastProgress = 0;
-        
+
         while ((bytesRead = input.read(buffer)) != -1) {
             output.write(buffer, 0, bytesRead);
             downloadedSize += bytesRead;
-            
+
             if (callback != null && totalSize > 0) {
                 int progress = (int) (downloadedSize * 100 / totalSize);
                 if (progress != lastProgress) {
@@ -245,19 +250,47 @@ public class AmikoDBManager extends SQLiteOpenHelper {
                 }
             }
         }
-        
+
         output.flush();
         output.close();
         input.close();
         connection.disconnect();
-        
-        // Rename temp file to final file
-        if (finalFile.exists()) {
-            finalFile.delete();
+
+        Log.d(TAG, "Download complete, extracting zip...");
+
+        // Extract the .db file from the zip
+        ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
+        try {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().endsWith(".db")) {
+                    File tempFile = new File(mAppDataDir + DATABASE_NAME + ".tmp");
+                    OutputStream out = new FileOutputStream(tempFile);
+                    byte[] buf = new byte[8192];
+                    int len;
+                    while ((len = zis.read(buf)) != -1) {
+                        out.write(buf, 0, len);
+                    }
+                    out.flush();
+                    out.close();
+
+                    if (finalFile.exists()) {
+                        finalFile.delete();
+                    }
+                    tempFile.renameTo(finalFile);
+                    Log.d(TAG, "Extracted " + entry.getName() + " to " + finalFile.getPath());
+                    break;
+                }
+            }
+        } finally {
+            zis.close();
+            // Clean up zip file
+            if (zipFile.exists()) {
+                zipFile.delete();
+            }
         }
-        tempFile.renameTo(finalFile);
-        
-        Log.d(TAG, "Database download complete");
+
+        Log.d(TAG, "Database download and extraction complete");
     }
 
     public boolean checkAllFilesExists() {
