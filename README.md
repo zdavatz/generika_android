@@ -26,6 +26,7 @@ It's available on [Google Play](https://play.google.com/store/apps/details?id=or
 * Prescription import via AmiKo Desitin (.amk files)
 * Expiry date tracking with LOT number display
 * ZurRose prescription forwarding
+* **Automatic database download** on first launch — pharmaceutical DB (downloaded as zip) and interactions DB are fetched sequentially with progress display; database stats visible in Settings
 
 ## Platform
 

@@ -20,10 +20,18 @@
 
 | Database | Manager | Source |
 |----------|---------|--------|
-| `amiko_db_full_idx_pinfo_de.db` | `AmikoDBManager` | `http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db` |
+| `amiko_db_full_idx_pinfo_de.db` | `AmikoDBManager` | `http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db.zip` (downloaded as zip, extracted) |
 | `interactions.db` | `InteractionsDBManager` | `http://pillbox.oddb.org/interactions.db` |
 
 Both are downloaded to `{dataDir}/databases/` and opened read-only.
+
+### Download Flow
+
+On first launch, `MainActivity.checkAndDownloadDatabase()` checks if each DB exists:
+- If either is missing, a progress dialog chains both downloads sequentially (pharmaceutical first, then interactions)
+- If both exist, update checks run silently in background
+- The "Update All Databases" button in Settings also downloads both sequentially
+- After download, Settings shows stats (row counts, file sizes) for each database
 
 ## Key Directories
 
