@@ -19,10 +19,10 @@ It's available on [Google Play](https://play.google.com/store/apps/details?id=or
 * Barcode scanning (EAN-13, GS1 DataMatrix, QR Code)
 * Price comparison between Original and Generic drugs
 * Patient information (package leaflet) and Professional information (Fachinfo)
-* **Drug interaction check** — local offline lookup using `interactions.db` from [pillbox.oddb.org](http://pillbox.oddb.org/interactions.db) with 3-tier matching:
-  1. EPha curated ATC-to-ATC interactions
-  2. Substance-level interactions (Swissmedic FI)
-  3. Class-level interactions (keyword search in FachInfo text)
+* **Drug interaction check** — local offline lookup using `interactions.db` from [pillbox.oddb.org](http://pillbox.oddb.org/interactions.db) with 3-tier matching (same logic as [oddb.org](https://github.com/zdavatz/oddb.org)):
+  1. EPha curated ATC-to-ATC interactions (~16k pairs)
+  2. Substance-level interactions from Swissmedic FI (~47k entries)
+  3. Class-level interactions via ATC keyword search in FachInfo text
 * Prescription import via AmiKo Desitin (.amk files)
 * Expiry date tracking with LOT number display
 * ZurRose prescription forwarding

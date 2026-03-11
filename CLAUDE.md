@@ -51,6 +51,10 @@ On first launch, `MainActivity.checkAndDownloadDatabase()` checks if each DB exi
 
 EAN → ATC resolution goes through `AmikoDBManager.findWithGtin()`.
 
+**Important:** The amikodb `atc` field format is `"N06AB06;Sertralin"` (ATC code + semicolon + substance name). Always parse the code before the semicolon when extracting ATC codes.
+
+For unmatched pairs (no EPha hit), both substance-level and class-level tiers run in both directions, matching the oddb.org Ruby behavior.
+
 ## Conventions
 
 - Commit messages: short imperative sentence describing the change
