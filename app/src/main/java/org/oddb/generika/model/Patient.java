@@ -60,6 +60,9 @@ public class Patient extends RealmObject implements Retryable {
   private String city;
   private String zipcode;
   private String country;
+  private String ahvNumber;
+  private String insurerName;
+  private String healthCardNumber;
 
   // -- static methods
 
@@ -185,6 +188,15 @@ public class Patient extends RealmObject implements Retryable {
 
   public String getCountry() { return country; }
   public void setCountry(String value) { this.country = value; }
+
+  public String getAhvNumber() { return ahvNumber; }
+  public void setAhvNumber(String value) { this.ahvNumber = value; }
+
+  public String getInsurerName() { return insurerName; }
+  public void setInsurerName(String value) { this.insurerName = value; }
+
+  public String getHealthCardNumber() { return healthCardNumber; }
+  public void setHealthCardNumber(String value) { this.healthCardNumber = value; }
 
   // if this method returns `false`, `realm.cancelTransaction()` should be
   // called.

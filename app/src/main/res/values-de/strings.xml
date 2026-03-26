@@ -110,4 +110,22 @@
     <string name="preference_invalid_value">Der Wert ist ungültig</string>
     <string name="preference_invalid_gln">Die GLN muss eine 13-stellige Nummer sein.</string>
     <string name="preference_zr_customer_number">zR Kundennummer</string>
+
+    <!-- Kostengutsprache -->
+    <string name="kostengutsprache">Kostengutsprache</string>
+    <string name="kostengutsprache_title">Kostengutsprache KVV 71 \u2013 IBD Gastroenterologie</string>
+    <string name="kg_pdf_email">PDF / Email</string>
+    <string name="kg_scan_prescription">Rezept scannen</string>
+    <string name="kg_scan_insurance_card">Versichertenkarte scannen</string>
+
+    <!-- Insurance Card Scanner -->
+    <string name="insurance_card_scanner">Versichertenkarte Scanner</string>
+    <string name="insurance_card_hint">Versichertenkarte in den Rahmen halten</string>
+
+    <!-- Prescription Scanner -->
+    <string name="prescription_scanner">Rezept Scanner</string>
+    <string name="prescription_hint">Rezept vor die Kamera halten</string>
+    <string name="prescription_qr_found">QR-Code erkannt\nJetzt aufnehmen f\u00FCr OCR</string>
+    <string name="prescription_processing">Wird verarbeitet\u2026</string>
+    <string name="prescription_capture_error">Fehler beim Aufnehmen</string>
 </resources>

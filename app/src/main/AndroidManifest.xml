@@ -240,5 +240,31 @@
             android:name=".InteractionsActivity"
             android:label="@string/interactions"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".KostengutspracheActivity"
+            android:label="@string/kostengutsprache"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".InsuranceCardScannerActivity"
+            android:label="@string/insurance_card_scanner"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".PrescriptionScannerActivity"
+            android:label="@string/prescription_scanner"
+            android:screenOrientation="portrait" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

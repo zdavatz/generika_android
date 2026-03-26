@@ -28,6 +28,9 @@ It's available on [Google Play](https://play.google.com/store/apps/details?id=or
 * Expiry date tracking with LOT number display
 * ZurRose prescription forwarding
 * **Automatic database download** on first launch — pharmaceutical DB (downloaded as zip) and interactions DB are fetched sequentially with progress display; database stats visible in Settings
+* **Kostengutsprache (KVV 71)** — IBD Gastroenterology cost approval form with patient, insurance, diagnosis, medication, and physician fields; PDF generation and share via email or other apps
+* **Insurance Card Scanner** — OCR-based Swiss health insurance card scanner using ML Kit Text Recognition and CameraX; extracts name, card number, AHV, BAG number, birth date, gender; maps BAG to insurer name via JSON lookup tables
+* **Prescription Scanner** — Two-stage scanner: live QR code detection for CHMED16A e-prescriptions + full-page OCR to extract medications, dosages, physician info, patient address, AHV and ZSR numbers
 
 ## Platform
 

@@ -57,6 +57,7 @@ public class Operator extends RealmObject implements Retryable {
   private String zipcode;
   private String country;
   private String signature;
+  private String zsrNumber;
 
   // -- static methods
 
@@ -162,6 +163,9 @@ public class Operator extends RealmObject implements Retryable {
 
   public String getSignature() { return signature; }
   public void setSignature(String value) { this.signature = value; }
+
+  public String getZsrNumber() { return zsrNumber; }
+  public void setZsrNumber(String value) { this.zsrNumber = value; }
 
   // if this method returns `false`, `realm.cancelTransaction()` should be
   // called.

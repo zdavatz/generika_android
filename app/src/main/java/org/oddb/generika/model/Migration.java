@@ -158,5 +158,29 @@ public class Migration implements RealmMigration {
 
       oldVersion++;
     }
+
+    /**
+     * // Version 2 - 3 (2026)
+     *
+     * - ADD new fields into Patient (ahvNumber, insurerName, healthCardNumber)
+     * - ADD new field into Operator (zsrNumber)
+     * - ADD new field into Receipt (diagnosis)
+     */
+    if (oldVersion == 2) {
+      Log.d(TAG, "(migrate) oldVersion: " + oldVersion);
+
+      schema.get("Patient")
+        .addField("ahvNumber", String.class)
+        .addField("insurerName", String.class)
+        .addField("healthCardNumber", String.class);
+
+      schema.get("Operator")
+        .addField("zsrNumber", String.class);
+
+      schema.get("Receipt")
+        .addField("diagnosis", String.class);
+
+      oldVersion++;
+    }
   }
 }

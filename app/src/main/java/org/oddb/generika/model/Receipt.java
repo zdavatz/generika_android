@@ -72,6 +72,7 @@ public class Receipt extends RealmObject implements Retryable {
   private String datetime; // importedAt
   private String filepath; // file path of `.amk`
   private String filename; // original filename
+  private String diagnosis; // crohn or colitis (for Kostengutsprache)
 
   // -- static methods
 
@@ -398,6 +399,9 @@ public class Receipt extends RealmObject implements Retryable {
 
   public String getFilename() { return filename; }
   public void setFilename(String value) { this.filename = value; }
+
+  public String getDiagnosis() { return diagnosis; }
+  public void setDiagnosis(String value) { this.diagnosis = value; }
 
   // TODO
   public String getIssuedDate() { return ""; } // (via place_date)

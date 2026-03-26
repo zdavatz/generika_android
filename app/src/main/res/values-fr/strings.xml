@@ -110,4 +110,19 @@
     <string name="preference_invalid_value">La valeur n\'est pas valide</string>
     <string name="preference_invalid_gln">Le GLN doit être un numéro à 13 chiffres</string>
     <string name="preference_zr_customer_number">zR Numéro de client</string>
+
+    <!-- Kostengutsprache -->
+    <string name="kostengutsprache">Kostengutsprache</string>
+    <string name="kg_pdf_email">PDF / Email</string>
+
+    <!-- Insurance Card Scanner -->
+    <string name="insurance_card_scanner">Scanner carte d\'assuré</string>
+    <string name="insurance_card_hint">Tenir la carte d\'assuré dans le cadre</string>
+
+    <!-- Prescription Scanner -->
+    <string name="prescription_scanner">Scanner ordonnance</string>
+    <string name="prescription_hint">Tenir l\'ordonnance devant la caméra</string>
+    <string name="prescription_qr_found">QR-Code détecté\nMaintenant capturer pour OCR</string>
+    <string name="prescription_processing">Traitement en cours\u2026</string>
+    <string name="prescription_capture_error">Erreur de capture</string>
 </resources>

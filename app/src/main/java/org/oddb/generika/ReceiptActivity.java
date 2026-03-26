@@ -17,8 +17,10 @@
  */
 package org.oddb.generika;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.MeasureSpec;
@@ -278,6 +280,13 @@ public class ReceiptActivity extends BaseActivity {
   }
 
   @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    menu.add(0, 1, 0, getString(R.string.kostengutsprache))
+      .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+    return true;
+  }
+
+  @Override
   protected void onDestroy() {
     super.onDestroy();
   }
@@ -332,6 +341,15 @@ public class ReceiptActivity extends BaseActivity {
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
       finishAfterTransition();
+      return true;
+    }
+    if (item.getItemId() == 1) {
+      // Open Kostengutsprache
+      Intent intent = new Intent(this, KostengutspracheActivity.class);
+      String hashedKey = getIntent().getStringExtra(Constant.kHashedKey);
+      intent.putExtra(Constant.kHashedKey, hashedKey);
+      startActivity(intent);
+      return true;
     }
     return super.onOptionsItemSelected(item);
   }

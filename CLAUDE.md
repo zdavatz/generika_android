@@ -44,6 +44,7 @@ On first launch, `MainActivity.checkAndDownloadDatabase()` checks if each DB exi
 - `app/src/main/java/org/oddb/generika/util/` — Constants, locale helpers
 - `app/src/main/res/layout/` — XML layouts
 - `app/src/main/res/xml/user_settings.xml` — Settings preferences
+- `app/src/main/assets/` — JSON mapping files (`bag-to-insurance-gln.json`, `bag-to-insurance-name.json`)
 
 ## Interactions Lookup (InteractionsDBManager)
 
@@ -59,6 +60,36 @@ EAN → ATC resolution goes through `AmikoDBManager.findWithGtin()`.
 For unmatched pairs (no EPha hit), both substance-level and class-level tiers run in both directions, matching the oddb.org Ruby behavior.
 
 **Gegenrichtung severity hints:** For EPha results and class-level results, the code checks FachInfo text severity (`classSeverityForDirection`) in both directions. If one direction has higher severity than the other, a yellow hint is shown (e.g. "Swissmedic FI: Gegenrichtung hat höhere Einstufung (Kontraindiziert vs Keine Einstufung)"). This matches the oddb.org Ruby `build_epha_result` and `find_class_interactions` logic.
+
+## Kostengutsprache (KVV 71)
+
+`KostengutspracheActivity` — IBD Gastroenterology cost approval form, accessible from ReceiptActivity toolbar. Features:
+- Patient fields (name, birth date, gender, address, AHV number)
+- Insurance fields (insurer name, card number) with insurance card scanner integration
+- Diagnosis (M. Crohn / Colitis ulcerosa)
+- Medication list (editable text, pre-filled from receipt)
+- Physician fields (name, ZSR, hospital, department) with prescription scanner integration
+- PDF generation (A4) and share via Android share sheet
+- Data persisted to Realm via new model fields: `Patient.ahvNumber`, `Patient.insurerName`, `Patient.healthCardNumber`, `Operator.zsrNumber`, `Receipt.diagnosis`
+
+## Insurance Card Scanner
+
+`InsuranceCardScannerActivity` — Camera-based OCR scanner for Swiss health insurance cards (Versichertenkarte). Uses ML Kit Text Recognition + CameraX.
+- Extracts: family name, given name, card number (20 digits), BAG number (5 digits), AHV number (NNN.NNNN.NNNN.NN), birth date, gender (M/F)
+- Maps BAG number to insurer GLN and name via JSON assets
+- Returns results via `RESULT_OK` Intent extras
+
+## Prescription Scanner
+
+`PrescriptionScannerActivity` — Two-stage prescription scanner using ML Kit Barcode Scanning + Text Recognition + CameraX.
+- Stage 1: Live QR detection for CHMED16A / eprescription.hin.ch payloads
+- Stage 2: Photo capture + full-page OCR
+- Extracts: medications (dosage form keywords), dosages, AHV, ZSR, physician name/title, hospital, department, patient address, prescription date
+- Returns results via `RESULT_OK` Intent extras
+
+## Realm Schema
+
+Current version: **3** (defined in `GenerikaApplication.SCHEME_VERSION`). Migrations in `Migration.java`.
 
 ## Conventions
 

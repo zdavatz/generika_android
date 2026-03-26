@@ -128,4 +128,45 @@
     <string name="preference_invalid_value">The value is invalid</string>
     <string name="preference_invalid_gln">GLN has to be a 13 digit number</string>
     <string name="preference_zr_customer_number">ZR Customer Number</string>
+
+    <!-- Kostengutsprache -->
+    <string name="kostengutsprache">Kostengutsprache</string>
+    <string name="kostengutsprache_title">Kostengutsprache KVV 71 \u2013 IBD Gastroenterologie</string>
+    <string name="kostengutsprache_pdf_title">Kostengutsprache zu Art. 71a-d KVV</string>
+    <string name="kostengutsprache_ibd">IBD Gastroenterologie</string>
+    <string name="kg_patient_section">Patient/in</string>
+    <string name="kg_name">Name</string>
+    <string name="kg_first_name">Vorname</string>
+    <string name="kg_birth_date">Geburtsdatum</string>
+    <string name="kg_gender_f">\u2640 W</string>
+    <string name="kg_gender_m">\u2642 M</string>
+    <string name="kg_street">Strasse</string>
+    <string name="kg_zip_city">PLZ / Ort</string>
+    <string name="kg_ahv_number">AHV-Nr.</string>
+    <string name="kg_insurance_section">Versicherung</string>
+    <string name="kg_insurer_name">Krankenversicherer</string>
+    <string name="kg_insurer_number">Versicherten-Nr.</string>
+    <string name="kg_diagnosis_section">Diagnose</string>
+    <string name="kg_crohn">M. Crohn</string>
+    <string name="kg_colitis">Colitis ulcerosa</string>
+    <string name="kg_medication_section">Medikament</string>
+    <string name="kg_physician_section">Arzt / \u00C4rztin</string>
+    <string name="kg_zsr_number">ZSR-Nr.</string>
+    <string name="kg_hospital">Spital / Praxis</string>
+    <string name="kg_department">Abteilung</string>
+    <string name="kg_date">Datum</string>
+    <string name="kg_pdf_email">PDF / Email</string>
+    <string name="kg_scan_prescription">Rezept scannen</string>
+    <string name="kg_scan_insurance_card">Versichertenkarte scannen</string>
+
+    <!-- Insurance Card Scanner -->
+    <string name="insurance_card_scanner">Versichertenkarte Scanner</string>
+    <string name="insurance_card_hint">Versichertenkarte in den Rahmen halten</string>
+
+    <!-- Prescription Scanner -->
+    <string name="prescription_scanner">Rezept Scanner</string>
+    <string name="prescription_hint">Rezept vor die Kamera halten</string>
+    <string name="prescription_qr_found">QR-Code erkannt\nJetzt aufnehmen f\u00FCr OCR</string>
+    <string name="prescription_processing">Wird verarbeitet\u2026</string>
+    <string name="prescription_capture_error">Fehler beim Aufnehmen</string>
 </resources>
