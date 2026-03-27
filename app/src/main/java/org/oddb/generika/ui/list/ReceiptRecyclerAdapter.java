@@ -118,9 +118,12 @@ public class ReceiptRecyclerAdapter
 
         final Context context = holder.itemView.getContext();
 
-        final Operator operator = item.getOperator();
-        final Patient patient = item.getPatient();
-        final RealmList<Product> medications = item.getMedications();
+        Operator operator = null;
+        Patient patient = null;
+        RealmList<Product> medications = null;
+        try { operator = item.getOperator(); } catch (Exception e) { /* null */ }
+        try { patient = item.getPatient(); } catch (Exception e) { /* null */ }
+        try { medications = item.getMedications(); } catch (Exception e) { /* null */ }
 
         // First line: patient name (most important)
         String patientName = "";
@@ -128,11 +131,12 @@ public class ReceiptRecyclerAdapter
             String pGiven = patient.getGivenName();
             String pFamily = patient.getFamilyName();
             patientName = String.format("%s %s",
-                pGiven != null ? pGiven : "",
-                pFamily != null ? pFamily : "").trim();
+                pGiven != null && !pGiven.equals("null") ? pGiven : "",
+                pFamily != null && !pFamily.equals("null") ? pFamily : "").trim();
         }
         if (patientName.isEmpty()) {
-            patientName = item.getPlaceDate();
+            String placeDate = item.getPlaceDate();
+            patientName = (placeDate != null && !placeDate.equals("null")) ? placeDate : "";
         }
         holder.placeDate.setText(patientName);
 
@@ -142,8 +146,8 @@ public class ReceiptRecyclerAdapter
             String oGiven = operator.getGivenName();
             String oFamily = operator.getFamilyName();
             operatorName = String.format("%s %s",
-                oGiven != null ? oGiven : "",
-                oFamily != null ? oFamily : "").trim();
+                oGiven != null && !oGiven.equals("null") ? oGiven : "",
+                oFamily != null && !oFamily.equals("null") ? oFamily : "").trim();
         }
         holder.operatorName.setText(operatorName);
 
@@ -183,8 +187,14 @@ public class ReceiptRecyclerAdapter
     @Override
     public void onItemSwiped(int position) {
         Receipt item = getItem(position);
+        Log.d(TAG, "(onItemSwiped) position=" + position + " item=" + (item != null ? item.getId() : "null"));
         if (item != null && itemListener != null) {
-            itemListener.onDelete(item.getId());
+            String itemId = item.getId();
+            itemListener.onDelete(itemId);
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, getItemCount());
+        } else if (item == null) {
+            // Item already deleted by Realm, just refresh
             notifyItemRemoved(position);
             notifyItemRangeChanged(position, getItemCount());
         }

@@ -291,13 +291,16 @@ public class DataManager {
           Log.d(TAG, "(deleteReceipt) receiptId: " + id);
 
           // First try in data source, then globally
+          Log.d(TAG, "(deleteReceipt) looking for id: " + id);
           Receipt receipt = data.getFiles().where().equalTo(
             "id", id).findFirst();
+          Log.d(TAG, "(deleteReceipt) in data.getFiles: " + (receipt != null));
           if (receipt == null) {
             receipt = realm_.where(Receipt.class).equalTo("id", id).findFirst();
+            Log.d(TAG, "(deleteReceipt) global search: " + (receipt != null));
           }
           if (receipt == null) {
-            Log.d(TAG, "(deleteReceipt) receipt not found: " + id);
+            Log.d(TAG, "(deleteReceipt) receipt not found anywhere: " + id);
             return;
           }
           boolean deleted = false;
