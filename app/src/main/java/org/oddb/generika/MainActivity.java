@@ -1070,9 +1070,18 @@ public class MainActivity extends BaseActivity implements
   }
 
   public void openReceipt(String hashedKey) {
-    Intent intent = new Intent(this, ReceiptActivity.class);
+    // Check if this receipt has KKV data -> open KostengutspracheActivity
+    Intent intent;
     if (hashedKey != null) {
+      Receipt r = dataManager.getReceiptByHashedKey(hashedKey);
+      if (r != null && r.getDiagnosis() != null && !r.getDiagnosis().isEmpty()) {
+        intent = new Intent(this, KostengutspracheActivity.class);
+      } else {
+        intent = new Intent(this, ReceiptActivity.class);
+      }
       intent.putExtra(Constant.kHashedKey, hashedKey);
+    } else {
+      intent = new Intent(this, ReceiptActivity.class);
     }
     ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
       MainActivity.this);

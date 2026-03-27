@@ -292,21 +292,31 @@ public class DataManager {
 
           Receipt receipt = data.getFiles().where().equalTo(
             "id", id).findFirst();
+          if (receipt == null) {
+            Log.d(TAG, "(deleteReceipt) receipt not found: " + id);
+            return;
+          }
           boolean deleted = false;
           Operator operator = receipt.getOperator();
-          deleted = operator.delete();
-          if (!deleted) {
-            throw new IllegalStateException("Can't delete Operator"); }
+          if (operator != null) {
+            deleted = operator.delete();
+            if (!deleted) {
+              throw new IllegalStateException("Can't delete Operator"); }
+          }
 
           Patient patient = receipt.getPatient();
-          deleted = patient.delete();
-          if (!deleted) {
-            throw new IllegalStateException("Can't delete Patient"); }
+          if (patient != null) {
+            deleted = patient.delete();
+            if (!deleted) {
+              throw new IllegalStateException("Can't delete Patient"); }
+          }
 
           RealmList<Product> medications = receipt.getMedications();
-          deleted = medications.deleteAllFromRealm();
-          if (!deleted) {
-            throw new IllegalStateException("Can't delete Medications"); }
+          if (medications != null && !medications.isEmpty()) {
+            deleted = medications.deleteAllFromRealm();
+            if (!deleted) {
+              throw new IllegalStateException("Can't delete Medications"); }
+          }
 
           deleted = receipt.delete();
           if (!deleted) {

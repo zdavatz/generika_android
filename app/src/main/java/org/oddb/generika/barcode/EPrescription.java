@@ -35,65 +35,65 @@ public class EPrescription {
     private final static String TAG = "EPrescription";
     private SharedPreferences sharedPreferences;
 
-    class PatientId {
-        int type;
-        String value;
+    public class PatientId {
+        public int type;
+        public String value;
     }
-    class PField {
-        String nm;
-        String value;
+    public class PField {
+        public String nm;
+        public String value;
     }
-    class TakingTime {
-        int off;
-        int du;
-        int doFrom;
-        int doTo;
-        int a;
-        int ma;
+    public class TakingTime {
+        public int off;
+        public int du;
+        public int doFrom;
+        public int doTo;
+        public int a;
+        public int ma;
     }
-    class Posology {
-        Date dtFrom;
-        Date dtTo;
-        int cyDu;
-        int inRes;
-        ArrayList<Integer> d;
-        ArrayList<TakingTime> tt;
+    public class Posology {
+        public Date dtFrom;
+        public Date dtTo;
+        public int cyDu;
+        public int inRes;
+        public ArrayList<Integer> d;
+        public ArrayList<TakingTime> tt;
     }
-    class Medicament {
-        String appInstr;
-        String medicamentId;
-        int idType;
-        String unit;
-        int rep;
-        int nbPack;
-        int subs;
-        ArrayList<Posology> pos;
+    public class Medicament {
+        public String appInstr;
+        public String medicamentId;
+        public int idType;
+        public String unit;
+        public int rep;
+        public int nbPack;
+        public int subs;
+        public ArrayList<Posology> pos;
     }
-    String auth;
-    Date date;
-    String prescriptionId;
-    int medType;
-    String zsr;
-    ArrayList<PField> pfields;
-    String rmk;
-    String valBy; // The GLN of the healthcare professional who has validated the medication plan.
-    Date valDt; // Date of validation
+    public String auth;
+    public Date date;
+    public String prescriptionId;
+    public int medType;
+    public String zsr;
+    public ArrayList<PField> pfields;
+    public String rmk;
+    public String valBy;
+    public Date valDt;
 
-    String patientFirstName;
-    String patientLastName;
-    Date patientBirthdate;
-    int patientGender;
-    String patientStreet;
-    String patientCity;
-    String patientZip;
-    String patientLang; // Patient’s language (ISO 639-19 language code) (e.g. de)
-    String patientPhone;
-    String patientEmail;
-    String patientReceiverGLN;
-    ArrayList<PatientId> patientIds;
-    ArrayList<PField> patientPFields;
+    public String patientFirstName;
+    public String patientLastName;
+    public Date patientBirthdate;
+    public int patientGender;
+    public String patientStreet;
+    public String patientCity;
+    public String patientZip;
+    public String patientLang;
+    public String patientPhone;
+    public String patientEmail;
+    public String patientReceiverGLN;
+    public ArrayList<PatientId> patientIds;
+    public ArrayList<PField> patientPFields;
 
-    ArrayList<Medicament> medicaments;
+    public ArrayList<Medicament> medicaments;
     public EPrescription(Context context, String qrCodeString) throws IllegalArgumentException, IOException, JSONException {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         if (qrCodeString.startsWith("https://eprescription.hin.ch")) {

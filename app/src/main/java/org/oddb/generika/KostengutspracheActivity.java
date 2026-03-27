@@ -45,12 +45,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import io.realm.Realm;
 import io.realm.RealmList;
 
+import org.oddb.generika.barcode.EPrescription;
 import org.oddb.generika.data.AmikoDBManager;
 import org.oddb.generika.data.DataManager;
 import org.oddb.generika.model.AmikoDBRow;
@@ -120,6 +123,11 @@ public class KostengutspracheActivity extends BaseActivity {
       this.receipt = dataManager.getReceiptByHashedKey(hashedKey);
     }
 
+    // Create a new receipt if none exists (e.g. opened from scan)
+    if (this.receipt == null) {
+      createNewReceipt();
+    }
+
     initViews();
     registerLaunchers();
     prefillFromReceipt();
@@ -128,6 +136,28 @@ public class KostengutspracheActivity extends BaseActivity {
     if (getIntent().getBooleanExtra("fromPrescriptionScan", false)) {
       applyPrescriptionScanResult(getIntent());
     }
+  }
+
+  private void createNewReceipt() {
+    Receipt newReceipt = new Receipt();
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+    formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String timestamp = formatter.format(new Date());
+    String hash = "KG_" + timestamp;
+    newReceipt.setHashedKey(hash);
+    newReceipt.setPlaceDate("");
+    newReceipt.setFilepath(null);
+    newReceipt.setFilename("KG_" + timestamp + ".amk");
+
+    Operator operator = new Operator();
+    Patient patient = new Patient();
+    Product[] medications = new Product[0];
+
+    DataManager dataManager = new DataManager(Constant.SOURCE_TYPE_AMKJSON);
+    dataManager.addReceipt(newReceipt, operator, patient, medications);
+
+    // Re-fetch the managed receipt
+    this.receipt = dataManager.getReceiptByHashedKey(hash);
   }
 
   private void registerLaunchers() {
@@ -207,6 +237,7 @@ public class KostengutspracheActivity extends BaseActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     menu.add(0, 1, 0, getString(R.string.kg_pdf_email))
+      .setIcon(android.R.drawable.ic_menu_share)
       .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
     return true;
   }
@@ -349,27 +380,27 @@ public class KostengutspracheActivity extends BaseActivity {
     realm.executeTransaction(r -> {
       // Patient
       Patient patient = receipt.getPatient();
-      if (patient == null) return;
+      if (patient != null) {
+        patient.setFamilyName(getText(patientNameField));
+        patient.setGivenName(getText(patientFirstNameField));
+        patient.setBirthDate(getText(patientBirthDateField));
 
-      patient.setFamilyName(getText(patientNameField));
-      patient.setGivenName(getText(patientFirstNameField));
-      patient.setBirthDate(getText(patientBirthDateField));
+        if (genderFemale.isChecked()) {
+          patient.setGender("F");
+        } else if (genderMale.isChecked()) {
+          patient.setGender("M");
+        }
 
-      if (genderFemale.isChecked()) {
-        patient.setGender("F");
-      } else if (genderMale.isChecked()) {
-        patient.setGender("M");
+        patient.setAddress(getText(patientStreetField));
+        String zipCity = getText(patientZipCityField);
+        String[] parts = zipCity.split(" ", 2);
+        if (parts.length >= 1) patient.setZipcode(parts[0]);
+        if (parts.length >= 2) patient.setCity(parts[1]);
+
+        patient.setAhvNumber(getText(patientAhvField));
+        patient.setInsurerName(getText(insurerNameField));
+        patient.setHealthCardNumber(getText(insurerNumberField));
       }
-
-      patient.setAddress(getText(patientStreetField));
-      String zipCity = getText(patientZipCityField);
-      String[] parts = zipCity.split(" ", 2);
-      if (parts.length >= 1) patient.setZipcode(parts[0]);
-      if (parts.length >= 2) patient.setCity(parts[1]);
-
-      patient.setAhvNumber(getText(patientAhvField));
-      patient.setInsurerName(getText(insurerNameField));
-      patient.setHealthCardNumber(getText(insurerNumberField));
 
       // Operator
       Operator operator = receipt.getOperator();
@@ -379,11 +410,16 @@ public class KostengutspracheActivity extends BaseActivity {
         operator.setZsrNumber(getText(physicianZsrField));
       }
 
-      // Diagnosis
+      // Diagnosis - always save so we know this is a KKV receipt
       if (diagnosisCrohn.isChecked()) {
         receipt.setDiagnosis("crohn");
       } else if (diagnosisColitis.isChecked()) {
         receipt.setDiagnosis("colitis");
+      } else {
+        // Mark as KKV even without diagnosis selected
+        if (receipt.getDiagnosis() == null || receipt.getDiagnosis().isEmpty()) {
+          receipt.setDiagnosis("kkv");
+        }
       }
     });
   }
@@ -419,12 +455,104 @@ public class KostengutspracheActivity extends BaseActivity {
   }
 
   private void applyPrescriptionScanResult(Intent data) {
-    // AHV number
+    String qrPayload = data.getStringExtra("qrPayload");
+
+    // --- Stage 1: QR code data (structured, reliable, has priority) ---
+    if (qrPayload != null && !qrPayload.isEmpty()) {
+      try {
+        EPrescription ep = new EPrescription(this, qrPayload);
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("dd.MM.yyyy");
+
+        // Patient from QR
+        if (ep.patientLastName != null && !ep.patientLastName.isEmpty())
+          patientNameField.setText(ep.patientLastName);
+        if (ep.patientFirstName != null && !ep.patientFirstName.isEmpty())
+          patientFirstNameField.setText(ep.patientFirstName);
+        if (ep.patientBirthdate != null)
+          patientBirthDateField.setText(fmt.format(ep.patientBirthdate));
+        if (ep.patientGender == 2) {
+          genderFemale.setChecked(true);
+        } else if (ep.patientGender == 1) {
+          genderMale.setChecked(true);
+        }
+        if (ep.patientStreet != null && !ep.patientStreet.isEmpty())
+          patientStreetField.setText(ep.patientStreet);
+        String qrZip = ep.patientZip != null ? ep.patientZip : "";
+        String qrCity = ep.patientCity != null ? ep.patientCity : "";
+        if (!qrZip.isEmpty() || !qrCity.isEmpty())
+          patientZipCityField.setText((qrZip + " " + qrCity).trim());
+
+        // Physician ZSR from QR
+        if (ep.zsr != null && !ep.zsr.isEmpty())
+          physicianZsrField.setText(ep.zsr);
+
+        // Health card number from QR patient IDs
+        if (ep.patientIds != null) {
+          for (EPrescription.PatientId pid : ep.patientIds) {
+            if (pid.type == 1) {
+              if (pid.value.length() == 20 || pid.value.contains(".")) {
+                insurerNumberField.setText(pid.value);
+              }
+            }
+          }
+        }
+
+        // Medications from QR
+        StringBuilder medText = new StringBuilder();
+        for (int i = 0; i < ep.medicaments.size(); i++) {
+          EPrescription.Medicament med = ep.medicaments.get(i);
+          String name = "";
+          String medId = med.medicamentId != null ? med.medicamentId : "";
+
+          if (med.idType == 2 && !medId.isEmpty()) {
+            // GTIN - look up in AmiKo DB
+            name = lookupMedNameByGTIN(medId);
+          }
+          // Fallback: use OCR medication name
+          String ocrMedications = data.getStringExtra("medications");
+          if ((name.isEmpty() || name.equals(medId)) && ocrMedications != null) {
+            String[] ocrLines = ocrMedications.split("\n");
+            if (i < ocrLines.length) {
+              String ocrLine = ocrLines[i].split(" \u2013 ")[0]; // name part only
+              if (!ocrLine.isEmpty()) name = ocrLine;
+            }
+          }
+          if (name.isEmpty()) name = medId.isEmpty() ? "?" : medId;
+
+          if (medText.length() > 0) medText.append("\n");
+          medText.append(name);
+
+          // Dosage: prefer QR appInstr
+          String instr = med.appInstr != null ? med.appInstr : "";
+          if (!instr.isEmpty()) {
+            medText.append(" \u2013 ").append(instr);
+          } else if (data.getStringExtra("medications") != null) {
+            String[] ocrLines = data.getStringExtra("medications").split("\n");
+            if (i < ocrLines.length) {
+              String[] parts = ocrLines[i].split(" \u2013 ", 2);
+              if (parts.length > 1 && !parts[1].isEmpty()) {
+                medText.append(" \u2013 ").append(parts[1]);
+              }
+            }
+          }
+        }
+        if (medText.length() > 0) {
+          medicationText.setText(medText.toString());
+        }
+
+      } catch (Exception e) {
+        Log.e(TAG, "Error parsing QR code", e);
+      }
+    }
+
+    // --- Stage 2: OCR data (supplements QR, fills empty fields) ---
+
+    // AHV number (never in QR)
     String ahvNumber = data.getStringExtra("ahvNumber");
     if (isEmpty(patientAhvField) && ahvNumber != null && !ahvNumber.isEmpty())
       patientAhvField.setText(ahvNumber);
 
-    // Patient address
+    // Patient address from OCR (only if QR didn't provide)
     String street = data.getStringExtra("patientStreet");
     if (isEmpty(patientStreetField) && street != null && !street.isEmpty())
       patientStreetField.setText(street);
@@ -436,7 +564,7 @@ public class KostengutspracheActivity extends BaseActivity {
       if (!zipCity.isEmpty()) patientZipCityField.setText(zipCity);
     }
 
-    // Physician
+    // Physician from OCR (supplements QR)
     String physicianName = data.getStringExtra("physicianFullName");
     if (physicianName != null && !physicianName.isEmpty()) {
       String fullName = physicianName;
@@ -472,16 +600,15 @@ public class KostengutspracheActivity extends BaseActivity {
     if (isEmpty(physicianDepartmentField) && department != null && !department.isEmpty())
       physicianDepartmentField.setText(department);
 
-    // Medications
-    String medications = data.getStringExtra("medications");
-    if (medications != null && !medications.isEmpty()) {
-      String currentText = medicationText.getText().toString().trim();
-      if (currentText.isEmpty()) {
+    // Medications from OCR (only if QR didn't provide them)
+    if (isEmpty(medicationText)) {
+      String medications = data.getStringExtra("medications");
+      if (medications != null && !medications.isEmpty()) {
         medicationText.setText(medications);
       }
     }
 
-    // Prescription date
+    // Prescription date from OCR
     String prescriptionDate = data.getStringExtra("prescriptionDate");
     if (prescriptionDate != null && !prescriptionDate.isEmpty()) {
       String[] parts = prescriptionDate.split("\\.");
@@ -617,8 +744,35 @@ public class KostengutspracheActivity extends BaseActivity {
     valuePaint.setColor(Color.BLACK);
 
     canvas.drawText(label, x, y + 10, labelPaint);
-    canvas.drawText(value != null ? value : "", x + labelW, y + 10, valuePaint);
-    return y + 14;
+
+    // Wrap value text if it exceeds available width
+    String v = value != null ? value : "";
+    float availW = w - labelW;
+    float textY = y + 10;
+    if (valuePaint.measureText(v) <= availW || v.isEmpty()) {
+      canvas.drawText(v, x + labelW, textY, valuePaint);
+      return y + 14;
+    } else {
+      // Word-wrap
+      String[] words = v.split(" ");
+      StringBuilder line = new StringBuilder();
+      for (String word : words) {
+        String test = line.length() > 0 ? line + " " + word : word;
+        if (valuePaint.measureText(test) > availW && line.length() > 0) {
+          canvas.drawText(line.toString(), x + labelW, textY, valuePaint);
+          textY += 12;
+          line = new StringBuilder(word);
+        } else {
+          if (line.length() > 0) line.append(" ");
+          line.append(word);
+        }
+      }
+      if (line.length() > 0) {
+        canvas.drawText(line.toString(), x + labelW, textY, valuePaint);
+        textY += 12;
+      }
+      return textY + 2;
+    }
   }
 
   private float drawMultiline(Canvas canvas, String text, float x, float y, float w) {
@@ -629,8 +783,29 @@ public class KostengutspracheActivity extends BaseActivity {
     if (text == null || text.isEmpty()) return y;
     String[] lines = text.split("\n");
     for (String line : lines) {
-      canvas.drawText(line, x, y + 10, paint);
-      y += 14;
+      // Word-wrap each line
+      if (paint.measureText(line) <= w) {
+        canvas.drawText(line, x, y + 10, paint);
+        y += 14;
+      } else {
+        String[] words = line.split(" ");
+        StringBuilder current = new StringBuilder();
+        for (String word : words) {
+          String test = current.length() > 0 ? current + " " + word : word;
+          if (paint.measureText(test) > w && current.length() > 0) {
+            canvas.drawText(current.toString(), x, y + 10, paint);
+            y += 12;
+            current = new StringBuilder(word);
+          } else {
+            if (current.length() > 0) current.append(" ");
+            current.append(word);
+          }
+        }
+        if (current.length() > 0) {
+          canvas.drawText(current.toString(), x, y + 10, paint);
+          y += 14;
+        }
+      }
     }
     return y;
   }

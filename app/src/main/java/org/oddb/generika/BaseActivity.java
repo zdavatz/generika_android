@@ -20,7 +20,11 @@ package org.oddb.generika;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
@@ -43,6 +47,29 @@ public class BaseActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
 
     this.context = (Context)this;
+  }
+
+  @Override
+  public void setContentView(int layoutResID) {
+    super.setContentView(layoutResID);
+    applyEdgeToEdgeInsets();
+  }
+
+  @Override
+  public void setContentView(View view) {
+    super.setContentView(view);
+    applyEdgeToEdgeInsets();
+  }
+
+  private void applyEdgeToEdgeInsets() {
+    View rootView = findViewById(android.R.id.content);
+    if (rootView != null) {
+      ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
+        Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+        v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+        return WindowInsetsCompat.CONSUMED;
+      });
+    }
   }
 
   @Override

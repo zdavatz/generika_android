@@ -37,7 +37,12 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.ExperimentalGetImage;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
@@ -151,6 +156,13 @@ public class InsuranceCardScannerActivity extends AppCompatActivity {
 
     setContentView(root);
 
+    // Handle edge-to-edge insets
+    ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+      return WindowInsetsCompat.CONSUMED;
+    });
+
     loadMappings();
     textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
     cameraExecutor = Executors.newSingleThreadExecutor();
@@ -230,20 +242,21 @@ public class InsuranceCardScannerActivity extends AppCompatActivity {
     }, ContextCompat.getMainExecutor(this));
   }
 
-  @SuppressWarnings("UnsafeOptInUsageError")
+  @OptIn(markerClass = ExperimentalGetImage.class)
   private void analyzeImage(ImageProxy imageProxy) {
     if (captureFinished) {
       imageProxy.close();
       return;
     }
 
-    if (imageProxy.getImage() == null) {
+    android.media.Image mediaImage = imageProxy.getImage();
+    if (mediaImage == null) {
       imageProxy.close();
       return;
     }
 
     InputImage inputImage = InputImage.fromMediaImage(
-      imageProxy.getImage(), imageProxy.getImageInfo().getRotationDegrees());
+      mediaImage, imageProxy.getImageInfo().getRotationDegrees());
 
     textRecognizer.process(inputImage)
       .addOnSuccessListener(text -> {

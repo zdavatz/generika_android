@@ -166,6 +166,8 @@ public class ReceiptRecyclerAdapter
         Receipt item = getItem(position);
         if (item != null && itemListener != null) {
             itemListener.onDelete(item.getId());
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, getItemCount());
         }
     }
 

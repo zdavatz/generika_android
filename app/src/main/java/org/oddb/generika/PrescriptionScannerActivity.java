@@ -23,11 +23,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.ImageFormat;
 import android.graphics.Matrix;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
-import android.media.Image;
+import android.graphics.RectF;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
@@ -38,11 +36,15 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
@@ -64,8 +66,7 @@ import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -117,7 +118,7 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
         float h = w * 297f / 210f;
         float x = (getWidth() - w) / 2f;
         float y = (getHeight() - h) / 2f - 10;
-        android.graphics.RectF rect = new android.graphics.RectF(x, y, x + w, y + h);
+        RectF rect = new RectF(x, y, x + w, y + h);
         canvas.drawRoundRect(rect, 8, 8, paint);
       }
     };
@@ -169,21 +170,29 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
     checkParams.gravity = Gravity.TOP | Gravity.END;
     root.addView(qrCheckmark, checkParams);
 
-    // Capture button (circle)
+    // Capture button (circle) - use dp
+    float density = getResources().getDisplayMetrics().density;
+    int btnSize = (int)(70 * density);
     captureButton = new ImageButton(this);
-    captureButton.setBackgroundColor(Color.TRANSPARENT);
-    android.graphics.drawable.GradientDrawable circle = new android.graphics.drawable.GradientDrawable();
+    android.graphics.drawable.GradientDrawable circle =
+      new android.graphics.drawable.GradientDrawable();
     circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
     circle.setColor(Color.WHITE);
-    circle.setSize(80, 80);
     captureButton.setBackground(circle);
     captureButton.setOnClickListener(v -> captureTapped());
-    FrameLayout.LayoutParams captureParams = new FrameLayout.LayoutParams(80, 80);
-    captureParams.bottomMargin = 60;
+    FrameLayout.LayoutParams captureParams = new FrameLayout.LayoutParams(btnSize, btnSize);
+    captureParams.bottomMargin = (int)(40 * density);
     captureParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
     root.addView(captureButton, captureParams);
 
     setContentView(root);
+
+    // Handle edge-to-edge insets
+    ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+      return WindowInsetsCompat.CONSUMED;
+    });
 
     BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
       .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
@@ -248,20 +257,21 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
     }, ContextCompat.getMainExecutor(this));
   }
 
-  @SuppressWarnings("UnsafeOptInUsageError")
+  @OptIn(markerClass = ExperimentalGetImage.class)
   private void analyzeForQR(ImageProxy imageProxy) {
     if (qrFound) {
       imageProxy.close();
       return;
     }
 
-    if (imageProxy.getImage() == null) {
+    android.media.Image mediaImage = imageProxy.getImage();
+    if (mediaImage == null) {
       imageProxy.close();
       return;
     }
 
     InputImage inputImage = InputImage.fromMediaImage(
-      imageProxy.getImage(), imageProxy.getImageInfo().getRotationDegrees());
+      mediaImage, imageProxy.getImageInfo().getRotationDegrees());
 
     barcodeScanner.process(inputImage)
       .addOnSuccessListener(barcodes -> {
@@ -286,13 +296,16 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
     captureButton.setEnabled(false);
     statusLabel.setText(R.string.prescription_processing);
 
-    imageCapture.takePicture(cameraExecutor,
-      new ImageCapture.OnImageCapturedCallback() {
-        @Override
-        public void onCaptureSuccess(@NonNull ImageProxy image) {
-          Bitmap bitmap = imageProxyToBitmap(image);
-          image.close();
+    // Save to temp file, then process - more reliable than in-memory capture
+    File photoFile = new File(getCacheDir(), "prescription_scan.jpg");
+    ImageCapture.OutputFileOptions outputOptions =
+      new ImageCapture.OutputFileOptions.Builder(photoFile).build();
 
+    imageCapture.takePicture(outputOptions, cameraExecutor,
+      new ImageCapture.OnImageSavedCallback() {
+        @Override
+        public void onImageSaved(@NonNull ImageCapture.OutputFileResults results) {
+          Bitmap bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
           if (bitmap == null) {
             runOnUiThread(() -> {
               statusLabel.setText(R.string.prescription_capture_error);
@@ -301,10 +314,9 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
             return;
           }
 
-          // Run OCR on the captured image
           InputImage inputImage = InputImage.fromBitmap(bitmap, 0);
 
-          // Also try QR detection on photo if not found during live preview
+          // Try QR detection on photo if not found during live preview
           if (qrPayload == null) {
             barcodeScanner.process(inputImage)
               .addOnSuccessListener(barcodes -> {
@@ -320,6 +332,7 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
               });
           }
 
+          // OCR on the captured photo
           textRecognizer.process(inputImage)
             .addOnSuccessListener(text -> {
               List<String> lines = new ArrayList<>();
@@ -329,9 +342,11 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
                 }
               }
               processOCRResults(lines);
+              photoFile.delete();
             })
             .addOnFailureListener(e -> {
               Log.e(TAG, "OCR failed", e);
+              photoFile.delete();
               runOnUiThread(() -> {
                 statusLabel.setText(R.string.prescription_capture_error);
                 captureButton.setEnabled(true);
@@ -348,28 +363,6 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
           });
         }
       });
-  }
-
-  private Bitmap imageProxyToBitmap(ImageProxy imageProxy) {
-    try {
-      ByteBuffer buffer = imageProxy.getPlanes()[0].getBuffer();
-      byte[] bytes = new byte[buffer.remaining()];
-      buffer.get(bytes);
-      Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-      // Rotate if needed
-      int rotation = imageProxy.getImageInfo().getRotationDegrees();
-      if (rotation != 0 && bitmap != null) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(rotation);
-        bitmap = Bitmap.createBitmap(bitmap, 0, 0,
-          bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-      }
-      return bitmap;
-    } catch (Exception e) {
-      Log.e(TAG, "Error converting image", e);
-      return null;
-    }
   }
 
   private void processOCRResults(List<String> lines) {
@@ -451,7 +444,8 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
               patientZip = plzMatcher.group();
               String cityPart = cleaned.substring(4).trim();
               int cityComma = cityPart.indexOf(',');
-              patientCity = (cityComma >= 0) ? cityPart.substring(0, cityComma).trim() : cityPart;
+              patientCity = (cityComma >= 0) ?
+                cityPart.substring(0, cityComma).trim() : cityPart;
             }
           }
         }
@@ -461,7 +455,8 @@ public class PrescriptionScannerActivity extends AppCompatActivity {
       if (hospitalName.isEmpty()) {
         if (lower.contains("spital") || lower.contains("klinik") ||
             lower.contains("praxis") || lower.contains("universit")) {
-          if (trimmed.length() > 5 && !lower.contains("strasse") && !lower.contains("str.")) {
+          if (trimmed.length() > 5 && !lower.contains("strasse") &&
+              !lower.contains("str.")) {
             hospitalName = trimmed;
           }
         }

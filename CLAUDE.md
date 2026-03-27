@@ -63,7 +63,12 @@ For unmatched pairs (no EPha hit), both substance-level and class-level tiers ru
 
 ## Kostengutsprache (KVV 71)
 
-`KostengutspracheActivity` — IBD Gastroenterology cost approval form, accessible from ReceiptActivity toolbar. Features:
+`KostengutspracheActivity` — IBD Gastroenterology cost approval form. Accessible from:
+- ReceiptActivity toolbar ("Kostengutsprache" menu item)
+- Rezepte "+" button → "Rezept scannen" (creates a new receipt automatically)
+- Tapping any receipt that has KKV data (diagnosis field set) in the list
+
+Features:
 - Patient fields (name, birth date, gender, address, AHV number)
 - Insurance fields (insurer name, card number) with insurance card scanner integration
 - Diagnosis (M. Crohn / Colitis ulcerosa)
@@ -71,6 +76,10 @@ For unmatched pairs (no EPha hit), both substance-level and class-level tiers ru
 - Physician fields (name, ZSR, hospital, department) with prescription scanner integration
 - PDF generation (A4) and share via Android share sheet
 - Data persisted to Realm via new model fields: `Patient.ahvNumber`, `Patient.insurerName`, `Patient.healthCardNumber`, `Operator.zsrNumber`, `Receipt.diagnosis`
+- Form data auto-saved on back navigation
+- QR code data (CHMED16A) has priority over OCR data when filling the form
+
+**Data priority:** QR code (structured, reliable) → OCR (supplements gaps) → manual input
 
 ## Insurance Card Scanner
 
@@ -83,9 +92,14 @@ For unmatched pairs (no EPha hit), both substance-level and class-level tiers ru
 
 `PrescriptionScannerActivity` — Two-stage prescription scanner using ML Kit Barcode Scanning + Text Recognition + CameraX.
 - Stage 1: Live QR detection for CHMED16A / eprescription.hin.ch payloads
-- Stage 2: Photo capture + full-page OCR
+- Stage 2: Photo capture + full-page OCR (file-based capture for reliability)
 - Extracts: medications (dosage form keywords), dosages, AHV, ZSR, physician name/title, hospital, department, patient address, prescription date
+- QR payload passed to KostengutspracheActivity and parsed via `EPrescription` class
 - Returns results via `RESULT_OK` Intent extras
+
+## Edge-to-Edge (Android 15+)
+
+`BaseActivity` handles `WindowInsetsCompat.Type.systemBars()` padding automatically for all activities via `setOnApplyWindowInsetsListener`. Scanner activities (not extending BaseActivity) handle insets individually. Required because `targetSdkVersion 35` enforces edge-to-edge.
 
 ## Realm Schema
 
