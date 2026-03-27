@@ -73,6 +73,7 @@ public class Receipt extends RealmObject implements Retryable {
   private String filepath; // file path of `.amk`
   private String filename; // original filename
   private String diagnosis; // crohn or colitis (for Kostengutsprache)
+  private String medicationText; // free-text medication list (for Kostengutsprache)
 
   // -- static methods
 
@@ -402,6 +403,9 @@ public class Receipt extends RealmObject implements Retryable {
 
   public String getDiagnosis() { return diagnosis; }
   public void setDiagnosis(String value) { this.diagnosis = value; }
+
+  public String getMedicationText() { return medicationText; }
+  public void setMedicationText(String value) { this.medicationText = value; }
 
   // TODO
   public String getIssuedDate() { return ""; } // (via place_date)

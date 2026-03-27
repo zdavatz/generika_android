@@ -409,6 +409,11 @@ public class MainActivity extends BaseActivity implements
   @Override
   protected void onResume() {
     super.onResume();
+
+    // Refresh list to show updated data (e.g. after KKV form saved)
+    if (listAdapter != null) {
+      listAdapter.refreshAll();
+    }
   }
 
   @Override

@@ -302,37 +302,42 @@ public class KostengutspracheActivity extends BaseActivity {
       setTextIfNotEmpty(physicianZsrField, operator.getZsrNumber());
     }
 
-    // Medications
-    RealmList<Product> medications = receipt.getMedications();
-    if (medications != null) {
-      StringBuilder medText = new StringBuilder();
-      for (Product product : medications) {
-        String name = product.getName();
-        String pack = product.getPack();
-        String ean = product.getEan();
+    // Medications: prefer saved free-text, fallback to Product objects
+    String savedMedText = receipt.getMedicationText();
+    if (savedMedText != null && !savedMedText.isEmpty()) {
+      medicationText.setText(savedMedText);
+    } else {
+      RealmList<Product> medications = receipt.getMedications();
+      if (medications != null) {
+        StringBuilder medText = new StringBuilder();
+        for (Product product : medications) {
+          String name = product.getName();
+          String pack = product.getPack();
+          String ean = product.getEan();
 
-        if (pack != null && !pack.isEmpty()) {
-          name = pack;
-        } else if ((name == null || name.isEmpty()) && ean != null && !ean.isEmpty()) {
-          String dbName = lookupMedNameByGTIN(ean);
-          if (!dbName.isEmpty()) {
-            name = dbName;
+          if (pack != null && !pack.isEmpty()) {
+            name = pack;
+          } else if ((name == null || name.isEmpty()) && ean != null && !ean.isEmpty()) {
+            String dbName = lookupMedNameByGTIN(ean);
+            if (!dbName.isEmpty()) {
+              name = dbName;
+            }
+          }
+
+          if (name == null || name.isEmpty()) {
+            name = (ean != null && !ean.isEmpty()) ? ean : "?";
+          }
+
+          if (medText.length() > 0) medText.append("\n");
+          medText.append(name);
+
+          String comment = product.getComment();
+          if (comment != null && !comment.isEmpty()) {
+            medText.append(" \u2013 ").append(comment);
           }
         }
-
-        if (name == null || name.isEmpty()) {
-          name = (ean != null && !ean.isEmpty()) ? ean : "?";
-        }
-
-        if (medText.length() > 0) medText.append("\n");
-        medText.append(name);
-
-        String comment = product.getComment();
-        if (comment != null && !comment.isEmpty()) {
-          medText.append(" \u2013 ").append(comment);
-        }
+        medicationText.setText(medText.toString());
       }
-      medicationText.setText(medText.toString());
     }
 
     // Diagnosis
@@ -416,6 +421,9 @@ public class KostengutspracheActivity extends BaseActivity {
         operator.setGivenName(getText(physicianFirstNameField));
         operator.setZsrNumber(getText(physicianZsrField));
       }
+
+      // Medication text
+      receipt.setMedicationText(medicationText.getText().toString());
 
       // Diagnosis - always save so we know this is a KKV receipt
       if (diagnosisCrohn.isChecked()) {
@@ -828,6 +836,62 @@ public class KostengutspracheActivity extends BaseActivity {
   private void setTextIfNotEmpty(EditText field, String value) {
     if (value != null && !value.isEmpty() && !value.equals("null")) {
       field.setText(value);
+    }
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putString("patientName", getText(patientNameField));
+    outState.putString("patientFirstName", getText(patientFirstNameField));
+    outState.putString("patientBirthDate", getText(patientBirthDateField));
+    outState.putInt("genderId", genderGroup.getCheckedRadioButtonId());
+    outState.putString("patientStreet", getText(patientStreetField));
+    outState.putString("patientZipCity", getText(patientZipCityField));
+    outState.putString("patientAhv", getText(patientAhvField));
+    outState.putString("insurerName", getText(insurerNameField));
+    outState.putString("insurerNumber", getText(insurerNumberField));
+    outState.putInt("diagnosisId", diagnosisGroup.getCheckedRadioButtonId());
+    outState.putString("medicationText", medicationText.getText().toString());
+    outState.putString("physicianName", getText(physicianNameField));
+    outState.putString("physicianFirstName", getText(physicianFirstNameField));
+    outState.putString("physicianZsr", getText(physicianZsrField));
+    outState.putString("physicianHospital", getText(physicianHospitalField));
+    outState.putString("physicianDepartment", getText(physicianDepartmentField));
+    outState.putString("date", getText(dateField));
+    if (receipt != null) {
+      outState.putString("receiptHashedKey", receipt.getHashedKey());
+    }
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    super.onRestoreInstanceState(savedInstanceState);
+    patientNameField.setText(savedInstanceState.getString("patientName", ""));
+    patientFirstNameField.setText(savedInstanceState.getString("patientFirstName", ""));
+    patientBirthDateField.setText(savedInstanceState.getString("patientBirthDate", ""));
+    int genderId = savedInstanceState.getInt("genderId", -1);
+    if (genderId != -1) genderGroup.check(genderId);
+    patientStreetField.setText(savedInstanceState.getString("patientStreet", ""));
+    patientZipCityField.setText(savedInstanceState.getString("patientZipCity", ""));
+    patientAhvField.setText(savedInstanceState.getString("patientAhv", ""));
+    insurerNameField.setText(savedInstanceState.getString("insurerName", ""));
+    insurerNumberField.setText(savedInstanceState.getString("insurerNumber", ""));
+    int diagnosisId = savedInstanceState.getInt("diagnosisId", -1);
+    if (diagnosisId != -1) diagnosisGroup.check(diagnosisId);
+    medicationText.setText(savedInstanceState.getString("medicationText", ""));
+    physicianNameField.setText(savedInstanceState.getString("physicianName", ""));
+    physicianFirstNameField.setText(savedInstanceState.getString("physicianFirstName", ""));
+    physicianZsrField.setText(savedInstanceState.getString("physicianZsr", ""));
+    physicianHospitalField.setText(savedInstanceState.getString("physicianHospital", ""));
+    physicianDepartmentField.setText(savedInstanceState.getString("physicianDepartment", ""));
+    dateField.setText(savedInstanceState.getString("date", ""));
+
+    // Restore receipt reference
+    String hashedKey = savedInstanceState.getString("receiptHashedKey");
+    if (hashedKey != null && receipt == null) {
+      DataManager dataManager = new DataManager(Constant.SOURCE_TYPE_AMKJSON);
+      this.receipt = dataManager.getReceiptByHashedKey(hashedKey);
     }
   }
 

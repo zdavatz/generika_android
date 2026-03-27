@@ -182,5 +182,19 @@ public class Migration implements RealmMigration {
 
       oldVersion++;
     }
+
+    /**
+     * // Version 3 - 4 (2026)
+     *
+     * - ADD new field into Receipt (medicationText)
+     */
+    if (oldVersion == 3) {
+      Log.d(TAG, "(migrate) oldVersion: " + oldVersion);
+
+      schema.get("Receipt")
+        .addField("medicationText", String.class);
+
+      oldVersion++;
+    }
   }
 }

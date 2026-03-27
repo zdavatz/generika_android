@@ -103,7 +103,9 @@ Features:
 
 ## Realm Schema
 
-Current version: **3** (defined in `GenerikaApplication.SCHEME_VERSION`). Migrations in `Migration.java`.
+Current version: **4** (defined in `GenerikaApplication.SCHEME_VERSION`). Migrations in `Migration.java`.
+- v3: Added `Patient.ahvNumber/insurerName/healthCardNumber`, `Operator.zsrNumber`, `Receipt.diagnosis`
+- v4: Added `Receipt.medicationText` (free-text medication list for Kostengutsprache)
 
 ## Conventions
 

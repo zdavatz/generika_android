@@ -190,15 +190,11 @@ public class ReceiptRecyclerAdapter
         Receipt item = getItem(position);
         Log.d(TAG, "(onItemSwiped) position=" + position + " item=" + (item != null ? item.getId() : "null"));
         if (item != null && itemListener != null) {
-            String itemId = item.getId();
-            itemListener.onDelete(itemId);
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position, getItemCount());
-        } else if (item == null) {
-            // Item already deleted by Realm, just refresh
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position, getItemCount());
+            itemListener.onDelete(item.getId());
         }
+        // Always update UI, even if item was already gone from Realm
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, getItemCount());
     }
 
     /**

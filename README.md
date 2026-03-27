@@ -34,9 +34,9 @@ It's available on [Google Play](https://play.google.com/store/apps/details?id=or
 
 ## Platform
 
-* `>= Android 12.0` (API Level 31)
-* `minSdkVersion 23`
-* `targetSdkVersion 31`
+* `>= Android 14.0` (API Level 34)
+* `minSdkVersion 34`
+* `targetSdkVersion 35`
 
 ## Setup
 
