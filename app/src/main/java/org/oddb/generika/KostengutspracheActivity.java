@@ -223,12 +223,14 @@ public class KostengutspracheActivity extends BaseActivity {
     // Buttons
     ImageButton scanPrescriptionBtn = findViewById(R.id.kg_scan_prescription_btn);
     scanPrescriptionBtn.setOnClickListener(v -> {
+      saveFormToReceipt();
       Intent intent = new Intent(this, PrescriptionScannerActivity.class);
       prescriptionScanLauncher.launch(intent);
     });
 
     ImageButton scanInsuranceBtn = findViewById(R.id.kg_scan_insurance_btn);
     scanInsuranceBtn.setOnClickListener(v -> {
+      saveFormToReceipt();
       Intent intent = new Intent(this, InsuranceCardScannerActivity.class);
       insuranceScanLauncher.launch(intent);
     });
@@ -375,11 +377,16 @@ public class KostengutspracheActivity extends BaseActivity {
   }
 
   private void saveFormToReceipt() {
-    if (receipt == null) return;
+    if (receipt == null) {
+      Log.d(TAG, "(saveFormToReceipt) receipt is null, cannot save");
+      return;
+    }
 
     realm.executeTransaction(r -> {
       // Patient
       Patient patient = receipt.getPatient();
+      Log.d(TAG, "(saveFormToReceipt) patient=" + (patient != null) +
+        " name=" + getText(patientNameField) + " firstName=" + getText(patientFirstNameField));
       if (patient != null) {
         patient.setFamilyName(getText(patientNameField));
         patient.setGivenName(getText(patientFirstNameField));

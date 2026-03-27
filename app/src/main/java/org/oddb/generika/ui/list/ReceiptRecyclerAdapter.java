@@ -138,6 +138,7 @@ public class ReceiptRecyclerAdapter
             String placeDate = item.getPlaceDate();
             patientName = (placeDate != null && !placeDate.equals("null")) ? placeDate : "";
         }
+        Log.d(TAG, "(onBindViewHolder) pos=" + position + " patientName='" + patientName + "'");
         holder.placeDate.setText(patientName);
 
         // Second line: operator/doctor name
