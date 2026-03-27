@@ -34,6 +34,7 @@ import io.realm.RealmResults;
 import org.oddb.generika.MainActivity;
 import org.oddb.generika.R;
 import org.oddb.generika.model.Operator;
+import org.oddb.generika.model.Patient;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
 import org.oddb.generika.util.Formatter;
@@ -118,28 +119,46 @@ public class ReceiptRecyclerAdapter
         final Context context = holder.itemView.getContext();
 
         final Operator operator = item.getOperator();
+        final Patient patient = item.getPatient();
         final RealmList<Product> medications = item.getMedications();
 
-        // placeDate
-        holder.placeDate.setText(item.getPlaceDate());
+        // First line: patient name (most important)
+        String patientName = "";
+        if (patient != null) {
+            String pGiven = patient.getGivenName();
+            String pFamily = patient.getFamilyName();
+            patientName = String.format("%s %s",
+                pGiven != null ? pGiven : "",
+                pFamily != null ? pFamily : "").trim();
+        }
+        if (patientName.isEmpty()) {
+            patientName = item.getPlaceDate();
+        }
+        holder.placeDate.setText(patientName);
 
-        // operatorName (givenName + familyName)
-        String name = String.format(
-            "%s %s", operator.getGivenName(), operator.getFamilyName());
-        holder.operatorName.setText(name);
+        // Second line: operator/doctor name
+        String operatorName = "";
+        if (operator != null) {
+            String oGiven = operator.getGivenName();
+            String oFamily = operator.getFamilyName();
+            operatorName = String.format("%s %s",
+                oGiven != null ? oGiven : "",
+                oFamily != null ? oFamily : "").trim();
+        }
+        holder.operatorName.setText(operatorName);
 
         // filename (original filename)
         holder.filename.setText(item.getFilename());
 
         // phone
-        holder.operatorPhone.setText(operator.getPhone());
+        holder.operatorPhone.setText(operator != null ? operator.getPhone() : "");
 
         // datetime (importedAt)
         holder.datetime.setText(
             Formatter.formatAsLocalDate(item.getDatetime(), "HH:mm dd.MM.YYYY"));
 
         // email
-        holder.operatorEmail.setText(operator.getEmail());
+        holder.operatorEmail.setText(operator != null ? operator.getEmail() : "");
 
         // medications count
         int medicationsCount = 0;

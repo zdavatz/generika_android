@@ -290,8 +290,12 @@ public class DataManager {
         public void execute(Realm realm_) {
           Log.d(TAG, "(deleteReceipt) receiptId: " + id);
 
+          // First try in data source, then globally
           Receipt receipt = data.getFiles().where().equalTo(
             "id", id).findFirst();
+          if (receipt == null) {
+            receipt = realm_.where(Receipt.class).equalTo("id", id).findFirst();
+          }
           if (receipt == null) {
             Log.d(TAG, "(deleteReceipt) receipt not found: " + id);
             return;
