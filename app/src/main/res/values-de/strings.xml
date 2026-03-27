@@ -111,6 +111,10 @@
     <string name="preference_invalid_gln">Die GLN muss eine 13-stellige Nummer sein.</string>
     <string name="preference_zr_customer_number">zR Kundennummer</string>
 
+    <!-- Receipt add dialog -->
+    <string name="receipt_add_title">Rezept hinzufügen</string>
+    <string name="receipt_import_file">.amk Datei importieren</string>
+
     <!-- Kostengutsprache -->
     <string name="kostengutsprache">Kostengutsprache</string>
     <string name="kostengutsprache_title">Kostengutsprache KVV 71 \u2013 IBD Gastroenterologie</string>

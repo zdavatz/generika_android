@@ -123,6 +123,11 @@ public class KostengutspracheActivity extends BaseActivity {
     initViews();
     registerLaunchers();
     prefillFromReceipt();
+
+    // If opened from prescription scan (without receipt), apply scan results
+    if (getIntent().getBooleanExtra("fromPrescriptionScan", false)) {
+      applyPrescriptionScanResult(getIntent());
+    }
   }
 
   private void registerLaunchers() {

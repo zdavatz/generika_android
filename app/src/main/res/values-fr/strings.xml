@@ -111,6 +111,10 @@
     <string name="preference_invalid_gln">Le GLN doit être un numéro à 13 chiffres</string>
     <string name="preference_zr_customer_number">zR Numéro de client</string>
 
+    <!-- Receipt add dialog -->
+    <string name="receipt_add_title">Ajouter ordonnance</string>
+    <string name="receipt_import_file">Importer fichier .amk</string>
+
     <!-- Kostengutsprache -->
     <string name="kostengutsprache">Kostengutsprache</string>
     <string name="kg_pdf_email">PDF / Email</string>

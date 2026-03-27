@@ -23,6 +23,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import androidx.appcompat.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -621,15 +622,33 @@ public class MainActivity extends BaseActivity implements
           intent.putExtra(Constant.kUseFlash, true);
           startActivityForResult(intent, Constant.RC_BARCODE_CAPTURE);
         } else if (sourceType.equals(Constant.SOURCE_TYPE_AMKJSON)) {
-          // receipt (document provider)
-          intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-          intent.addCategory(Intent.CATEGORY_OPENABLE);
-          String[] mimeTypes = new String[]{
-            "application/amk", "application/json", "application/octet-stream",
-            "text/plain"};
-          intent.setType(TextUtils.join("|", mimeTypes));
-          intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-          startActivityForResult(intent, Constant.RC_FILE_PROVIDER);
+          // show choice: file import or camera scan
+          String[] options = {
+            getString(R.string.kg_scan_prescription),
+            getString(R.string.receipt_import_file)
+          };
+          new AlertDialog.Builder(MainActivity.this)
+            .setTitle(getString(R.string.receipt_add_title))
+            .setItems(options, (dialog, which) -> {
+              if (which == 0) {
+                // Prescription Scanner (camera)
+                Intent scanIntent = new Intent(
+                  MainActivity.this, PrescriptionScannerActivity.class);
+                startActivityForResult(scanIntent, Constant.RC_PRESCRIPTION_SCAN);
+              } else {
+                // File import (document provider)
+                Intent fileIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                fileIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                String[] mimeTypes = new String[]{
+                  "application/amk", "application/json",
+                  "application/octet-stream", "text/plain"};
+                fileIntent.setType(TextUtils.join("|", mimeTypes));
+                fileIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+                startActivityForResult(fileIntent, Constant.RC_FILE_PROVIDER);
+              }
+            })
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show();
         }
       }
     });
@@ -944,6 +963,15 @@ public class MainActivity extends BaseActivity implements
         }
       } else {
         Log.d(TAG, "(onActivityResult) resultCode: " + resultCode);
+      }
+    } else if (requestCode == Constant.RC_PRESCRIPTION_SCAN) {
+      if (resultCode == RESULT_OK && data != null) {
+        // Open Kostengutsprache with scan results
+        Intent intent = new Intent(this, KostengutspracheActivity.class);
+        // Pass all scan result extras through
+        intent.putExtras(data);
+        intent.putExtra("fromPrescriptionScan", true);
+        startActivity(intent);
       }
     } else {
       Log.d(TAG, "(onActivityResult) requestCode: " + requestCode);

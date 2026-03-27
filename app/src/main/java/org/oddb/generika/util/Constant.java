@@ -146,6 +146,7 @@ public class Constant extends Object {
   public final static int IMPORT_SUCCESS = 200;
 
   public final static int RC_FILE_PROVIDER = 8000;
+  public final static int RC_PRESCRIPTION_SCAN = 8001;
 
   // [Receipt]
   // -- intent keys
