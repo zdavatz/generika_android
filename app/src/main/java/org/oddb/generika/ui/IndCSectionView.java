@@ -56,7 +56,14 @@ public class IndCSectionView extends LinearLayout {
 
   /**
    * Parses comma-separated `INDIKATIONSCODE` and newline-separated
-   * `INDIKATIONSCODE_TEXT` columns shipped by rust2xml >= 3.1.12.
+   * `INDIKATIONSCODE_TEXT` columns shipped by rust2xml >= 3.1.12 / cpp2sqlite
+   * --fhir.
+   *
+   * Code sections start with `^\d+\.\d+: ` at the beginning of a line.
+   * Continuation lines (e.g. multi-paragraph BAG limitations text) are
+   * appended to the current code's text. This keeps the full multi-line
+   * limitations intact so the "Kostengutsprache erforderlich" detector
+   * sees keywords that appear below the first line.
    */
   public static List<IndCEntry> parse(String codeStr, String textStr) {
     List<IndCEntry> result = new ArrayList<>();
@@ -65,12 +72,22 @@ public class IndCSectionView extends LinearLayout {
     String[] codeParts = codeStr.split(",");
     Map<String, String> textByCode = new HashMap<>();
     if (textStr != null) {
-      for (String line : textStr.split("\n")) {
-        int colon = line.indexOf(':');
-        if (colon < 0) continue;
-        String code = line.substring(0, colon).trim();
-        String text = line.substring(colon + 1).trim();
-        if (!code.isEmpty()) textByCode.put(code, text);
+      String currentCode = null;
+      StringBuilder buf = new StringBuilder();
+      for (String line : textStr.split("\n", -1)) {
+        String matched = matchCodePrefix(line);
+        if (matched != null) {
+          if (currentCode != null) {
+            textByCode.put(currentCode, buf.toString().trim());
+          }
+          currentCode = matched;
+          buf = new StringBuilder(line.substring(matched.length() + 2));
+        } else if (currentCode != null) {
+          buf.append('\n').append(line);
+        }
+      }
+      if (currentCode != null) {
+        textByCode.put(currentCode, buf.toString().trim());
       }
     }
 
@@ -78,18 +95,47 @@ public class IndCSectionView extends LinearLayout {
       String code = c.trim();
       if (code.isEmpty()) continue;
       String full = textByCode.containsKey(code) ? textByCode.get(code) : "";
+      String firstLine = full;
+      int nl = firstLine.indexOf('\n');
+      if (nl >= 0) firstLine = firstLine.substring(0, nl);
       String title;
-      int dot = full.indexOf(". ");
+      int dot = firstLine.indexOf(". ");
       if (dot >= 0) {
-        title = full.substring(0, dot);
-      } else if (full.length() > 80) {
-        title = full.substring(0, 80) + "…";
+        title = firstLine.substring(0, dot);
+      } else if (firstLine.length() > 80) {
+        title = firstLine.substring(0, 80) + "…";
       } else {
-        title = full;
+        title = firstLine;
       }
       result.add(new IndCEntry(code, title, full));
     }
     return result;
+  }
+
+  /**
+   * If `line` starts with a BAG IndC code prefix `<digits>.<digits>: `,
+   * returns the code portion. Otherwise null.
+   */
+  private static String matchCodePrefix(String line) {
+    if (line == null || line.length() < 4) return null;
+    int i = 0;
+    int len = line.length();
+    int dotPos = -1;
+    while (i < len) {
+      char ch = line.charAt(i);
+      if (ch >= '0' && ch <= '9') {
+        i++;
+      } else if (ch == '.' && dotPos < 0 && i > 0) {
+        dotPos = i;
+        i++;
+      } else {
+        break;
+      }
+    }
+    if (dotPos < 0 || i == dotPos + 1) return null; // need digits on both sides
+    if (i + 2 > len) return null;
+    if (line.charAt(i) != ':' || line.charAt(i + 1) != ' ') return null;
+    return line.substring(0, i);
   }
 
   // -- Listener
