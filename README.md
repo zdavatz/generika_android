@@ -29,6 +29,7 @@ It's available on [Google Play](https://play.google.com/store/apps/details?id=or
 * ZurRose prescription forwarding
 * **Automatic database download** on first launch — pharmaceutical DB (downloaded as zip) and interactions DB are fetched sequentially with progress display; database stats visible in Settings
 * **Kostengutsprache (KVV 71)** — IBD Gastroenterology cost approval form with patient, insurance, diagnosis, medication, and physician fields; PDF generation and share via email or other apps
+* **Indikationscode (IndC)** selector inside the Kostengutsprache form: pick the BAG XXXXX.NN code, see the matching limitations text live, "Kostengutsprache erforderlich" warning when the limitations contain `kostengutsprache`/`vertrauensarzt` (multi-line aware so the warning fires even when the keyword is below the first line), KVV 71b/c off-label fallback when no IndC is available; selection embedded in the PDF (issue #102)
 * **Insurance Card Scanner** — OCR-based Swiss health insurance card scanner using ML Kit Text Recognition and CameraX; extracts name, card number, AHV, BAG number, birth date, gender; maps BAG to insurer name via JSON lookup tables
 * **Prescription Scanner** — Two-stage scanner: live QR code detection for CHMED16A e-prescriptions + full-page OCR to extract medications, dosages, physician info, patient address, AHV and ZSR numbers. QR code data has priority and is parsed via EPrescription; OCR supplements missing fields
 
