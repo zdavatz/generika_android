@@ -196,5 +196,22 @@ public class Migration implements RealmMigration {
 
       oldVersion++;
     }
+
+    /**
+     * // Version 4 - 5 (2026)
+     *
+     * - ADD Indikationscode fields into Receipt for Kostengutsprache (#102)
+     */
+    if (oldVersion == 4) {
+      Log.d(TAG, "(migrate) oldVersion: " + oldVersion);
+
+      schema.get("Receipt")
+        .addField("indikationscode", String.class)
+        .addField("indikationscodeTitle", String.class)
+        .addField("indikationscodeText", String.class)
+        .addField("indikationscodeOffLabel", String.class);
+
+      oldVersion++;
+    }
   }
 }

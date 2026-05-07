@@ -32,11 +32,12 @@ public class AmikoDBManager extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "amiko_db_full_idx_pinfo_de.db";
-    private static final String AMIKO_COLUMNS = "_id, title, auth, atc, substances, regnrs, atc_class, tindex_str, application_str, indications_str, customer_id, pack_info_str, add_info_str, ids_str, titles_str, content, style_str, packages, type";
+    private static final String AMIKO_BASE_COLUMNS = "_id, title, auth, atc, substances, regnrs, atc_class, tindex_str, application_str, indications_str, customer_id, pack_info_str, add_info_str, ids_str, titles_str, content, style_str, packages, type";
     private static final String DB_URL = "http://pillbox.oddb.org/amiko_db_full_idx_pinfo_de.db.zip";
 
     private SQLiteDatabase mDataBase;
     private String mAppDataDir;
+    private Boolean mHasIndCColumns; // null = unknown, lazy detection
 
     private final Context mContext;
     private static AmikoDBManager sInstance;
@@ -103,7 +104,35 @@ public class AmikoDBManager extends SQLiteOpenHelper {
             mDataBase.close();
             mDataBase = null;
         }
+        mHasIndCColumns = null;
         openDataBase();
+    }
+
+    private boolean hasIndCColumns() {
+        if (mHasIndCColumns != null) return mHasIndCColumns;
+        if (mDataBase == null && !this.openDataBase()) return false;
+        boolean found = false;
+        try {
+            Cursor c = mDataBase.rawQuery("PRAGMA table_info(amikodb)", null);
+            while (c.moveToNext()) {
+                String name = c.getString(1);
+                if ("indikationscode".equalsIgnoreCase(name)) {
+                    found = true;
+                    break;
+                }
+            }
+            c.close();
+        } catch (Exception e) {
+            Log.e(TAG, "hasIndCColumns error", e);
+        }
+        mHasIndCColumns = found;
+        return found;
+    }
+
+    private String amikoColumns() {
+        return hasIndCColumns()
+            ? AMIKO_BASE_COLUMNS + ", indikationscode, indikationscode_text"
+            : AMIKO_BASE_COLUMNS;
     }
 
     public ArrayList<AmikoDBRow> findWithRegnr(String regnr, String type) {
@@ -111,7 +140,7 @@ public class AmikoDBManager extends SQLiteOpenHelper {
         if (mDataBase == null && !this.openDataBase()) {
             return results;
         }
-        String sql = "SELECT " + AMIKO_COLUMNS + " FROM amikodb WHERE regnrs LIKE ? ";
+        String sql = "SELECT " + amikoColumns() + " FROM amikodb WHERE regnrs LIKE ? ";
         ArrayList<String> args = new ArrayList<String>();
         args.add("%" + regnr + "%");
         if (type != null && !type.isEmpty()) {
@@ -143,7 +172,7 @@ public class AmikoDBManager extends SQLiteOpenHelper {
         if (mDataBase == null && !this.openDataBase()) {
             return results;
         }
-        String sql = "SELECT " + AMIKO_COLUMNS + " FROM amikodb WHERE atc = ?";
+        String sql = "SELECT " + amikoColumns() + " FROM amikodb WHERE atc = ?";
         Cursor cursor = mDataBase.rawQuery(sql, new String[]{atc});
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) {

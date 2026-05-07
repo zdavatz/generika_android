@@ -154,6 +154,8 @@
     <string name="kg_crohn">M. Crohn</string>
     <string name="kg_colitis">Colitis ulcerosa</string>
     <string name="kg_medication_section">Medikament</string>
+    <string name="kg_indc_section">Indikationscode (IndC)</string>
+    <string name="kg_indc_off_label_section">Off-Label (KVV 71b/c)</string>
     <string name="kg_physician_section">Arzt / \u00C4rztin</string>
     <string name="kg_zsr_number">ZSR-Nr.</string>
     <string name="kg_hospital">Spital / Praxis</string>

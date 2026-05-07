@@ -74,6 +74,11 @@ public class Receipt extends RealmObject implements Retryable {
   private String filename; // original filename
   private String diagnosis; // crohn or colitis (for Kostengutsprache)
   private String medicationText; // free-text medication list (for Kostengutsprache)
+  // Indikationscode (BAG XXXXX.NN) — Kostengutsprache, issue #102
+  private String indikationscode;
+  private String indikationscodeTitle;
+  private String indikationscodeText;
+  private String indikationscodeOffLabel;
 
   // -- static methods
 
@@ -406,6 +411,18 @@ public class Receipt extends RealmObject implements Retryable {
 
   public String getMedicationText() { return medicationText; }
   public void setMedicationText(String value) { this.medicationText = value; }
+
+  public String getIndikationscode() { return indikationscode; }
+  public void setIndikationscode(String value) { this.indikationscode = value; }
+
+  public String getIndikationscodeTitle() { return indikationscodeTitle; }
+  public void setIndikationscodeTitle(String value) { this.indikationscodeTitle = value; }
+
+  public String getIndikationscodeText() { return indikationscodeText; }
+  public void setIndikationscodeText(String value) { this.indikationscodeText = value; }
+
+  public String getIndikationscodeOffLabel() { return indikationscodeOffLabel; }
+  public void setIndikationscodeOffLabel(String value) { this.indikationscodeOffLabel = value; }
 
   // TODO
   public String getIssuedDate() { return ""; } // (via place_date)

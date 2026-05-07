@@ -44,6 +44,9 @@ public class AmikoDBRow {
     public String style_str;
     public String packages;
     public String type;
+    // Optional columns (rust2xml >= 3.1.12). Null when DB lacks the columns.
+    public String indikationscode;
+    public String indikationscode_text;
 
     public AmikoDBRow(Cursor cursor) {
         this.id = cursor.getString(0);
@@ -65,6 +68,10 @@ public class AmikoDBRow {
         this.style_str = cursor.getString(16);
         this.packages = cursor.getString(17);
         this.type = cursor.getString(18);
+        int idxCode = cursor.getColumnIndex("indikationscode");
+        if (idxCode >= 0) this.indikationscode = cursor.getString(idxCode);
+        int idxText = cursor.getColumnIndex("indikationscode_text");
+        if (idxText >= 0) this.indikationscode_text = cursor.getString(idxText);
     }
 
     public ArrayList<AmikoDBPackage> parsedPackages() {

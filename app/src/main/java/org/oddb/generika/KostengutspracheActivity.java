@@ -62,10 +62,12 @@ import org.oddb.generika.model.Operator;
 import org.oddb.generika.model.Patient;
 import org.oddb.generika.model.Product;
 import org.oddb.generika.model.Receipt;
+import org.oddb.generika.ui.IndCSectionView;
 import org.oddb.generika.util.Constant;
 
 
-public class KostengutspracheActivity extends BaseActivity {
+public class KostengutspracheActivity extends BaseActivity
+    implements IndCSectionView.Listener {
   private static final String TAG = "KostengutspracheAct";
 
   private static final int REQUEST_INSURANCE_SCAN = 2001;
@@ -96,6 +98,9 @@ public class KostengutspracheActivity extends BaseActivity {
 
   // Medication
   private EditText medicationText;
+
+  // Indikationscode (IndC) — issue #102
+  private IndCSectionView indcSection;
 
   // Physician fields
   private EditText physicianNameField;
@@ -209,6 +214,17 @@ public class KostengutspracheActivity extends BaseActivity {
 
     // Medication
     medicationText = findViewById(R.id.kg_medication_text);
+    medicationText.addTextChangedListener(new android.text.TextWatcher() {
+      @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+      @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+      @Override public void afterTextChanged(android.text.Editable s) {
+        refreshIndCFromMedication();
+      }
+    });
+
+    // Indikationscode (IndC) section
+    indcSection = findViewById(R.id.kg_indc_section);
+    indcSection.setListener(this);
 
     // Physician
     physicianNameField = findViewById(R.id.kg_physician_name);
@@ -353,6 +369,85 @@ public class KostengutspracheActivity extends BaseActivity {
     // Date
     SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     dateField.setText(fmt.format(new Date()));
+
+    // Indikationscode — populate from first medication, then restore prior selection
+    refreshIndCFromMedication();
+    if (receipt != null) {
+      String savedCode = receipt.getIndikationscode();
+      if (savedCode != null && !savedCode.isEmpty()) {
+        indcSection.selectEntryByCode(savedCode);
+      }
+      String savedOff = receipt.getIndikationscodeOffLabel();
+      if (savedOff != null && !savedOff.isEmpty()) {
+        indcSection.setOffLabelText(savedOff);
+      }
+    }
+  }
+
+  // -- IndC (issue #102)
+
+  /**
+   * Look up the first medication in the medication text view via the AmiKo DB
+   * (by GTIN if present in receipt.medications, otherwise by name) and
+   * configure the IndC section. If the DB row has no IndC columns or no
+   * matching codes, the section shows the off-label fallback.
+   */
+  private void refreshIndCFromMedication() {
+    if (indcSection == null) return;
+
+    String medText = medicationText != null ? medicationText.getText().toString() : "";
+    if (medText.trim().isEmpty()) {
+      indcSection.configure("", "", null, null);
+      return;
+    }
+
+    // Use first product on receipt (has GTIN) if available
+    AmikoDBRow row = null;
+    String name = "";
+    String ean = "";
+    if (receipt != null) {
+      RealmList<Product> meds = receipt.getMedications();
+      if (meds != null && !meds.isEmpty()) {
+        Product first = meds.first();
+        ean = first.getEan() != null ? first.getEan() : "";
+        name = first.getName() != null ? first.getName() : "";
+        if (ean.length() == 13) {
+          AmikoDBManager db = AmikoDBManager.getInstance(this);
+          java.util.ArrayList<AmikoDBRow> rows = db.findWithGtin(ean, "");
+          if (rows != null && !rows.isEmpty()) row = rows.get(0);
+        }
+      }
+    }
+    // Fallback: first non-empty line of the medication text
+    if (name.isEmpty()) {
+      String first = medText.split("\n", 2)[0];
+      // strip dosage suffix " – ..."
+      int dash = first.indexOf(" – ");
+      name = dash > 0 ? first.substring(0, dash).trim() : first.trim();
+    }
+
+    String codeStr = row != null ? row.indikationscode : null;
+    String textStr = row != null ? row.indikationscode_text : null;
+    indcSection.configure(name, ean, codeStr, textStr);
+  }
+
+  @Override
+  public void onIndCEntrySelected(IndCSectionView.IndCEntry entry) {
+    if (receipt == null || realm == null) return;
+    final String code = entry != null ? entry.code : null;
+    final String title = entry != null ? entry.title : null;
+    final String text = entry != null ? entry.text : null;
+    realm.executeTransaction(r -> {
+      receipt.setIndikationscode(code);
+      receipt.setIndikationscodeTitle(title);
+      receipt.setIndikationscodeText(text);
+    });
+  }
+
+  @Override
+  public void onOffLabelTextChanged(String text) {
+    if (receipt == null || realm == null) return;
+    realm.executeTransaction(r -> receipt.setIndikationscodeOffLabel(text));
   }
 
   private String lookupMedNameByGTIN(String gtin) {
@@ -690,6 +785,43 @@ public class KostengutspracheActivity extends BaseActivity {
     y = drawSectionHeader(canvas, getString(R.string.kg_medication_section), margin, y, w);
     y = drawMultiline(canvas, medicationText.getText().toString(), margin, y, w);
     y += 10;
+
+    // Indikationscode (IndC) — issue #102
+    String indcCode = receipt != null ? receipt.getIndikationscode() : null;
+    String indcOff = receipt != null ? receipt.getIndikationscodeOffLabel() : null;
+    if (indcCode != null && !indcCode.isEmpty()) {
+      y = drawSectionHeader(canvas, getString(R.string.kg_indc_section), margin, y, w);
+      y = drawRow(canvas, "Indikationscode:", indcCode, margin, y, w);
+      y = drawRow(canvas, "Indikation:", receipt.getIndikationscodeTitle(), margin, y, w);
+      String indcText = receipt.getIndikationscodeText();
+      if (indcText != null && !indcText.isEmpty()) {
+        y += 4;
+        Paint labelPaint = new Paint();
+        labelPaint.setTextSize(9);
+        labelPaint.setFakeBoldText(true);
+        labelPaint.setColor(Color.DKGRAY);
+        canvas.drawText("Limitations-Text:", margin, y + 9, labelPaint);
+        y += 12;
+        // Quote bar + wrapped text
+        Paint quotePaint = new Paint();
+        quotePaint.setTextSize(10);
+        quotePaint.setColor(Color.BLACK);
+        float quoteX = margin + 8;
+        float quoteW = w - 8;
+        float startY = y;
+        float endY = drawMultiline(canvas, indcText, quoteX, y, quoteW);
+        Paint barPaint = new Paint();
+        barPaint.setColor(Color.rgb(178, 82, 0));
+        barPaint.setStrokeWidth(2f);
+        canvas.drawLine(margin, startY, margin, endY, barPaint);
+        y = endY + 6;
+      }
+      y += 10;
+    } else if (indcOff != null && !indcOff.isEmpty()) {
+      y = drawSectionHeader(canvas, getString(R.string.kg_indc_off_label_section), margin, y, w);
+      y = drawMultiline(canvas, indcOff, margin, y, w);
+      y += 10;
+    }
 
     // Physician
     y = drawSectionHeader(canvas, "Behandelnder " + getString(R.string.kg_physician_section), margin, y, w);

@@ -78,8 +78,13 @@ Features:
 - Data persisted to Realm via new model fields: `Patient.ahvNumber`, `Patient.insurerName`, `Patient.healthCardNumber`, `Operator.zsrNumber`, `Receipt.diagnosis`
 - Form data auto-saved on back navigation
 - QR code data (CHMED16A) has priority over OCR data when filling the form
+- **Indikationscode (IndC)** section between medication and physician (issue #102) — see `IndCSectionView.java`
 
 **Data priority:** QR code (structured, reliable) → OCR (supplements gaps) → manual input
+
+### Indikationscode (IndC) — issue #102
+
+`IndCSectionView` (in `ui/`) ports the iOS `IndCSection.swift`. Parses `INDIKATIONSCODE` (comma-separated codes) and `INDIKATIONSCODE_TEXT` (newline-separated `code: text`) columns shipped by rust2xml ≥ 3.1.12; `AmikoDBManager.hasIndCColumns()` PRAGMA-detects the columns at runtime so older DBs still load. Shows a radio list of codes with limitations text, fires a "Kostengutsprache erforderlich" warning when the limitations contain `kostengutsprache`/`vertrauensarzt`, and falls back to a KVV Art. 71b/c off-label textarea when the product has no IndC. Selection persists on `Receipt` (`indikationscode`, `indikationscodeTitle`, `indikationscodeText`, `indikationscodeOffLabel`) and is rendered in the KVV 71 PDF as a code/indication/limitations-text quote block.
 
 ## Insurance Card Scanner
 
@@ -103,9 +108,10 @@ Features:
 
 ## Realm Schema
 
-Current version: **4** (defined in `GenerikaApplication.SCHEME_VERSION`). Migrations in `Migration.java`.
+Current version: **5** (defined in `GenerikaApplication.SCHEME_VERSION`). Migrations in `Migration.java`.
 - v3: Added `Patient.ahvNumber/insurerName/healthCardNumber`, `Operator.zsrNumber`, `Receipt.diagnosis`
 - v4: Added `Receipt.medicationText` (free-text medication list for Kostengutsprache)
+- v5: Added `Receipt.indikationscode/indikationscodeTitle/indikationscodeText/indikationscodeOffLabel` (Indikationscode for Kostengutsprache, issue #102)
 
 ## Conventions
 

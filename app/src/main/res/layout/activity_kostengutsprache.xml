@@ -258,6 +258,13 @@
                 android:padding="8dp"
                 android:textSize="15sp" />
 
+            <!-- Indikationscode (IndC) — issue #102 -->
+            <org.oddb.generika.ui.IndCSectionView
+                android:id="@+id/kg_indc_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp" />
+
             <!-- Physician Section -->
             <TextView
                 android:layout_width="match_parent"
